@@ -1,0 +1,763 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		4600AF8F2F890A6000CD9B14 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4600AF8E2F890A6000CD9B14 /* PrivacyInfo.xcprivacy */; };
+		4663A63C2F7B39120021CF8A /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4663A63B2F7B39120021CF8A /* WidgetKit.framework */; };
+		4663A63E2F7B39120021CF8A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4663A63D2F7B39120021CF8A /* SwiftUI.framework */; };
+		4663A64D2F7B39130021CF8A /* SortydWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4663A6392F7B39120021CF8A /* SortydWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4663DC242F7FF57D0036A9D2 /* gong.wav in Resources */ = {isa = PBXBuildFile; fileRef = 4663DC232F7FF57D0036A9D2 /* gong.wav */; };
+		4663DC332F805E480036A9D2 /* SortydWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 4663DC292F805E460036A9D2 /* SortydWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		4663A64B2F7B39130021CF8A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4663A5EA2F7B38CA0021CF8A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4663A6382F7B39120021CF8A;
+			remoteInfo = SortydWidgetExtensionExtension;
+		};
+		4663DC312F805E480036A9D2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4663A5EA2F7B38CA0021CF8A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4663DC282F805E460036A9D2;
+			remoteInfo = "SortydWatch Watch App";
+		};
+		4663DC4B2F8066860036A9D2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4663A5EA2F7B38CA0021CF8A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4663DC282F805E460036A9D2;
+			remoteInfo = "SortydWatch Watch App";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		4663A6522F7B39130021CF8A /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				4663A64D2F7B39130021CF8A /* SortydWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4663DC372F805E480036A9D2 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				4663DC332F805E480036A9D2 /* SortydWatch Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		4600AF8E2F890A6000CD9B14 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		4663A5F22F7B38CA0021CF8A /* Sortyd.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sortyd.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4663A6392F7B39120021CF8A /* SortydWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SortydWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		4663A63B2F7B39120021CF8A /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		4663A63D2F7B39120021CF8A /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		4663A67D2F7B395C0021CF8A /* SortydWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SortydWidgetExtension.entitlements; sourceTree = "<group>"; };
+		4663DC232F7FF57D0036A9D2 /* gong.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = gong.wav; sourceTree = "<group>"; };
+		4663DC292F805E460036A9D2 /* SortydWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SortydWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		46EACFD32F7B8F96003C4AD6 /* SortydWidgetExtensionExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SortydWidgetExtensionExtension.entitlements; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		4663DC152F7F8F3C0036A9D2 /* Exceptions for "SortydWidgetExtension" folder in "SortydWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 4663A6382F7B39120021CF8A /* SortydWidgetExtension */;
+		};
+		4663DC172F7F8FBD0036A9D2 /* Exceptions for "SortydWidgetExtension" folder in "Sortyd" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				WidgetSharedData.swift,
+			);
+			target = 4663A5F12F7B38CA0021CF8A /* Sortyd */;
+		};
+		4663DC4E2F8067BF0036A9D2 /* Exceptions for "Sortyd" folder in "Sortyd" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 4663A5F12F7B38CA0021CF8A /* Sortyd */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		4663A5F42F7B38CA0021CF8A /* Sortyd */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4663DC4E2F8067BF0036A9D2 /* Exceptions for "Sortyd" folder in "Sortyd" target */,
+			);
+			path = Sortyd;
+			sourceTree = "<group>";
+		};
+		4663A63F2F7B39120021CF8A /* SortydWidgetExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4663DC172F7F8FBD0036A9D2 /* Exceptions for "SortydWidgetExtension" folder in "Sortyd" target */,
+				4663DC152F7F8F3C0036A9D2 /* Exceptions for "SortydWidgetExtension" folder in "SortydWidgetExtension" target */,
+			);
+			path = SortydWidgetExtension;
+			sourceTree = "<group>";
+		};
+		4663DC2A2F805E460036A9D2 /* SortydWatch Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "SortydWatch Watch App";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		4663A5EF2F7B38CA0021CF8A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4663A6362F7B39120021CF8A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4663A63E2F7B39120021CF8A /* SwiftUI.framework in Frameworks */,
+				4663A63C2F7B39120021CF8A /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4663DC262F805E460036A9D2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		4663A5E92F7B38CA0021CF8A = {
+			isa = PBXGroup;
+			children = (
+				4600AF8E2F890A6000CD9B14 /* PrivacyInfo.xcprivacy */,
+				4663DC232F7FF57D0036A9D2 /* gong.wav */,
+				46EACFD32F7B8F96003C4AD6 /* SortydWidgetExtensionExtension.entitlements */,
+				4663A67D2F7B395C0021CF8A /* SortydWidgetExtension.entitlements */,
+				4663A5F42F7B38CA0021CF8A /* Sortyd */,
+				4663A63F2F7B39120021CF8A /* SortydWidgetExtension */,
+				4663DC2A2F805E460036A9D2 /* SortydWatch Watch App */,
+				4663A63A2F7B39120021CF8A /* Frameworks */,
+				4663A5F32F7B38CA0021CF8A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		4663A5F32F7B38CA0021CF8A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4663A5F22F7B38CA0021CF8A /* Sortyd.app */,
+				4663A6392F7B39120021CF8A /* SortydWidgetExtension.appex */,
+				4663DC292F805E460036A9D2 /* SortydWatch Watch App.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		4663A63A2F7B39120021CF8A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				4663A63B2F7B39120021CF8A /* WidgetKit.framework */,
+				4663A63D2F7B39120021CF8A /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		4663A5F12F7B38CA0021CF8A /* Sortyd */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4663A5FD2F7B38CB0021CF8A /* Build configuration list for PBXNativeTarget "Sortyd" */;
+			buildPhases = (
+				4663A5EE2F7B38CA0021CF8A /* Sources */,
+				4663A5EF2F7B38CA0021CF8A /* Frameworks */,
+				4663A5F02F7B38CA0021CF8A /* Resources */,
+				4663A6522F7B39130021CF8A /* Embed Foundation Extensions */,
+				4663DC372F805E480036A9D2 /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4663A64C2F7B39130021CF8A /* PBXTargetDependency */,
+				4663DC322F805E480036A9D2 /* PBXTargetDependency */,
+				4663DC4C2F8066860036A9D2 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4663A5F42F7B38CA0021CF8A /* Sortyd */,
+			);
+			name = Sortyd;
+			packageProductDependencies = (
+			);
+			productName = Sortyd;
+			productReference = 4663A5F22F7B38CA0021CF8A /* Sortyd.app */;
+			productType = "com.apple.product-type.application";
+		};
+		4663A6382F7B39120021CF8A /* SortydWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4663A64F2F7B39130021CF8A /* Build configuration list for PBXNativeTarget "SortydWidgetExtension" */;
+			buildPhases = (
+				4663A6352F7B39120021CF8A /* Sources */,
+				4663A6362F7B39120021CF8A /* Frameworks */,
+				4663A6372F7B39120021CF8A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				4663A63F2F7B39120021CF8A /* SortydWidgetExtension */,
+			);
+			name = SortydWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = SortydWidgetExtensionExtension;
+			productReference = 4663A6392F7B39120021CF8A /* SortydWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		4663DC282F805E460036A9D2 /* SortydWatch Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4663DC342F805E480036A9D2 /* Build configuration list for PBXNativeTarget "SortydWatch Watch App" */;
+			buildPhases = (
+				4663DC252F805E460036A9D2 /* Sources */,
+				4663DC262F805E460036A9D2 /* Frameworks */,
+				4663DC272F805E460036A9D2 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				4663DC2A2F805E460036A9D2 /* SortydWatch Watch App */,
+			);
+			name = "SortydWatch Watch App";
+			packageProductDependencies = (
+			);
+			productName = "SortydWatch Watch App";
+			productReference = 4663DC292F805E460036A9D2 /* SortydWatch Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		4663A5EA2F7B38CA0021CF8A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2630;
+				LastUpgradeCheck = 2630;
+				TargetAttributes = {
+					4663A5F12F7B38CA0021CF8A = {
+						CreatedOnToolsVersion = 26.3;
+					};
+					4663A6382F7B39120021CF8A = {
+						CreatedOnToolsVersion = 26.3;
+						LastSwiftMigration = 2630;
+					};
+					4663DC282F805E460036A9D2 = {
+						CreatedOnToolsVersion = 26.3;
+						LastSwiftMigration = 2630;
+					};
+				};
+			};
+			buildConfigurationList = 4663A5ED2F7B38CA0021CF8A /* Build configuration list for PBXProject "Sortyd" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 4663A5E92F7B38CA0021CF8A;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 4663A5F32F7B38CA0021CF8A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4663A5F12F7B38CA0021CF8A /* Sortyd */,
+				4663A6382F7B39120021CF8A /* SortydWidgetExtension */,
+				4663DC282F805E460036A9D2 /* SortydWatch Watch App */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4663A5F02F7B38CA0021CF8A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4600AF8F2F890A6000CD9B14 /* PrivacyInfo.xcprivacy in Resources */,
+				4663DC242F7FF57D0036A9D2 /* gong.wav in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4663A6372F7B39120021CF8A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4663DC272F805E460036A9D2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4663A5EE2F7B38CA0021CF8A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4663A6352F7B39120021CF8A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4663DC252F805E460036A9D2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4663A64C2F7B39130021CF8A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4663A6382F7B39120021CF8A /* SortydWidgetExtension */;
+			targetProxy = 4663A64B2F7B39130021CF8A /* PBXContainerItemProxy */;
+		};
+		4663DC322F805E480036A9D2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4663DC282F805E460036A9D2 /* SortydWatch Watch App */;
+			targetProxy = 4663DC312F805E480036A9D2 /* PBXContainerItemProxy */;
+		};
+		4663DC4C2F8066860036A9D2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4663DC282F805E460036A9D2 /* SortydWatch Watch App */;
+			targetProxy = 4663DC4B2F8066860036A9D2 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		4663A5FB2F7B38CB0021CF8A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 25E5AWSP4F;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		4663A5FC2F7B38CB0021CF8A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 25E5AWSP4F;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		4663A5FE2F7B38CB0021CF8A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = Sortyd/Sortyd.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 25E5AWSP4F;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Sortyd/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = sortyd;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Sortyd reads your steps and active calories to show live progress toward your health goals.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Sortyd does not write any data to Apple Health.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Sortyd.Sortyd;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		4663A5FF2F7B38CB0021CF8A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = Sortyd/Sortyd.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 25E5AWSP4F;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Sortyd/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = sortyd;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Sortyd reads your steps and active calories to show live progress toward your health goals.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Sortyd does not write any data to Apple Health.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Sortyd.Sortyd;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		4663A6502F7B39130021CF8A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = SortydWidgetExtension/SortydWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 25E5AWSP4F;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SortydWidgetExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SortydWidgetExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Sortyd.Sortyd.SortydWidgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		4663A6512F7B39130021CF8A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = SortydWidgetExtension/SortydWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 25E5AWSP4F;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SortydWidgetExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SortydWidgetExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Sortyd.Sortyd.SortydWidgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		4663DC352F805E480036A9D2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = "SortydWatch Watch App/SortydWatch Watch App.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 25E5AWSP4F;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = SortydWatch;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = Sortyd.Sortyd;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Sortyd.Sortyd.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 9.6;
+			};
+			name = Debug;
+		};
+		4663DC362F805E480036A9D2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = "SortydWatch Watch App/SortydWatch Watch App.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 25E5AWSP4F;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = SortydWatch;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = Sortyd.Sortyd;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Sortyd.Sortyd.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 9.6;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4663A5ED2F7B38CA0021CF8A /* Build configuration list for PBXProject "Sortyd" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4663A5FB2F7B38CB0021CF8A /* Debug */,
+				4663A5FC2F7B38CB0021CF8A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4663A5FD2F7B38CB0021CF8A /* Build configuration list for PBXNativeTarget "Sortyd" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4663A5FE2F7B38CB0021CF8A /* Debug */,
+				4663A5FF2F7B38CB0021CF8A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4663A64F2F7B39130021CF8A /* Build configuration list for PBXNativeTarget "SortydWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4663A6502F7B39130021CF8A /* Debug */,
+				4663A6512F7B39130021CF8A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4663DC342F805E480036A9D2 /* Build configuration list for PBXNativeTarget "SortydWatch Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4663DC352F805E480036A9D2 /* Debug */,
+				4663DC362F805E480036A9D2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 4663A5EA2F7B38CA0021CF8A /* Project object */;
+}
