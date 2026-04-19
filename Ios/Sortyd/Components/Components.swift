@@ -121,8 +121,8 @@ struct HeatmapCalendarView: View {
     @State private var showEmptyToast    = false
 
     private let dayLetters = ["S","M","T","W","T","F","S"]
-    private let colGap: CGFloat  = 0
-    private let vSpacing: CGFloat = 1
+    private let colGap: CGFloat   = 0
+    private let vSpacing: CGFloat = 3
 
     @State private var cachedSnapshotMap: [String: DailySnapshot] = [:]
     @State private var cachedDays: [Date?] = []
@@ -367,28 +367,6 @@ private struct CalendarGrid: View {
                 }
             }
             
-            // ── Performance legend ───────────────────────
-            Spacer(minLength: 4)
-            HStack(spacing: 4) {
-                Text("Weak")
-                    .font(.system(size: 8, weight: .medium))
-                    .foregroundColor(Theme.text2)
-                let n = max(1, taskCount)
-                HStack(spacing: 2) {
-                    ForEach(1...n, id: \.self) { i in
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(Theme.heatColorRG(fraction: Double(i) / Double(n), taskCount: n))
-                            .frame(height: 3)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                Text("Best")
-                    .font(.system(size: 8, weight: .medium))
-                    .foregroundColor(Theme.text2)
-            }
-            .frame(width: availW * 0.7)
-            .frame(maxWidth: .infinity, alignment: .center)
-            .padding(.bottom, 2)
         }
         .frame(width: availW, height: availH)
     }
@@ -865,10 +843,10 @@ private struct InstallDayRing: View {
     private let green   = Color(hex: "#22C55E")
 
     var body: some View {
-        let ringR  = size * 0.85
+        let ringR  = size * 0.60
         let chars  = Array(label)
         let step   = 360.0 / Double(chars.count)
-        let fSize  = max(5.5, size * 0.24)
+        let fSize  = max(4.5, size * 0.20)
 
         ZStack {
             // Faint ring underline

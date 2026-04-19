@@ -159,27 +159,52 @@ struct HomeView: View {
     // MARK: - Heatmap Strip
 
     private var heatmapSection: some View {
-        VStack(spacing: 0) {
-            if let id = list?.id {
-                HeatmapCalendarView(listID: id)
-                    .environmentObject(vm)
-                    .frame(height: 120)
-            } else {
-                PlaceholderCalendarView().frame(height: 120)
+        VStack(spacing: 8) {
+            // ── Card ──────────────────────────────────────
+            VStack(spacing: 0) {
+                if let id = list?.id {
+                    HeatmapCalendarView(listID: id)
+                        .environmentObject(vm)
+                        .frame(height: 120)
+                } else {
+                    PlaceholderCalendarView().frame(height: 120)
+                }
+            }
+            .padding(.all, 14)
+            .padding(.horizontal, 2)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: Theme.r20, style: .continuous)
+                    .fill(Theme.bg1)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.r20, style: .continuous)
+                            .strokeBorder(Theme.border, lineWidth: 0.5)
+                    )
+            )
+            .cardShadow()
+
+            // ── Legend below card ─────────────────────────
+            if let taskCount = list?.tasks.count, taskCount > 0 {
+                let n = max(1, taskCount)
+                HStack(spacing: 4) {
+                    Text("Weak")
+                        .font(.system(size: 8, weight: .medium))
+                        .foregroundColor(Theme.text2)
+                    HStack(spacing: 2) {
+                        ForEach(1...n, id: \.self) { i in
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Theme.heatColorRG(fraction: Double(i) / Double(n), taskCount: n))
+                                .frame(height: 3)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    Text("Best")
+                        .font(.system(size: 8, weight: .medium))
+                        .foregroundColor(Theme.text2)
+                }
+                .padding(.horizontal, 24)
             }
         }
-        .padding(.all, 14)
-        .padding(.horizontal, 2)
-        .padding(.vertical, 6)
-        .background(
-            RoundedRectangle(cornerRadius: Theme.r20, style: .continuous)
-                .fill(Theme.bg1)
-                .overlay(
-                    RoundedRectangle(cornerRadius: Theme.r20, style: .continuous)
-                        .strokeBorder(Theme.border, lineWidth: 0.5)
-                )
-        )
-        .cardShadow()
     }
 
     // MARK: - Task Section
