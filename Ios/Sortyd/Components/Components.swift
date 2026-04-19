@@ -128,6 +128,10 @@ struct HeatmapCalendarView: View {
     @State private var cachedSnapshotMap: [String: DailySnapshot] = [:]
     @State private var cachedDays: [Date?] = []
     
+    private var taskCount: Int {
+        vm.lists.first(where: { $0.id == listID })?.tasks.count ?? 1
+    }
+
     var body: some View {
         GeometryReader { geo in
             CalendarGrid(
@@ -142,7 +146,8 @@ struct HeatmapCalendarView: View {
                 showEmptyToast: $showEmptyToast,
                 dayLetters: dayLetters,
                 colGap: colGap,
-                vSpacing: vSpacing
+                vSpacing: vSpacing,
+                taskCount: taskCount
             )
         }
         .sheet(isPresented: $showMonthPicker) {
@@ -238,6 +243,7 @@ private struct CalendarGrid: View {
     let dayLetters: [String]
     let colGap: CGFloat
     let vSpacing: CGFloat
+    let taskCount: Int
     
     private var cellSize: CGFloat {
         let availW  = geo.size.width
@@ -326,7 +332,7 @@ private struct CalendarGrid: View {
                                 Calendar.current.startOfDay(for: date)
                                     .timeIntervalSince1970.description
                             ]
-                            CircleHeatCell(date: date, snapshot: snap, size: cs)
+                            CircleHeatCell(date: date, snapshot: snap, size: cs, taskCount: taskCount)
                                 .contentShape(Circle())
                                 .onTapGesture {
                                     guard date <= Date() else { return }
@@ -352,10 +358,11 @@ private struct CalendarGrid: View {
                 Text("Weak")
                     .font(.system(size: 8, weight: .medium))
                     .foregroundColor(Theme.text2)
+                let n = max(1, taskCount)
                 HStack(spacing: 2) {
-                    ForEach(1...10, id: \.self) { i in
+                    ForEach(1...n, id: \.self) { i in
                         RoundedRectangle(cornerRadius: 2)
-                            .fill(Theme.heatColor(fraction: Double(i) / 10.0))
+                            .fill(Theme.heatColorRG(fraction: Double(i) / Double(n), taskCount: n))
                             .frame(height: 3)
                     }
                 }
@@ -725,6 +732,7 @@ private struct CircleHeatCell: View {
     let date: Date
     let snapshot: DailySnapshot?
     let size: CGFloat
+    let taskCount: Int
     
     private var frac: Double   { snapshot?.completionFraction ?? 0 }
     private var isToday: Bool  { Calendar.current.isDateInToday(date) }
@@ -740,7 +748,7 @@ private struct CircleHeatCell: View {
             Circle()
                 .fill(isFuture
                       ? Theme.bg2.opacity(0.4)
-                      : frac == 0 ? Theme.text0.opacity(0.15) : Theme.heatColor(fraction: frac))
+                      : frac == 0 ? Theme.text0.opacity(0.15) : Theme.heatColorRG(fraction: frac, taskCount: taskCount))
                 .frame(width: size, height: size)
 
             // ── Day number ──
