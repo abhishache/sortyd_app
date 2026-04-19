@@ -125,29 +125,28 @@ enum Theme {
     }
 
     // ── Heatmap ───────────────────────────────────────────────
-    // Smooth purple → blue gradient matching the app's brand gradient.
-    // Dark:  #7C6FFF (violet) → #3ECFFF (cyan-blue)
-    // Light: #5A4ECC (purple) → #0099C8 (deep blue)
-    // Zero fraction = empty cell; opacity ramps 0.28 → 1.0 as performance improves.
+    // Red → green gradient (poor → best), opacity ramps 0.30 → 1.0.
+    // Dark:  muted red #FF5F5F → vivid green #1FE090
+    // Light: deep red  #CC2222 → deep green  #12A362
     static func heatColor(fraction: Double) -> Color {
         guard fraction > 0 else {
             return dark ? Color(hex: "#0E1019") : Color(hex: "#F0EEF8")
         }
         let t = max(0, min(fraction, 1.0))
         if dark {
-            // Violet #7C6FFF → Cyan #3ECFFF
-            let r = 124.0 + (62.0  - 124.0) * t
-            let g = 111.0 + (207.0 - 111.0) * t
-            let b = 255.0
+            // Red #FF5F5F → Green #1FE090
+            let r = 255.0 + (31.0  - 255.0) * t
+            let g = 95.0  + (224.0 - 95.0)  * t
+            let b = 95.0  + (144.0 - 95.0)  * t
             return Color(red: r/255, green: g/255, blue: b/255)
-                .opacity(0.28 + t * 0.72)
+                .opacity(0.30 + t * 0.70)
         } else {
-            // Purple #5A4ECC → Blue #0099C8
-            let r = 90.0  + (0.0   - 90.0)  * t
-            let g = 78.0  + (153.0 - 78.0)  * t
-            let b = 204.0 + (200.0 - 204.0) * t
+            // Red #CC2222 → Green #12A362
+            let r = 204.0 + (18.0  - 204.0) * t
+            let g = 34.0  + (163.0 - 34.0)  * t
+            let b = 34.0  + (98.0  - 34.0)  * t
             return Color(red: r/255, green: g/255, blue: b/255)
-                .opacity(0.25 + t * 0.75)
+                .opacity(0.30 + t * 0.70)
         }
     }
 
