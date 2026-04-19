@@ -878,25 +878,29 @@ struct AnalyticsView: View {
         case all   = "ALL"
     }
 
+    private var installDate: Date {
+        let key = "sortyd_install_date"
+        let cal = Calendar.current
+        if let d = UserDefaults.standard.object(forKey: key) as? Date { return cal.startOfDay(for: d) }
+        let now = cal.startOfDay(for: Date())
+        UserDefaults.standard.set(Date(), forKey: key)
+        return now
+    }
+
     private var snaps: [DailySnapshot] {
         let cal = Calendar.current
         let today = cal.startOfDay(for: Date())
         let all = vm.snapshotsForList(id: resolvedListID)
         var lookup: [Date: DailySnapshot] = [:]
         for s in all { lookup[cal.startOfDay(for: s.date)] = s }
+        // Never include days before the app was installed — those zeros aren't real misses.
+        let daysSince = max(0, cal.dateComponents([.day], from: installDate, to: today).day ?? 0)
         switch period {
-        case .week:  return filledDays(count: 7,  endingOn: today, lookup: lookup)
-        case .month: return filledDays(count: 30, endingOn: today, lookup: lookup)
+        case .week:  return filledDays(count: min(7,  daysSince + 1), endingOn: today, lookup: lookup)
+        case .month: return filledDays(count: min(30, daysSince + 1), endingOn: today, lookup: lookup)
         case .all:
-            let installDateAll: Date = {
-                let key = "sortyd_install_date"
-                if let d = UserDefaults.standard.object(forKey: key) as? Date { return cal.startOfDay(for: d) }
-                let now = cal.startOfDay(for: Date())
-                UserDefaults.standard.set(Date(), forKey: key)
-                return now
-            }()
             let earliestSnap = all.first.map { cal.startOfDay(for: $0.date) }
-            let earliest = earliestSnap.map { min($0, installDateAll) } ?? installDateAll
+            let earliest = earliestSnap.map { min($0, installDate) } ?? installDate
             let days = (cal.dateComponents([.day], from: earliest, to: today).day ?? 0) + 1
             return filledDays(count: max(days, 1), endingOn: today, lookup: lookup)
         }

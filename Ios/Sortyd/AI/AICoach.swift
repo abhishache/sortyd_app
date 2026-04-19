@@ -137,11 +137,15 @@ final class AICoach: ObservableObject {
         errorMessage = nil
 
         let summary = buildWeekSummary(lists: lists, snapshots: snapshots)
+        let windowDays = min(7, daysSinceInstall + 1)
+        let newUserNote = daysSinceInstall < 7
+            ? "Note: User installed \(daysSinceInstall + 1) day(s) ago — this is early data. Be encouraging, acknowledge they are just starting.\n"
+            : ""
         let prompt = """
         You are a sharp, no-BS habit coach. You see patterns others miss.
         Rules: Use "you", never "the user". Name SPECIFIC tasks. Short punchy sentences. No fluff.
-
-        DATA (7 days, per-task daily breakdown):
+        \(newUserNote)
+        DATA (\(windowDays) days, per-task daily breakdown):
         \(summary)
 
         ANALYSIS INSTRUCTIONS:
@@ -185,16 +189,20 @@ final class AICoach: ObservableObject {
             return
         }
 
+        let procWindow = min(14, daysSinceInstall + 1)
+        let procNewNote = daysSinceInstall < 14
+            ? "Note: App installed \(daysSinceInstall + 1) day(s) ago — only \(procWindow) days of data. Be constructive, not harsh.\n"
+            : ""
         let prompt = """
         You are a direct habit coach who diagnoses WHY tasks get skipped.
         Rules: Use "you". Name each task. One punchy sentence. Diagnose the root cause, don't just say "try harder".
-
+        \(procNewNote)
         These tasks are being skipped (includes completion rate, last done, and most-skipped day):
         \(flagData)
 
         ANALYSIS INSTRUCTIONS:
         - If "lastDone" is "never", the task may be too ambitious or poorly defined
-        - If done 1-3 out of 14, there's a trigger/motivation problem
+        - If done 1-3 out of \(procWindow), there's a trigger/motivation problem
         - If "mostSkippedDay" clusters on weekends, it's a routine gap
         - Suggest a ROOT CAUSE: too vague? too hard? wrong time of day? no trigger? boring?
 
@@ -203,8 +211,8 @@ final class AICoach: ObservableObject {
           {
             "id": "<same UUID>",
             "taskTitle": "<same title>",
-            "daysSkipped": <14 minus done count>,
-            "suggestion": "Diagnose WHY. e.g. 'You skip this on weekends — your routine disappears without work structure.' or 'Done 1 out of 14 — this task is too vague. Make it smaller.' Under 20 words.",
+            "daysSkipped": <\(procWindow) minus done count>,
+            "suggestion": "Diagnose WHY. Under 20 words.",
             "actionLabel": "Shrink it" or "Reschedule" or "Remove it" or "Pair it"
           }
         ]
@@ -577,12 +585,28 @@ final class AICoach: ObservableObject {
         }
     }
 
+    // MARK: - Private: Install Date
+
+    private var installDate: Date {
+        let key = "sortyd_install_date"
+        let cal = Calendar.current
+        if let d = UserDefaults.standard.object(forKey: key) as? Date { return cal.startOfDay(for: d) }
+        return cal.startOfDay(for: Date())
+    }
+
+    private var daysSinceInstall: Int {
+        let today = Calendar.current.startOfDay(for: Date())
+        return max(0, Calendar.current.dateComponents([.day], from: installDate, to: today).day ?? 0)
+    }
+
     // MARK: - Private: Data Builders
 
     /// Rich weekly summary with per-task daily breakdown, streaks, and best/worst days.
     private func buildWeekSummary(lists: [TaskList], snapshots: [DailySnapshot]) -> String {
         let cal = Calendar.current
         let today = cal.startOfDay(for: Date())
+        // Clamp window to days since install so pre-install zeros don't pollute the data.
+        let windowDays = min(7, daysSinceInstall + 1)
         var sections: [String] = []
 
         for list in lists {
@@ -591,7 +615,7 @@ final class AICoach: ObservableObject {
 
             // Daily overview
             var dailyPcts: [(day: String, pct: Int)] = []
-            for dayOffset in (0..<7).reversed() {
+            for dayOffset in (0..<windowDays).reversed() {
                 guard let date = cal.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
                 let snap = listSnaps.first(where: { cal.isDate($0.date, inSameDayAs: date) })
                 let pct = snap.map { Int($0.completionFraction * 100) } ?? 0
@@ -608,12 +632,12 @@ final class AICoach: ObservableObject {
                 section += " | Worst day: \(worst.day) (\(worst.pct)%)\n"
             }
 
-            // Per-task breakdown for the week
-            section += "  Tasks this week:\n"
+            // Per-task breakdown for the window
+            section += "  Tasks this period:\n"
             for task in list.tasks {
                 var doneDays: [String] = []
                 var skippedDays: [String] = []
-                for dayOffset in (0..<7).reversed() {
+                for dayOffset in (0..<windowDays).reversed() {
                     guard let date = cal.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
                     let dayName = cal.shortWeekdaySymbols[cal.component(.weekday, from: date) - 1]
                     let snap = listSnaps.first(where: { cal.isDate($0.date, inSameDayAs: date) })
@@ -624,8 +648,8 @@ final class AICoach: ObservableObject {
                     }
                 }
                 let doneCount = doneDays.count
-                section += "    \(task.title): \(doneCount)/7 days"
-                if doneCount == 7 {
+                section += "    \(task.title): \(doneCount)/\(windowDays) days"
+                if doneCount == windowDays {
                     section += " (PERFECT)"
                 } else if doneCount == 0 {
                     section += " (NEVER DONE)"
@@ -635,9 +659,9 @@ final class AICoach: ObservableObject {
                 section += "\n"
             }
 
-            // Current streak (consecutive 80%+ days ending today)
+            // Current streak (consecutive 80%+ days ending today, capped at install window)
             var streak = 0
-            for dayOffset in 0..<30 {
+            for dayOffset in 0..<(daysSinceInstall + 1) {
                 guard let date = cal.date(byAdding: .day, value: -dayOffset, to: today) else { break }
                 let snap = listSnaps.first(where: { cal.isDate($0.date, inSameDayAs: date) })
                 if let s = snap, s.completionFraction >= 0.8 {
@@ -655,7 +679,8 @@ final class AICoach: ObservableObject {
     private func buildProcrastinationData(lists: [TaskList], snapshots: [DailySnapshot]) -> String {
         let cal = Calendar.current
         let today = cal.startOfDay(for: Date())
-        let days = 14
+        // Only consider days since install — pre-install zeros would falsely inflate skip counts.
+        let days = min(14, daysSinceInstall + 1)
 
         struct TaskFlag {
             let id: UUID
@@ -721,7 +746,7 @@ final class AICoach: ObservableObject {
     private func buildTaskCompletionData(lists: [TaskList], snapshots: [DailySnapshot]) -> String {
         let cal = Calendar.current
         let today = cal.startOfDay(for: Date())
-        let days = 14
+        let days = min(14, daysSinceInstall + 1)
         var sections: [String] = []
 
         for list in lists {
