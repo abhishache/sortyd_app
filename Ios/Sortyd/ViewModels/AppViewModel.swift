@@ -4,6 +4,7 @@
 import Foundation
 import SwiftUI
 import Combine
+import FirebaseAnalytics
 
 @MainActor
 final class AppViewModel: ObservableObject {
@@ -82,6 +83,11 @@ final class AppViewModel: ObservableObject {
         else { return }
 
         appData.lists[listIdx].tasks[taskIdx].isCompleted.toggle()
+        if appData.lists[listIdx].tasks[taskIdx].isCompleted {
+                Analytics.logEvent("task_completed", parameters: [
+                    "list_name": appData.lists[listIdx].name
+                ])
+            }
         updateTodaySnapshot()
         PersistenceManager.shared.saveImmediately(appData)
     }
@@ -145,6 +151,7 @@ final class AppViewModel: ObservableObject {
         }
         appData = updated   // single assignment → single syncPublished
         PersistenceManager.shared.saveImmediately(appData)
+        Analytics.logEvent("list_created", parameters: nil)
     }
 
     /// Batch-create a list with multiple tasks in a single mutation.
@@ -209,6 +216,7 @@ final class AppViewModel: ObservableObject {
             let taskIDs = appData.lists[offset].tasks.map(\.id)
             NotificationManager.shared.cancelReminders(for: taskIDs)
         }
+        Analytics.logEvent("list_deleted", parameters: ["count": offsets.count])
         appData.lists.remove(atOffsets: offsets)
         if removedIDs.contains(appData.activeListID ?? UUID()) {
             appData.activeListID = appData.lists.first(where: { !$0.isArchived })?.id
@@ -224,6 +232,7 @@ final class AppViewModel: ObservableObject {
         let taskIDs = appData.lists[idx].tasks.map(\.id)
         NotificationManager.shared.cancelReminders(for: taskIDs)
 
+        Analytics.logEvent("list_archived", parameters: nil)
         _skipSync = true
         appData.lists[idx].isArchived = true
         // If the archived list was active, switch to the first non-archived list
@@ -310,6 +319,10 @@ final class AppViewModel: ObservableObject {
         _skipSync = false
         syncPublished()
 
+        if healthType != nil {
+            Analytics.logEvent("health_task_added", parameters: ["type": healthType ?? ""])
+        }
+
         if reminderTime != nil {
             let capturedTask = task
             let list = appData.lists[idx]
@@ -328,6 +341,7 @@ final class AppViewModel: ObservableObject {
         guard let listIdx = appData.lists.firstIndex(where: { $0.id == listID }),
               let taskIdx = appData.lists[listIdx].tasks.firstIndex(where: { $0.id == task.id })
         else { return }
+        Analytics.logEvent("task_deleted", parameters: nil)
         NotificationManager.shared.cancelReminder(for: task.id)
         appData.lists[listIdx].tasks.remove(at: taskIdx)
         appData.lists[listIdx].recalculateWeights()
@@ -371,6 +385,7 @@ final class AppViewModel: ObservableObject {
         // Batch the mutation and force an explicit syncPublished so the
         // @Published lists update fires immediately on the main actor,
         // not deferred across the async boundary.
+        Analytics.logEvent("reminder_set", parameters: nil)
         _skipSync = true
         appData.lists[listIdx].tasks[taskIdx].reminderTime = time
         _skipSync = false

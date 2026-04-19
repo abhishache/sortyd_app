@@ -5,31 +5,31 @@
 // Grade earns the screen. Pillars tell the story. Nothing decorates for decoration's sake.
 
 import SwiftUI
-
+import Firebase
 // MARK: ── Root View ─────────────────────────────────────────────────────────
 
 struct AICoachView: View {
     @EnvironmentObject var vm: AppViewModel
     @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var coach = AICoach.shared
-
+    
     @State private var selectedList: TaskList? = nil
     @State private var analysisState: AnalysisState = .idle
     @State private var isSpinning = false
     @State private var lastAnalysedListID: UUID? = nil
     @State private var showAbout = false
     @State private var headerAppeared = false
-
+    
     // FIX: separate rotation state from isSpinning
     // isSpinning drives the animation trigger; spinAngle accumulates cleanly
     @State private var spinAngle: Double = 0
-
+    
     enum AnalysisState { case idle, loading, done, failed }
-
+    
     var body: some View {
         ZStack {
             Theme.bg0.ignoresSafeArea()
-
+            
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 0) {
                     header
@@ -38,10 +38,10 @@ struct AICoachView: View {
                         .padding(.bottom, 16)
                         .opacity(headerAppeared ? 1 : 0)
                         .offset(y: headerAppeared ? 0 : -6)
-
+                    
                     listPicker
                         .padding(.bottom, 18)
-
+                    
                     Group {
                         switch analysisState {
                         case .idle:
@@ -58,12 +58,16 @@ struct AICoachView: View {
                             failedView.padding(.horizontal, 20)
                         }
                     }
-
+                    
                     Spacer(minLength: 110)
                 }
             }
         }
         .onAppear {
+            Analytics.logEvent(AnalyticsEventScreenView, parameters: [
+                AnalyticsParameterScreenName: "ai_coach",
+                AnalyticsParameterScreenClass: "AICoachView"
+            ])
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.05)) {
                 headerAppeared = true
             }
@@ -78,9 +82,9 @@ struct AICoachView: View {
             }
         }
     }
-
+    
     // MARK: Header
-
+    
     private var header: some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 2) {
@@ -100,7 +104,7 @@ struct AICoachView: View {
                 }
                 .buttonStyle(.plain)
                 .sheet(isPresented: $showAbout) { AboutPrivacySheet() }
-
+                
                 // FIX: refresh button — stable rotation, no bounce/jump
                 Button(action: {
                     guard let list = selectedList, !isSpinning else { return }
@@ -115,7 +119,7 @@ struct AICoachView: View {
             }
         }
     }
-
+    
     // FIX: Info button with blue glow — no animation, purely decorative glow
     private func glowingInfoButton() -> some View {
         ZStack {
@@ -125,7 +129,7 @@ struct AICoachView: View {
                 .frame(width: 40, height: 40)
                 .shadow(color: Theme.accent.opacity(0.45), radius: 10, x: 0, y: 0)
                 .shadow(color: Theme.accent.opacity(0.20), radius: 20, x: 0, y: 0)
-
+            
             Circle()
                 .fill(Color.clear)
                 .overlay(
@@ -139,7 +143,7 @@ struct AICoachView: View {
                     )
                 )
                 .frame(width: 34, height: 34)
-
+            
             Image(systemName: "info")
                 .font(.system(size: 13, weight: .bold))
                 .foregroundStyle(
@@ -153,7 +157,7 @@ struct AICoachView: View {
         }
         .frame(width: 40, height: 40)
     }
-
+    
     // FIX: Refresh button — rotationEffect on a fixed angle, no repeatForever bounce
     // When spinning: we increment spinAngle by 360 each time analysis starts/ends
     private func stableRefreshButton() -> some View {
@@ -162,18 +166,18 @@ struct AICoachView: View {
                 .fill(Theme.bg2)
                 .overlay(Circle().strokeBorder(Theme.border, lineWidth: 0.5))
                 .frame(width: 34, height: 34)
-
+            
             Image(systemName: "arrow.clockwise")
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundColor(isSpinning ? Theme.accent : Theme.text1)
-                // FIX: use rotationEffect with explicit angle — no repeatForever, no bounce
+            // FIX: use rotationEffect with explicit angle — no repeatForever, no bounce
                 .rotationEffect(.degrees(spinAngle))
         }
         .frame(width: 38, height: 38)
     }
-
+    
     // MARK: List Picker
-
+    
     private var listPicker: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
@@ -212,9 +216,9 @@ struct AICoachView: View {
         }
         .simultaneousGesture(DragGesture(minimumDistance: 0))
     }
-
+    
     // MARK: States
-
+    
     private var idlePrompt: some View {
         VStack(spacing: 16) {
             Text("🧠")
@@ -233,12 +237,12 @@ struct AICoachView: View {
         .background(cardBG())
         .cardShadow()
     }
-
+    
     private var failedView: some View {
         let message = AICoach.shared.errorMessage
         let isRateLimit = message?.contains("wait") == true
         let isOffline   = message?.contains("internet") == true
-
+        
         return VStack(spacing: 16) {
             ZStack {
                 Circle()
@@ -248,7 +252,7 @@ struct AICoachView: View {
                     .font(.system(size: 22, weight: .medium))
                     .foregroundColor(isOffline ? Theme.danger : Theme.accent)
             }
-
+            
             VStack(spacing: 4) {
                 Text(isRateLimit ? "Slow down" : isOffline ? "No connection" : "Analysis failed")
                     .font(.system(size: 16, weight: .bold))
@@ -258,7 +262,7 @@ struct AICoachView: View {
                     .foregroundColor(Theme.text2)
                     .multilineTextAlignment(.center)
             }
-
+            
             if !isRateLimit {
                 Button(action: {
                     guard let list = selectedList else { return }
@@ -279,7 +283,7 @@ struct AICoachView: View {
         .background(cardBG())
         .cardShadow()
     }
-
+    
     private var loadingView: some View {
         VStack(spacing: 10) {
             ForEach(0..<4, id: \.self) { i in
@@ -288,7 +292,7 @@ struct AICoachView: View {
             }
         }
     }
-
+    
     @ViewBuilder
     private func doneContent(analysis: BehaviouralAnalysis) -> some View {
         VStack(spacing: 12) {
@@ -296,10 +300,10 @@ struct AICoachView: View {
                 WeeklyGradeBanner(recap: recap)
                     .padding(.horizontal, 20)
             }
-
+            
             pillarSummaryRow(analysis: analysis)
                 .padding(.horizontal, 20)
-
+            
             let sorted = analysis.pillars.sorted { $0.score < $1.score }
             VStack(spacing: 8) {
                 ForEach(Array(sorted.enumerated()), id: \.element.id) { index, pillar in
@@ -316,10 +320,10 @@ struct AICoachView: View {
                 }
             }
             .padding(.horizontal, 20)
-
+            
             OverallInsightBanner(text: analysis.overallInsight)
                 .padding(.horizontal, 20)
-
+            
             if !coach.procrastinationFlags.isEmpty {
                 SkippedTasksSection(
                     flags: coach.procrastinationFlags,
@@ -332,14 +336,14 @@ struct AICoachView: View {
         }
         .animation(.spring(response: 0.42, dampingFraction: 0.82), value: analysis.pillars.count)
     }
-
+    
     // MARK: Pillar summary
-
+    
     private func pillarSummaryRow(analysis: BehaviouralAnalysis) -> some View {
         let weakCount   = analysis.pillars.filter { $0.score < 50 }.count
         let strongCount = analysis.pillars.filter { $0.score >= 75 }.count
         let total       = analysis.pillars.count
-
+        
         return HStack(spacing: 8) {
             pillStat(value: "\(strongCount)", label: "Strong",    color: Theme.success)
             pillStat(value: "\(weakCount)",   label: weakCount == 0 ? "All good" : "Need work",
@@ -347,7 +351,7 @@ struct AICoachView: View {
             pillStat(value: "\(total)",       label: "Pillars",   color: Theme.text1)
         }
     }
-
+    
     private func pillStat(value: String, label: String, color: Color) -> some View {
         VStack(spacing: 2) {
             Text(value)
@@ -368,16 +372,20 @@ struct AICoachView: View {
                 )
         )
     }
-
+    
     // MARK: Actions
-
+    
     private func runAnalysis(for list: TaskList) async {
         analysisState = .loading
         isSpinning = true
         lastAnalysedListID = list.id
         coach.behaviouralAnalysis = nil
         coach.weeklyRecap = nil
-
+        
+        Analytics.logEvent("ai_coach_used", parameters: [  // ← added
+            "list_name": list.name
+                                                        ])
+        
         // FIX: drive rotation by incrementing angle in a tight loop — no repeatForever
         // This gives smooth spin without the bounce/reset artifact
         Task { @MainActor in
@@ -388,21 +396,21 @@ struct AICoachView: View {
                 try? await Task.sleep(nanoseconds: 700_000_000)
             }
         }
-
+        
         await withTaskGroup(of: Void.self) { group in
             group.addTask { await AICoach.shared.analyseBehaviouralPillars(lists: [list], snapshots: vm.snapshots) }
             group.addTask { await AICoach.shared.generateWeeklyRecap(lists: [list], snapshots: vm.snapshots) }
             group.addTask { await AICoach.shared.detectProcrastination(lists: [list], snapshots: vm.snapshots) }
         }
-
+        
         await MainActor.run {
             isSpinning = false
             analysisState = coach.behaviouralAnalysis == nil ? .failed : .done
         }
     }
-
+    
     // MARK: Helpers
-
+    
     private func cardBG(radius: CGFloat = 18) -> some View {
         RoundedRectangle(cornerRadius: radius, style: .continuous)
             .fill(Theme.bg1)

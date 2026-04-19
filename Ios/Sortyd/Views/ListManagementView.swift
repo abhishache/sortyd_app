@@ -16,6 +16,7 @@
 
 import SwiftUI
 import UserNotifications
+import FirebaseAnalytics
 
 private let kTimeFormatter: DateFormatter = {
     let f = DateFormatter(); f.dateFormat = "h:mm a"; return f
@@ -103,6 +104,10 @@ struct ListManagementView: View {
             }
         }
         .onAppear {
+            Analytics.logEvent(AnalyticsEventScreenView, parameters: [
+                AnalyticsParameterScreenName: "list_management",
+                AnalyticsParameterScreenClass: "ListManagementView"
+            ])
             withAnimation(.spring(response: 0.55, dampingFraction: 0.8).delay(0.05)) { headerAppeared = true }
         }
     }

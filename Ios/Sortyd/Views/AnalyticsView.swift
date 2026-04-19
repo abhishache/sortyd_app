@@ -860,6 +860,7 @@
 
 // MARK: - AnalyticsView.swift
 import SwiftUI
+import FirebaseAnalytics
 
 struct AnalyticsView: View {
     @EnvironmentObject var vm: AppViewModel
@@ -1070,6 +1071,10 @@ struct AnalyticsView: View {
             .navigationBarHidden(true)
         }
         .onAppear {
+            Analytics.logEvent(AnalyticsEventScreenView, parameters: [
+                AnalyticsParameterScreenName: "analytics",
+                AnalyticsParameterScreenClass: "AnalyticsView"
+            ])
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 withAnimation(.spring(response: 0.7, dampingFraction: 0.75)) {
                     heroAppeared = true

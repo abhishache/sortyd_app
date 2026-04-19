@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseAnalytics
 
 // MARK: - Sortyd Onboarding v2
 // Light + Dark mode fully supported. HealthKit disclosure compliant (Apple Guideline 2.5.1).
@@ -89,6 +90,7 @@ struct OnboardingShowcaseView: View {
             }
         }
         .onAppear {
+            Analytics.logEvent("onboarding_started", parameters: nil)
             withAnimation { launched = true }
             withAnimation(.easeInOut(duration: 2.6).repeatForever(autoreverses: true))  { glowPulse    = true }
             withAnimation(.easeInOut(duration: 4.2).repeatForever(autoreverses: true))  { logoFloat    = -6 }
