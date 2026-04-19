@@ -1415,9 +1415,7 @@ struct AnalyticsView: View {
     }
 
     private func heatmapColor(for intensity: Double) -> Color {
-        intensity < 0.5
-            ? Theme.coral.opacity(0.15 + intensity * 0.7)
-            : Theme.accent.opacity(0.3 + (intensity - 0.5) * 1.4)
+        Theme.heatColor(fraction: intensity)
     }
 
     // MARK: - Task DNA Card (replaces Momentum card)
@@ -1725,9 +1723,7 @@ struct WeekdayHeatmap: View {
     }
 
     private func heatColor(for value: Double) -> Color {
-        value < 0.5
-            ? Theme.coral.opacity(0.15 + value * 0.7)
-            : Theme.accent.opacity(0.3 + (value - 0.5) * 1.4)
+        Theme.heatColor(fraction: value)
     }
 
     private func weekdayFullName(_ weekday: Int) -> String {
