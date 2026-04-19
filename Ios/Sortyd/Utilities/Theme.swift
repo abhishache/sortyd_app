@@ -125,28 +125,24 @@ enum Theme {
     }
 
     // ── Heatmap ───────────────────────────────────────────────
-    // Red → orange → yellow → green gradient (poor → best).
-    // Four-stop piecewise interpolation so each colour band is distinct.
-    // Dark:  #FF5F5F → #FFB547 → #FFE566 → #1FE090
-    // Light: #CC2222 → #D4850A → #C8A800 → #12A362
+    // Vivid red → orange → yellow → green (poor → best).
+    // Opacity starts at 0.65 so the red never looks brown against dark bg.
     static func heatColor(fraction: Double) -> Color {
         guard fraction > 0 else {
             return dark ? Color(hex: "#0E1019") : Color(hex: "#F0EEF8")
         }
         let t = max(0, min(fraction, 1.0))
 
-        // Four anchor colours (R, G, B) for dark / light
         let stops: [(r: Double, g: Double, b: Double)] = dark
-            ? [(255, 95,  95),   // red
-               (255, 181, 71),   // orange
-               (255, 229, 102),  // yellow
-               (31,  224, 144)]  // green
-            : [(204, 34,  34),
-               (212, 133, 10),
-               (200, 168, 0),
-               (18,  163, 98)]
+            ? [(255, 38,  38),   // vivid red
+               (255, 158,  0),   // orange
+               (255, 218,  0),   // yellow
+               (20,  210, 110)]  // green
+            : [(210, 20,  20),
+               (200, 100,  0),
+               (170, 135,  0),
+               (15,  160,  80)]
 
-        // Map t into a segment index + local 0-1 position
         let segments = Double(stops.count - 1)
         let scaled   = t * segments
         let lo       = min(Int(scaled), stops.count - 2)
@@ -154,12 +150,12 @@ enum Theme {
         let local    = scaled - Double(lo)
 
         let a = stops[lo], b = stops[hi]
-        let r = a.r + (b.r - a.r) * local
-        let g = a.g + (b.g - a.g) * local
+        let r  = a.r + (b.r - a.r) * local
+        let g  = a.g + (b.g - a.g) * local
         let bC = a.b + (b.b - a.b) * local
 
         return Color(red: r/255, green: g/255, blue: bC/255)
-            .opacity(0.30 + t * 0.70)
+            .opacity(0.65 + t * 0.35)
     }
 
     // ── Radii ─────────────────────────────────────────────────
