@@ -122,7 +122,7 @@ struct HeatmapCalendarView: View {
 
     private let dayLetters = ["S","M","T","W","T","F","S"]
     private let colGap: CGFloat   = 0
-    private let vSpacing: CGFloat = 3
+    private let vSpacing: CGFloat = 4
 
     @State private var cachedSnapshotMap: [String: DailySnapshot] = [:]
     @State private var cachedDays: [Date?] = []
@@ -261,12 +261,13 @@ private struct CalendarGrid: View {
     let installDate: Date
 
     private var cellSize: CGFloat {
-        let availW  = geo.size.width
-        let availH  = geo.size.height
-        let cellByW = (availW - colGap * 6) / 7
-        let nRows: CGFloat = 7
-        let cellByH = (availH - 13 - vSpacing * nRows) / nRows
-        return min(cellByW, cellByH) * 1.2
+        let availW    = geo.size.width
+        let availH    = geo.size.height
+        let cellByW   = (availW - colGap * 6) / 7
+        // +1 for the day-letters row; use actual row count so unused rows don't shrink cells
+        let nRows     = CGFloat(rows.count + 1)
+        let cellByH   = (availH - 15 - vSpacing * nRows) / nRows
+        return min(cellByW, max(0, cellByH)) * 1.2
     }
     
     private var rows: [[Date?]] {
@@ -282,8 +283,6 @@ private struct CalendarGrid: View {
         let cs = cellSize
         
         VStack(alignment: .leading, spacing: 0) {
-
-            Spacer(minLength: 6)
 
             // ── Header ──────────────────────────────────
             HStack {
@@ -335,8 +334,8 @@ private struct CalendarGrid: View {
                 }
             }
             
-            // ── Grid rows ────────────────────────────────
-            ForEach(0..<6, id: \.self) { row in
+            // ── Grid rows (only actual weeks, no empty trailing rows) ─
+            ForEach(0..<rows.count, id: \.self) { row in
                 Spacer(minLength: vSpacing)
                 HStack(spacing: 0) {
                     ForEach(0..<7, id: \.self) { col in

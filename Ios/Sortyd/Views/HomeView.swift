@@ -165,7 +165,7 @@ struct HomeView: View {
                 if let id = list?.id {
                     HeatmapCalendarView(listID: id)
                         .environmentObject(vm)
-                        .frame(height: 120)
+                        .frame(height: 138)
                 } else {
                     PlaceholderCalendarView().frame(height: 120)
                 }
