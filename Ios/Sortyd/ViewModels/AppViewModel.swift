@@ -504,6 +504,16 @@ final class AppViewModel: ObservableObject {
             .sorted { $0.date < $1.date }
     }
 
+    func snapshotsForList(id listID: UUID) -> [DailySnapshot] {
+        appData.snapshots
+            .filter { $0.listID == listID }
+            .sorted { $0.date < $1.date }
+    }
+
+    func listForID(_ id: UUID) -> TaskList? {
+        lists.first { $0.id == id }
+    }
+
     func completionFraction(for date: Date, listID: UUID) -> Double {
         let calendar = Calendar.current
         return appData.snapshots

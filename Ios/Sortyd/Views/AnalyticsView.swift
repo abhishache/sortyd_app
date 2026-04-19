@@ -868,6 +868,9 @@ struct AnalyticsView: View {
     @State private var period: Period = .month
     @State private var showListPicker = false
     @State private var heroAppeared = false
+    @State private var selectedListID: UUID? = nil
+
+    private var resolvedListID: UUID { selectedListID ?? vm.activeListID ?? UUID() }
 
     enum Period: String, CaseIterable {
         case week  = "7D"
@@ -878,7 +881,7 @@ struct AnalyticsView: View {
     private var snaps: [DailySnapshot] {
         let cal = Calendar.current
         let today = cal.startOfDay(for: Date())
-        let all = vm.snapshotsForActiveList()
+        let all = vm.snapshotsForList(id: resolvedListID)
         var lookup: [Date: DailySnapshot] = [:]
         for s in all { lookup[cal.startOfDay(for: s.date)] = s }
         switch period {
@@ -895,7 +898,7 @@ struct AnalyticsView: View {
 
     private func filledDays(count: Int, endingOn today: Date, lookup: [Date: DailySnapshot]) -> [DailySnapshot] {
         let cal = Calendar.current
-        let listID = vm.activeList?.id ?? UUID()
+        let listID = resolvedListID
         // compactMap + guard: cal.date(byAdding:) is nil only in extraordinary edge cases,
         // but force-unwrapping it would crash those users. Silently skip any failed dates.
         return (0..<count).compactMap { offset in
@@ -946,7 +949,7 @@ struct AnalyticsView: View {
     }
 
     private var vsLastPeriod: Int? {
-        let all = vm.snapshotsForActiveList()
+        let all = vm.snapshotsForList(id: resolvedListID)
         let n = snaps.count
         guard n > 0 else { return nil }
         let prevSnaps = Array(all.dropLast(n).suffix(n))
@@ -1006,7 +1009,7 @@ struct AnalyticsView: View {
     }
 
     private var taskDNAItems: [TaskDNAItem] {
-        guard let list = vm.activeList, !snaps.isEmpty else { return [] }
+        guard let list = vm.listForID(resolvedListID), !snaps.isEmpty else { return [] }
         return list.tasks.map { task in
             let hits = snaps.filter { $0.completedTaskIDs.contains(task.id) }.count
             let rate = Double(hits) / Double(snaps.count)
@@ -1036,6 +1039,11 @@ struct AnalyticsView: View {
                             .padding(.horizontal, Theme.s16)
                             .padding(.top, 12)
                             .padding(.bottom, 14)
+
+                        NewUserBanner()
+                            .environmentObject(vm)
+                            .padding(.horizontal, Theme.s16)
+                            .padding(.bottom, 8)
 
                         heroBlock
                             .padding(.horizontal, Theme.s16)
@@ -1071,11 +1079,22 @@ struct AnalyticsView: View {
             .navigationBarHidden(true)
         }
         .onAppear {
+            if selectedListID == nil { selectedListID = vm.activeListID }
             Analytics.logEvent(AnalyticsEventScreenView, parameters: [
                 AnalyticsParameterScreenName: "analytics",
                 AnalyticsParameterScreenClass: "AnalyticsView"
             ])
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                withAnimation(.spring(response: 0.7, dampingFraction: 0.75)) {
+                    heroAppeared = true
+                }
+            }
+        }
+        .onChange(of: selectedListID) { _ in
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
+                heroAppeared = false
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 withAnimation(.spring(response: 0.7, dampingFraction: 0.75)) {
                     heroAppeared = true
                 }
@@ -1219,14 +1238,16 @@ struct AnalyticsView: View {
         .fixedSize()
     }
 
-    // MARK: - List Picker
+    // MARK: - List Picker (local — does not change home active list)
+
+    private var selectedList: TaskList? { vm.listForID(resolvedListID) }
 
     private var listPickerButton: some View {
         Button(action: { showListPicker = true }) {
             HStack(spacing: 6) {
-                Text(vm.activeList?.emoji ?? "📋")
+                Text(selectedList?.emoji ?? "📋")
                     .font(.system(size: 13))
-                Text(vm.activeList?.name ?? "No list")
+                Text(selectedList?.name ?? "No list")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(Theme.text0)
                     .lineLimit(1)
@@ -1251,7 +1272,8 @@ struct AnalyticsView: View {
         }
         .buttonStyle(.plain)
         .sheet(isPresented: $showListPicker) {
-            ListSwitcherSheet().environmentObject(vm)
+            AnalyticsListPickerSheet(selectedListID: $selectedListID)
+                .environmentObject(vm)
         }
     }
 
@@ -1961,6 +1983,172 @@ struct SmoothLineChart: View {
             let cp1 = CGPoint(x: prev.x + (curr.x - prev.x) / 3, y: prev.y)
             let cp2 = CGPoint(x: curr.x - (curr.x - prev.x) / 3, y: curr.y)
             path.addCurve(to: curr, control1: cp1, control2: cp2)
+        }
+    }
+}
+
+// MARK: - AnalyticsListPickerSheet
+// Local picker — sets selectedListID binding without touching vm.activeListID
+
+struct AnalyticsListPickerSheet: View {
+    @Binding var selectedListID: UUID?
+    @EnvironmentObject var vm: AppViewModel
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Theme.bg0.ignoresSafeArea()
+                VStack(spacing: 0) {
+                    Capsule().fill(Theme.bg3).frame(width: 36, height: 4)
+                        .padding(.top, 12).padding(.bottom, 20)
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Analytics For").font(.system(size: 22, weight: .black)).foregroundColor(Theme.text0)
+                        Text("Data stays on this screen only").font(.system(size: 13)).foregroundColor(Theme.text2)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 20).padding(.bottom, 20)
+
+                    let liveLists = vm.lists.filter { !$0.isArchived }
+                    ScrollView {
+                        VStack(spacing: 10) {
+                            ForEach(liveLists) { list in
+                                Button(action: { selectedListID = list.id; dismiss() }) {
+                                    HStack(spacing: 14) {
+                                        ZStack {
+                                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                                .fill(selectedListID == list.id ? Theme.accent.opacity(0.15) : Theme.bg2)
+                                                .frame(width: 46, height: 46)
+                                            Text(list.emoji).font(.title3)
+                                        }
+                                        VStack(alignment: .leading, spacing: 3) {
+                                            Text(list.name).font(.system(size: 15, weight: .semibold)).foregroundColor(Theme.text0)
+                                            Text("\(list.tasks.count) tasks").font(.system(size: 12)).foregroundColor(Theme.text1)
+                                        }
+                                        Spacer()
+                                        if selectedListID == list.id {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .font(.system(size: 20)).foregroundColor(Theme.accent)
+                                        }
+                                    }
+                                    .padding(16)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                            .fill(selectedListID == list.id ? Theme.accent.opacity(0.07) : Theme.bg1)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                                    .strokeBorder(selectedListID == list.id ? Theme.accent.opacity(0.3) : Theme.border, lineWidth: 0.5)
+                                            )
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.hidden)
+        .presentationCornerRadius(32)
+        .presentationBackground(Theme.bg0)
+    }
+}
+
+// MARK: - NewUserBanner
+// Shows on analytics screen for the first 7 days. Cycles through messages.
+// Fades out on day 6-7. Tracks install date in UserDefaults.
+
+struct NewUserBanner: View {
+    @EnvironmentObject var vm: AppViewModel
+
+    private static let installKey = "sortyd_install_date"
+
+    private var daysSinceInstall: Int {
+        if UserDefaults.standard.object(forKey: Self.installKey) == nil {
+            UserDefaults.standard.set(Date(), forKey: Self.installKey)
+        }
+        guard let d = UserDefaults.standard.object(forKey: Self.installKey) as? Date else { return 0 }
+        return max(0, Calendar.current.dateComponents([.day], from: d, to: Date()).day ?? 0)
+    }
+
+    private var daysClocked: Int {
+        let cal = Calendar.current
+        let uniqueDays = Set(vm.snapshots.filter { $0.completionFraction > 0 }.map { cal.startOfDay(for: $0.date) })
+        return uniqueDays.count
+    }
+
+    var shouldShow: Bool { daysSinceInstall < 7 }
+
+    @State private var msgIndex = 0
+    @State private var bannerOpacity: Double = 1
+
+    private var messages: [String] {
+        let day = daysSinceInstall + 1
+        return [
+            "🌱 Day \(day) of 7 — your journey just started with Sortyd",
+            "Give Sortyd time to learn how you work",
+            daysClocked > 0
+                ? "\(daysClocked) day\(daysClocked == 1 ? "" : "s") clocked in so far — keep it up!"
+                : "Complete tasks today to start tracking your progress",
+            "Better insights unlock as more data builds",
+            "Track consistently and your grade will reflect it ✨"
+        ]
+    }
+
+    var body: some View {
+        if shouldShow {
+            HStack(spacing: 8) {
+                Image(systemName: "chart.line.uptrend.xyaxis")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(Theme.accent)
+
+                Text(messages[msgIndex])
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(Theme.accent)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .leading).combined(with: .opacity),
+                        removal:   .move(edge: .trailing).combined(with: .opacity)
+                    ))
+                    .id(msgIndex)
+
+                Spacer()
+
+                Text("\(7 - daysSinceInstall)d left")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundColor(Theme.text2)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Theme.accent.opacity(0.07))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .strokeBorder(Theme.accent.opacity(0.20), lineWidth: 0.5)
+                    )
+            )
+            .opacity(bannerOpacity)
+            .task {
+                // Start fading on day 5+
+                if daysSinceInstall >= 5 {
+                    let targetOpacity = daysSinceInstall >= 6 ? 0.35 : 0.65
+                    withAnimation(.easeOut(duration: 1.5).delay(4)) {
+                        bannerOpacity = targetOpacity
+                    }
+                }
+                // Cycle messages
+                while true {
+                    try? await Task.sleep(nanoseconds: 3_500_000_000)
+                    withAnimation(.easeInOut(duration: 0.38)) {
+                        msgIndex = (msgIndex + 1) % messages.count
+                    }
+                }
+            }
         }
     }
 }

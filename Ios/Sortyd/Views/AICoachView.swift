@@ -74,11 +74,14 @@ struct AICoachView: View {
         }
         .task {
             let liveLists = vm.lists.filter { !$0.isArchived }
-            if let first = liveLists.first, lastAnalysedListID == nil {
-                selectedList = first
-                await runAnalysis(for: first)
-            } else if liveLists.isEmpty {
-                analysisState = .idle
+            if lastAnalysedListID == nil {
+                let defaultList = vm.activeList ?? liveLists.first
+                if let list = defaultList {
+                    selectedList = list
+                    await runAnalysis(for: list)
+                } else {
+                    analysisState = .idle
+                }
             }
         }
     }
