@@ -157,14 +157,15 @@ final class AppViewModel: ObservableObject {
     /// Batch-create a list with multiple tasks in a single mutation.
     /// Used by AI Starter Lists to avoid N separate objectWillChange + save calls.
     /// taskData: array of (title, optional reminderTime) tuples.
-    func addListWithTasks(name: String, emoji: String, taskData: [(String, Date?)]) {
+    func addListWithTasks(name: String, emoji: String, taskData: [(title: String, reminder: Date?, isOneTime: Bool)]) {
         var updated = appData
         let capitalizedName = name.prefix(1).uppercased() + name.dropFirst()
         var list = TaskList(id: UUID(), name: capitalizedName, emoji: emoji, tasks: [])
-        for (title, reminder) in taskData {
+        for (title, reminder, isOneTime) in taskData {
             let capitalized = title.prefix(1).uppercased() + title.dropFirst()
             var task = SortydTask(id: UUID(), title: capitalized)
-            task.reminderTime = reminder
+            task.reminderTime      = reminder
+            task.reminderIsOneTime = isOneTime
 
             // Auto-detect health tasks from title keywords
             let detected = HealthTaskType.detect(from: title)
@@ -305,15 +306,17 @@ final class AppViewModel: ObservableObject {
     // MARK: - Task Management
 
     func addTask(to listID: UUID, title: String, reminderTime: Date? = nil,
+                 reminderIsOneTime: Bool = false,
                  healthType: String? = nil, healthTarget: Double? = nil) {
         guard let idx = appData.lists.firstIndex(where: { $0.id == listID }) else { return }
         // Batch mutations into a single appData write so only one
         // objectWillChange fires with the fully-formed task (including reminder).
         _skipSync = true
         var task = SortydTask(id: UUID(), title: title)
-            task.reminderTime = reminderTime
-            task.healthType   = healthType
-            task.healthTarget = healthTarget
+            task.reminderTime      = reminderTime
+            task.reminderIsOneTime = reminderIsOneTime
+            task.healthType        = healthType
+            task.healthTarget      = healthTarget
         appData.lists[idx].tasks.append(task)
         appData.lists[idx].recalculateWeights()
         _skipSync = false
@@ -373,7 +376,7 @@ final class AppViewModel: ObservableObject {
     }
 
     @discardableResult
-    func setTaskReminder(_ task: SortydTask, in listID: UUID, time: Date) async -> Bool {
+    func setTaskReminder(_ task: SortydTask, in listID: UUID, time: Date, isOneTime: Bool = false) async -> Bool {
         let granted = await NotificationManager.shared.requestPermissionIfNeeded()
         guard granted else { return false }
 
@@ -387,7 +390,8 @@ final class AppViewModel: ObservableObject {
         // not deferred across the async boundary.
         Analytics.logEvent("reminder_set", parameters: nil)
         _skipSync = true
-        appData.lists[listIdx].tasks[taskIdx].reminderTime = time
+        appData.lists[listIdx].tasks[taskIdx].reminderTime      = time
+        appData.lists[listIdx].tasks[taskIdx].reminderIsOneTime = isOneTime
         _skipSync = false
         syncPublished()
         PersistenceManager.shared.saveImmediately(appData)

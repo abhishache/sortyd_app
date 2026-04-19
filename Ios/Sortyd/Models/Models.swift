@@ -20,6 +20,9 @@ struct SortydTask: Identifiable, Codable, Hashable {
     /// Optional daily reminder time.
     var reminderTime: Date? = nil
 
+    /// True when the reminder fires once at a specific date+time; false = daily repeating.
+    var reminderIsOneTime: Bool = false
+
     // MARK: HealthKit fields (nil = regular checkbox task)
 
     /// "steps" | "calories" — nil means not a health task.
@@ -37,10 +40,12 @@ struct SortydTask: Identifiable, Codable, Hashable {
     // so adding new fields in future versions never wipes existing task data.
     init(id: UUID = UUID(), title: String, isCompleted: Bool = false,
          manuallyCompleted: Bool = false, createdAt: Date = Date(), weight: Double = 0.0,
-         reminderTime: Date? = nil, healthType: String? = nil, healthTarget: Double? = nil) {
+         reminderTime: Date? = nil, reminderIsOneTime: Bool = false,
+         healthType: String? = nil, healthTarget: Double? = nil) {
         self.id = id; self.title = title; self.isCompleted = isCompleted
         self.manuallyCompleted = manuallyCompleted; self.createdAt = createdAt
         self.weight = weight; self.reminderTime = reminderTime
+        self.reminderIsOneTime = reminderIsOneTime
         self.healthType = healthType; self.healthTarget = healthTarget
     }
 
@@ -52,8 +57,9 @@ struct SortydTask: Identifiable, Codable, Hashable {
         manuallyCompleted = try c.decodeIfPresent(Bool.self,  forKey: .manuallyCompleted) ?? false
         createdAt        = try c.decodeIfPresent(Date.self,   forKey: .createdAt)         ?? Date()
         weight           = try c.decodeIfPresent(Double.self, forKey: .weight)            ?? 0.0
-        reminderTime     = try c.decodeIfPresent(Date.self,   forKey: .reminderTime)
-        healthType       = try c.decodeIfPresent(String.self, forKey: .healthType)
+        reminderTime      = try c.decodeIfPresent(Date.self,   forKey: .reminderTime)
+        reminderIsOneTime = try c.decodeIfPresent(Bool.self,   forKey: .reminderIsOneTime) ?? false
+        healthType        = try c.decodeIfPresent(String.self, forKey: .healthType)
         healthTarget     = try c.decodeIfPresent(Double.self, forKey: .healthTarget)
     }
 }
