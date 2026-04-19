@@ -125,29 +125,41 @@ enum Theme {
     }
 
     // ── Heatmap ───────────────────────────────────────────────
-    // Red → green gradient (poor → best), opacity ramps 0.30 → 1.0.
-    // Dark:  muted red #FF5F5F → vivid green #1FE090
-    // Light: deep red  #CC2222 → deep green  #12A362
+    // Red → orange → yellow → green gradient (poor → best).
+    // Four-stop piecewise interpolation so each colour band is distinct.
+    // Dark:  #FF5F5F → #FFB547 → #FFE566 → #1FE090
+    // Light: #CC2222 → #D4850A → #C8A800 → #12A362
     static func heatColor(fraction: Double) -> Color {
         guard fraction > 0 else {
             return dark ? Color(hex: "#0E1019") : Color(hex: "#F0EEF8")
         }
         let t = max(0, min(fraction, 1.0))
-        if dark {
-            // Red #FF5F5F → Green #1FE090
-            let r = 255.0 + (31.0  - 255.0) * t
-            let g = 95.0  + (224.0 - 95.0)  * t
-            let b = 95.0  + (144.0 - 95.0)  * t
-            return Color(red: r/255, green: g/255, blue: b/255)
-                .opacity(0.30 + t * 0.70)
-        } else {
-            // Red #CC2222 → Green #12A362
-            let r = 204.0 + (18.0  - 204.0) * t
-            let g = 34.0  + (163.0 - 34.0)  * t
-            let b = 34.0  + (98.0  - 34.0)  * t
-            return Color(red: r/255, green: g/255, blue: b/255)
-                .opacity(0.30 + t * 0.70)
-        }
+
+        // Four anchor colours (R, G, B) for dark / light
+        let stops: [(r: Double, g: Double, b: Double)] = dark
+            ? [(255, 95,  95),   // red
+               (255, 181, 71),   // orange
+               (255, 229, 102),  // yellow
+               (31,  224, 144)]  // green
+            : [(204, 34,  34),
+               (212, 133, 10),
+               (200, 168, 0),
+               (18,  163, 98)]
+
+        // Map t into a segment index + local 0-1 position
+        let segments = Double(stops.count - 1)
+        let scaled   = t * segments
+        let lo       = min(Int(scaled), stops.count - 2)
+        let hi       = lo + 1
+        let local    = scaled - Double(lo)
+
+        let a = stops[lo], b = stops[hi]
+        let r = a.r + (b.r - a.r) * local
+        let g = a.g + (b.g - a.g) * local
+        let bC = a.b + (b.b - a.b) * local
+
+        return Color(red: r/255, green: g/255, blue: bC/255)
+            .opacity(0.30 + t * 0.70)
     }
 
     // ── Radii ─────────────────────────────────────────────────

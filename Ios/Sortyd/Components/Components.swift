@@ -261,7 +261,9 @@ private struct CalendarGrid: View {
         let cs = cellSize
         
         VStack(alignment: .leading, spacing: 0) {
-            
+
+            Spacer(minLength: 6)
+
             // ── Header ──────────────────────────────────
             HStack {
                 Button { showMonthPicker = true } label: {
