@@ -837,10 +837,9 @@ private struct CircleHeatCell: View {
                 .allowsHitTesting(false)
             }
         }
-        .overlay(alignment: .topLeading) {
+        .overlay(alignment: .center) {
             if isInstallDay && !isFuture {
-                InstallDayFlag(size: size)
-                    .offset(x: 0, y: -(size * 0.72))
+                InstallDayRing(size: size)
                     .allowsHitTesting(false)
             }
         }
@@ -855,31 +854,50 @@ private struct CircleHeatCell: View {
 }
 
 // ══════════════════════════════════════════════
-// MARK: InstallDayFlag
+// MARK: InstallDayRing — rotating "FIRST DAY" text ring
 // ══════════════════════════════════════════════
 
-private struct InstallDayFlag: View {
+private struct InstallDayRing: View {
     let size: CGFloat
-    private let green = Color(hex: "#22C55E")
+    @State private var rotation: Double = 0
+
+    private let label   = "· FIRST DAY "
+    private let green   = Color(hex: "#22C55E")
 
     var body: some View {
-        VStack(spacing: 0) {
-            ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 1.5, style: .continuous)
-                    .fill(green)
-                    .frame(width: size * 0.52, height: size * 0.22)
-                Text("DAY 1")
-                    .font(.system(size: max(4, size * 0.13), weight: .black))
-                    .foregroundColor(.white)
-                    .padding(.leading, 2)
+        let ringR  = size * 0.85
+        let chars  = Array(label)
+        let step   = 360.0 / Double(chars.count)
+        let fSize  = max(5.5, size * 0.24)
+
+        ZStack {
+            // Faint ring underline
+            Circle()
+                .strokeBorder(green.opacity(0.25), lineWidth: 0.75)
+                .frame(width: ringR * 2, height: ringR * 2)
+
+            // Characters placed on the ring
+            ZStack {
+                ForEach(chars.indices, id: \.self) { i in
+                    let angleDeg = Double(i) * step
+                    let angleRad = (angleDeg - 90) * .pi / 180
+                    Text(String(chars[i]))
+                        .font(.system(size: fSize, weight: .black))
+                        .foregroundColor(green)
+                        .rotationEffect(.degrees(angleDeg))
+                        .offset(
+                            x: ringR * CGFloat(cos(angleRad)),
+                            y: ringR * CGFloat(sin(angleRad))
+                        )
+                }
             }
-            .padding(.leading, 1)
-            Rectangle()
-                .fill(green.opacity(0.75))
-                .frame(width: 1.5, height: size * 0.5)
-                .padding(.leading, 1)
+            .rotationEffect(.degrees(rotation))
         }
-        .frame(width: size, alignment: .leading)
+        .onAppear {
+            withAnimation(.linear(duration: 7).repeatForever(autoreverses: false)) {
+                rotation = 360
+            }
+        }
     }
 }
 
