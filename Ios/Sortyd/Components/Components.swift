@@ -346,23 +346,18 @@ private struct CalendarGrid: View {
             
             // ── Performance legend ───────────────────────
             Spacer(minLength: 4)
-            HStack(spacing: 5) {
+            HStack(spacing: 4) {
                 Text("Weak")
                     .font(.system(size: 8, weight: .medium))
                     .foregroundColor(Theme.text2)
-                LinearGradient(
-                    stops: [
-                        .init(color: Theme.heatColor(fraction: 0.1),  location: 0.00),
-                        .init(color: Theme.heatColor(fraction: 0.35), location: 0.25),
-                        .init(color: Theme.heatColor(fraction: 0.60), location: 0.50),
-                        .init(color: Theme.heatColor(fraction: 0.80), location: 0.75),
-                        .init(color: Theme.heatColor(fraction: 1.0),  location: 1.00),
-                    ],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-                .clipShape(Capsule())
-                .frame(height: 5)
+                HStack(spacing: 2) {
+                    ForEach(1...10, id: \.self) { i in
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(Theme.heatColor(fraction: Double(i) / 10.0))
+                            .frame(height: 3)
+                    }
+                }
+                .frame(maxWidth: .infinity)
                 Text("Best")
                     .font(.system(size: 8, weight: .medium))
                     .foregroundColor(Theme.text2)
