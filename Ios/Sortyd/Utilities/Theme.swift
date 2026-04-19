@@ -144,32 +144,28 @@ enum Theme {
         }
     }
 
-    // ── Heatmap — home calendar (red → orange → yellow → green) ─
-    // Snaps fraction to the nearest whole-task step so each cell colour
-    // represents exactly N tasks completed, not a continuous blend.
+    // ── Heatmap — home calendar (purple → blue, task-count discrete) ─
+    // Same colours as heatColor but snaps to whole-task steps so each
+    // cell represents exactly N tasks completed, not a continuous blend.
     static func heatColorRG(fraction: Double, taskCount: Int) -> Color {
         guard fraction > 0 else {
             return dark ? Color(hex: "#0E1019") : Color(hex: "#F0EEF8")
         }
-        let n = max(1, taskCount)
+        let n    = max(1, taskCount)
         let step = min(Int((fraction * Double(n)).rounded()), n)
         let t    = Double(step) / Double(n)
-
-        let stops: [(r: Double, g: Double, b: Double)] = dark
-            ? [(255, 38,  38), (255, 158, 0), (255, 218,  0), (20, 210, 110)]
-            : [(210, 20,  20), (200, 100, 0), (170, 135,  0), (15, 160,  80)]
-
-        let segments = Double(stops.count - 1)
-        let scaled   = t * segments
-        let lo       = min(Int(scaled), stops.count - 2)
-        let local    = scaled - Double(lo)
-        let a = stops[lo], b = stops[lo + 1]
-
-        return Color(
-            red:   (a.r + (b.r - a.r) * local) / 255,
-            green: (a.g + (b.g - a.g) * local) / 255,
-            blue:  (a.b + (b.b - a.b) * local) / 255
-        ).opacity(0.65 + t * 0.35)
+        if dark {
+            let r = 124.0 + (62.0  - 124.0) * t
+            let g = 111.0 + (207.0 - 111.0) * t
+            return Color(red: r/255, green: g/255, blue: 1.0)
+                .opacity(0.28 + t * 0.72)
+        } else {
+            let r = 90.0  + (0.0   - 90.0)  * t
+            let g = 78.0  + (153.0 - 78.0)  * t
+            let b = 204.0 + (200.0 - 204.0) * t
+            return Color(red: r/255, green: g/255, blue: b/255)
+                .opacity(0.25 + t * 0.75)
+        }
     }
 
     // ── Radii ─────────────────────────────────────────────────
