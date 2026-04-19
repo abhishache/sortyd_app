@@ -363,6 +363,7 @@ private struct CalendarGrid: View {
                     .foregroundColor(Theme.text2)
             }
             .frame(width: availW * 0.7)
+            .frame(maxWidth: .infinity, alignment: .center)
             .padding(.bottom, 2)
         }
         .frame(width: availW, height: availH)
