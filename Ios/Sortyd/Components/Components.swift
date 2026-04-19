@@ -3,8 +3,7 @@
 
 import SwiftUI
 
-// ── DEV ONLY: set false before App Store submission ──
-private let kDebugAllowPastEditing = true
+private let kDebugAllowPastEditing = false
 
 // ══════════════════════════════════════════════
 // MARK: DonutChartView — Glowing amber arc

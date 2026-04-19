@@ -83,9 +83,13 @@ final class NotificationManager {
 
         do {
             try await center.add(request)
+            #if DEBUG
             print("[NotificationManager] Daily summary scheduled — \"\(title)\"")
+            #endif
         } catch {
+            #if DEBUG
             print("[NotificationManager] Failed to schedule daily summary: \(error.localizedDescription)")
+            #endif
         }
     }
 
@@ -262,7 +266,9 @@ final class NotificationManager {
         do {
             try await center.add(request)
         } catch {
+            #if DEBUG
             print("[NotificationManager] Failed to register notification: \(error.localizedDescription)")
+            #endif
         }
     }
 
