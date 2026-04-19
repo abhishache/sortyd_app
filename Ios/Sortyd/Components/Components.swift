@@ -112,23 +112,33 @@ struct MonthYear: Equatable, Hashable {
 struct HeatmapCalendarView: View {
     let listID: UUID
     @EnvironmentObject var vm: AppViewModel
-    
+
     @State private var selectedMonth: MonthYear = .current
     @State private var showMonthPicker   = false
     @State private var selectedDaySnap: DailySnapshot? = nil
     @State private var selectedDayDate: Date = Date()
     @State private var showDayDetail     = false
     @State private var showEmptyToast    = false
-    
+
     private let dayLetters = ["S","M","T","W","T","F","S"]
     private let colGap: CGFloat  = 0
     private let vSpacing: CGFloat = 1
-    
+
     @State private var cachedSnapshotMap: [String: DailySnapshot] = [:]
     @State private var cachedDays: [Date?] = []
-    
+
     private var taskCount: Int {
         vm.lists.first(where: { $0.id == listID })?.tasks.count ?? 1
+    }
+
+    private var installDate: Date {
+        let key = "sortyd_install_date"
+        if let d = UserDefaults.standard.object(forKey: key) as? Date {
+            return Calendar.current.startOfDay(for: d)
+        }
+        let now = Calendar.current.startOfDay(for: Date())
+        UserDefaults.standard.set(Date(), forKey: key)
+        return now
     }
 
     var body: some View {
@@ -146,7 +156,8 @@ struct HeatmapCalendarView: View {
                 dayLetters: dayLetters,
                 colGap: colGap,
                 vSpacing: vSpacing,
-                taskCount: taskCount
+                taskCount: taskCount,
+                installDate: installDate
             )
         }
         .sheet(isPresented: $showMonthPicker) {
@@ -179,6 +190,10 @@ struct HeatmapCalendarView: View {
             .presentationBackground(Theme.bg0)
         }
         .onAppear {
+            cachedSnapshotMap = buildSnapshotMap()
+            cachedDays = buildDays()
+        }
+        .onChange(of: listID) { _, _ in
             cachedSnapshotMap = buildSnapshotMap()
             cachedDays = buildDays()
         }
@@ -243,7 +258,8 @@ private struct CalendarGrid: View {
     let colGap: CGFloat
     let vSpacing: CGFloat
     let taskCount: Int
-    
+    let installDate: Date
+
     private var cellSize: CGFloat {
         let availW  = geo.size.width
         let availH  = geo.size.height
@@ -331,7 +347,7 @@ private struct CalendarGrid: View {
                                 Calendar.current.startOfDay(for: date)
                                     .timeIntervalSince1970.description
                             ]
-                            CircleHeatCell(date: date, snapshot: snap, size: cs, taskCount: taskCount)
+                            CircleHeatCell(date: date, snapshot: snap, size: cs, taskCount: taskCount, installDate: installDate)
                                 .contentShape(Circle())
                                 .onTapGesture {
                                     guard date <= Date() else { return }
@@ -732,11 +748,13 @@ private struct CircleHeatCell: View {
     let snapshot: DailySnapshot?
     let size: CGFloat
     let taskCount: Int
-    
-    private var frac: Double   { snapshot?.completionFraction ?? 0 }
-    private var isToday: Bool  { Calendar.current.isDateInToday(date) }
-    private var isFuture: Bool { date > Date() && !Calendar.current.isDateInToday(date) }
-    private var day: String    { "\(Calendar.current.component(.day, from: date))" }
+    let installDate: Date
+
+    private var frac: Double       { snapshot?.completionFraction ?? 0 }
+    private var isToday: Bool      { Calendar.current.isDateInToday(date) }
+    private var isFuture: Bool     { date > Date() && !Calendar.current.isDateInToday(date) }
+    private var isInstallDay: Bool { Calendar.current.isDate(date, inSameDayAs: installDate) }
+    private var day: String        { "\(Calendar.current.component(.day, from: date))" }
     
     @State private var glowPulse: Bool = false
     @State private var sparkRotation: Double = 0
@@ -819,6 +837,13 @@ private struct CircleHeatCell: View {
                 .allowsHitTesting(false)
             }
         }
+        .overlay(alignment: .topLeading) {
+            if isInstallDay && !isFuture {
+                InstallDayFlag(size: size)
+                    .offset(x: 0, y: -(size * 0.72))
+                    .allowsHitTesting(false)
+            }
+        }
         .onAppear {
             guard isToday else { return }
             glowPulse = true
@@ -826,6 +851,35 @@ private struct CircleHeatCell: View {
                 sparkRotation = 360
             }
         }
+    }
+}
+
+// ══════════════════════════════════════════════
+// MARK: InstallDayFlag
+// ══════════════════════════════════════════════
+
+private struct InstallDayFlag: View {
+    let size: CGFloat
+    private let green = Color(hex: "#22C55E")
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                    .fill(green)
+                    .frame(width: size * 0.52, height: size * 0.22)
+                Text("DAY 1")
+                    .font(.system(size: max(4, size * 0.13), weight: .black))
+                    .foregroundColor(.white)
+                    .padding(.leading, 2)
+            }
+            .padding(.leading, 1)
+            Rectangle()
+                .fill(green.opacity(0.75))
+                .frame(width: 1.5, height: size * 0.5)
+                .padding(.leading, 1)
+        }
+        .frame(width: size, alignment: .leading)
     }
 }
 

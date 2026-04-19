@@ -21,24 +21,6 @@ struct HomeView: View {
         return Int((list.completionFraction(healthValues: hv) * 100).rounded())
     }
 
-    /// Grade based on last 7 days for the active list
-    private var homeGrade: (letter: String, color: Color) {
-        guard let listID = vm.activeListID else { return ("—", Theme.text2) }
-        let snaps = vm.snapshotsForList(id: listID)
-        let last7 = Array(snaps.suffix(7))
-        guard !last7.isEmpty else { return ("—", Theme.text2) }
-        let avg = Int((last7.map(\.completionFraction).reduce(0,+) / Double(last7.count) * 100).rounded())
-        switch avg {
-        case 90...100: return ("A",  Theme.accent)
-        case 80..<90:  return ("A-", Theme.accent)
-        case 75..<80:  return ("B+", Theme.warning)
-        case 70..<75:  return ("B",  Theme.warning)
-        case 65..<70:  return ("B-", Theme.warning)
-        case 60..<65:  return ("C+", Theme.coral)
-        case 50..<60:  return ("C",  Theme.coral)
-        default:       return ("D",  Theme.coral)
-        }
-    }
 
     var body: some View {
         NavigationStack {
@@ -158,20 +140,9 @@ struct HomeView: View {
             Spacer()
 
             VStack(alignment: .trailing, spacing: 0) {
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text(homeGrade.letter)
-                        .font(.system(size: 22, weight: .black, design: .rounded))
-                        .foregroundColor(homeGrade.color)
-                    Text("7D")
-                        .font(.system(size: 9, weight: .bold))
-                        .kerning(1.0)
-                        .foregroundColor(Theme.text2)
-                }
-                .padding(.bottom, 6)
-
-                Text("🔥").font(.system(size: 28)).padding(.bottom, 2)
+                Text("🔥").font(.system(size: 32)).padding(.bottom, 2)
                 Text("\(vm.cachedBestStreak)")
-                    .font(.system(size: 44, weight: .black, design: .rounded))
+                    .font(.system(size: 50, weight: .black, design: .rounded))
                     .foregroundColor(Theme.text0)
                     .lineLimit(1)
                 Text("Day Streak")
@@ -181,7 +152,7 @@ struct HomeView: View {
             }
             .padding(.bottom, 4)
             .accessibilityElement(children: .combine)
-            .accessibilityLabel("\(homeGrade.letter) grade · \(vm.cachedBestStreak) day streak")
+            .accessibilityLabel("\(vm.cachedBestStreak) day streak")
         }
     }
 

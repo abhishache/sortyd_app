@@ -888,9 +888,15 @@ struct AnalyticsView: View {
         case .week:  return filledDays(count: 7,  endingOn: today, lookup: lookup)
         case .month: return filledDays(count: 30, endingOn: today, lookup: lookup)
         case .all:
-            guard let earliest = all.first.map({ cal.startOfDay(for: $0.date) }) else {
-                return filledDays(count: 1, endingOn: today, lookup: lookup)
-            }
+            let installDateAll: Date = {
+                let key = "sortyd_install_date"
+                if let d = UserDefaults.standard.object(forKey: key) as? Date { return cal.startOfDay(for: d) }
+                let now = cal.startOfDay(for: Date())
+                UserDefaults.standard.set(Date(), forKey: key)
+                return now
+            }()
+            let earliestSnap = all.first.map { cal.startOfDay(for: $0.date) }
+            let earliest = earliestSnap.map { min($0, installDateAll) } ?? installDateAll
             let days = (cal.dateComponents([.day], from: earliest, to: today).day ?? 0) + 1
             return filledDays(count: max(days, 1), endingOn: today, lookup: lookup)
         }
@@ -2080,7 +2086,13 @@ struct NewUserBanner: View {
         return uniqueDays.count
     }
 
-    var shouldShow: Bool { daysSinceInstall < 7 }
+    private var hasOldData: Bool {
+        guard let cutoff = Calendar.current.date(byAdding: .day, value: -7, to: Date()) else { return false }
+        let cutoffDay = Calendar.current.startOfDay(for: cutoff)
+        return vm.snapshots.contains { Calendar.current.startOfDay(for: $0.date) < cutoffDay }
+    }
+
+    var shouldShow: Bool { daysSinceInstall < 7 && !hasOldData }
 
     @State private var msgIndex = 0
     @State private var bannerOpacity: Double = 1
