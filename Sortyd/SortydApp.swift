@@ -2,12 +2,17 @@
 // Sortyd v4 — Fixed: onOpenURL handler for widget deep links, single reset on launch
 
 import SwiftUI
+import Firebase
 
 @main
 struct SortydApp: App {
     @ObservedObject var themeManager = ThemeManager.shared
     @StateObject private var vm = AppViewModel()
     @Environment(\.scenePhase) private var scenePhase
+
+    init() {
+        FirebaseApp.configure()
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -46,6 +51,10 @@ struct SortydApp: App {
                     if newPhase == .background {
                         vm.flushToDisk()         // force write before iOS suspends
                     }
+                }
+                // Watch toggled a task — reload AppViewModel so views refresh immediately
+                .onReceive(NotificationCenter.default.publisher(for: .watchDidUpdateAppData)) { _ in
+                    vm.reloadFromDisk()
                 }
                 // FIX: onOpenURL handler added.
                 //

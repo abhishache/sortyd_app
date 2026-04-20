@@ -4,6 +4,7 @@
 import Foundation
 import SwiftUI
 import Combine
+import FirebaseAnalytics
 
 @MainActor
 final class AppViewModel: ObservableObject {
@@ -82,6 +83,11 @@ final class AppViewModel: ObservableObject {
         else { return }
 
         appData.lists[listIdx].tasks[taskIdx].isCompleted.toggle()
+        if appData.lists[listIdx].tasks[taskIdx].isCompleted {
+                Analytics.logEvent("task_completed", parameters: [
+                    "list_name": appData.lists[listIdx].name
+                ])
+            }
         updateTodaySnapshot()
         PersistenceManager.shared.saveImmediately(appData)
     }
@@ -145,19 +151,21 @@ final class AppViewModel: ObservableObject {
         }
         appData = updated   // single assignment → single syncPublished
         PersistenceManager.shared.saveImmediately(appData)
+        Analytics.logEvent("list_created", parameters: nil)
     }
 
     /// Batch-create a list with multiple tasks in a single mutation.
     /// Used by AI Starter Lists to avoid N separate objectWillChange + save calls.
     /// taskData: array of (title, optional reminderTime) tuples.
-    func addListWithTasks(name: String, emoji: String, taskData: [(String, Date?)]) {
+    func addListWithTasks(name: String, emoji: String, taskData: [(title: String, reminder: Date?, isOneTime: Bool)]) {
         var updated = appData
         let capitalizedName = name.prefix(1).uppercased() + name.dropFirst()
         var list = TaskList(id: UUID(), name: capitalizedName, emoji: emoji, tasks: [])
-        for (title, reminder) in taskData {
+        for (title, reminder, isOneTime) in taskData {
             let capitalized = title.prefix(1).uppercased() + title.dropFirst()
             var task = SortydTask(id: UUID(), title: capitalized)
-            task.reminderTime = reminder
+            task.reminderTime      = reminder
+            task.reminderIsOneTime = isOneTime
 
             // Auto-detect health tasks from title keywords
             let detected = HealthTaskType.detect(from: title)
@@ -209,6 +217,7 @@ final class AppViewModel: ObservableObject {
             let taskIDs = appData.lists[offset].tasks.map(\.id)
             NotificationManager.shared.cancelReminders(for: taskIDs)
         }
+        Analytics.logEvent("list_deleted", parameters: ["count": offsets.count])
         appData.lists.remove(atOffsets: offsets)
         if removedIDs.contains(appData.activeListID ?? UUID()) {
             appData.activeListID = appData.lists.first(where: { !$0.isArchived })?.id
@@ -224,6 +233,7 @@ final class AppViewModel: ObservableObject {
         let taskIDs = appData.lists[idx].tasks.map(\.id)
         NotificationManager.shared.cancelReminders(for: taskIDs)
 
+        Analytics.logEvent("list_archived", parameters: nil)
         _skipSync = true
         appData.lists[idx].isArchived = true
         // If the archived list was active, switch to the first non-archived list
@@ -296,19 +306,25 @@ final class AppViewModel: ObservableObject {
     // MARK: - Task Management
 
     func addTask(to listID: UUID, title: String, reminderTime: Date? = nil,
+                 reminderIsOneTime: Bool = false,
                  healthType: String? = nil, healthTarget: Double? = nil) {
         guard let idx = appData.lists.firstIndex(where: { $0.id == listID }) else { return }
         // Batch mutations into a single appData write so only one
         // objectWillChange fires with the fully-formed task (including reminder).
         _skipSync = true
         var task = SortydTask(id: UUID(), title: title)
-            task.reminderTime = reminderTime
-            task.healthType   = healthType
-            task.healthTarget = healthTarget
+            task.reminderTime      = reminderTime
+            task.reminderIsOneTime = reminderIsOneTime
+            task.healthType        = healthType
+            task.healthTarget      = healthTarget
         appData.lists[idx].tasks.append(task)
         appData.lists[idx].recalculateWeights()
         _skipSync = false
         syncPublished()
+
+        if healthType != nil {
+            Analytics.logEvent("health_task_added", parameters: ["type": healthType ?? ""])
+        }
 
         if reminderTime != nil {
             let capturedTask = task
@@ -328,6 +344,7 @@ final class AppViewModel: ObservableObject {
         guard let listIdx = appData.lists.firstIndex(where: { $0.id == listID }),
               let taskIdx = appData.lists[listIdx].tasks.firstIndex(where: { $0.id == task.id })
         else { return }
+        Analytics.logEvent("task_deleted", parameters: nil)
         NotificationManager.shared.cancelReminder(for: task.id)
         appData.lists[listIdx].tasks.remove(at: taskIdx)
         appData.lists[listIdx].recalculateWeights()
@@ -359,7 +376,7 @@ final class AppViewModel: ObservableObject {
     }
 
     @discardableResult
-    func setTaskReminder(_ task: SortydTask, in listID: UUID, time: Date) async -> Bool {
+    func setTaskReminder(_ task: SortydTask, in listID: UUID, time: Date, isOneTime: Bool = false) async -> Bool {
         let granted = await NotificationManager.shared.requestPermissionIfNeeded()
         guard granted else { return false }
 
@@ -371,8 +388,10 @@ final class AppViewModel: ObservableObject {
         // Batch the mutation and force an explicit syncPublished so the
         // @Published lists update fires immediately on the main actor,
         // not deferred across the async boundary.
+        Analytics.logEvent("reminder_set", parameters: nil)
         _skipSync = true
-        appData.lists[listIdx].tasks[taskIdx].reminderTime = time
+        appData.lists[listIdx].tasks[taskIdx].reminderTime      = time
+        appData.lists[listIdx].tasks[taskIdx].reminderIsOneTime = isOneTime
         _skipSync = false
         syncPublished()
         PersistenceManager.shared.saveImmediately(appData)
@@ -487,6 +506,16 @@ final class AppViewModel: ObservableObject {
         return appData.snapshots
             .filter { $0.listID == id }
             .sorted { $0.date < $1.date }
+    }
+
+    func snapshotsForList(id listID: UUID) -> [DailySnapshot] {
+        appData.snapshots
+            .filter { $0.listID == listID }
+            .sorted { $0.date < $1.date }
+    }
+
+    func listForID(_ id: UUID) -> TaskList? {
+        lists.first { $0.id == id }
     }
 
     func completionFraction(for date: Date, listID: UUID) -> Double {

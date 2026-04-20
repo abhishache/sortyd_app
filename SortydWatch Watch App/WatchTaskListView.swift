@@ -46,6 +46,7 @@ struct WatchTaskListView: View {
                         // Tasks
                         ForEach(list.tasks) { task in
                             WatchTaskRow(task: task)
+                                .id(task.id.uuidString + (task.isCompleted ? "1" : "0"))
                                 .padding(.bottom, 6)
                         }
 

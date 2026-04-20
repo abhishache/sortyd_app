@@ -13,9 +13,14 @@ struct SortydTask: Identifiable, Codable, Hashable {
     var id: UUID = UUID()
     var title: String
     var isCompleted: Bool = false
+    var manuallyCompleted: Bool = false
     var createdAt: Date = Date()
     var weight: Double = 0.0
     var reminderTime: Date? = nil
+    var healthType: String? = nil
+    var healthTarget: Double? = nil
+
+    var isHealthTask: Bool { healthType != nil }
 
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
     static func == (lhs: SortydTask, rhs: SortydTask) -> Bool { lhs.id == rhs.id }
@@ -27,6 +32,7 @@ struct TaskList: Identifiable, Codable, Hashable {
     var emoji: String = "📋"
     var tasks: [SortydTask]
     var createdAt: Date = Date()
+    var isArchived: Bool = false
 
     var completionFraction: Double {
         guard !tasks.isEmpty else { return 0 }
@@ -147,9 +153,14 @@ final class WatchStore: NSObject, ObservableObject {
     }
 
     private func sendToPhone() {
-        guard WCSession.default.isReachable,
-              let encoded = try? JSONEncoder().encode(appData) else { return }
-        WCSession.default.sendMessage(["appData": encoded], replyHandler: nil, errorHandler: nil)
+        guard let encoded = try? JSONEncoder().encode(appData) else { return }
+        if WCSession.default.isReachable {
+            // Phone app is foregrounded — send immediately
+            WCSession.default.sendMessage(["appData": encoded], replyHandler: nil, errorHandler: nil)
+        } else {
+            // Phone is backgrounded — persist so it receives on next foreground
+            try? WCSession.default.updateApplicationContext(["appData": encoded])
+        }
     }
 }
 

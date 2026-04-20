@@ -3,6 +3,10 @@
 
 import SwiftUI
 
+private let kOneTimeDateFormatter: DateFormatter = {
+    let f = DateFormatter(); f.dateStyle = .medium; f.timeStyle = .short; return f
+}()
+
 // ══════════════════════════════════════════════
 // MARK: - SmartAddTaskSheet
 // Natural language task entry with AI parsing
@@ -360,6 +364,7 @@ struct StarterListSheet: View {
     @State private var editableTasks: [String] = []
     @State private var selectedIndices: Set<Int> = []
     @State private var taskReminders: [Int: Date] = [:]
+    @State private var taskReminderIsOneTime: [Int: Bool] = [:]
     @State private var editingReminderIndex: Int? = nil
     @State private var showHealthPermission = false
     @State private var detectedHealthTypeForPermission: HealthTaskType = .none
@@ -412,10 +417,13 @@ struct StarterListSheet: View {
             get: { editingReminderIndex.map { StarterReminderEdit(index: $0) } },
             set: { editingReminderIndex = $0?.index }
         )) { item in
-            InlineTimePickerSheet(
+            ReminderPickerSheet(
                 selectedTime: taskReminders[item.index] ?? starterDefaultTime,
-                onConfirm: { taskReminders[item.index] = $0 }
-            )
+                isOneTime: taskReminderIsOneTime[item.index] ?? false
+            ) { time, oneTime in
+                taskReminders[item.index] = time
+                taskReminderIsOneTime[item.index] = oneTime
+            }
         }
         .sheet(isPresented: $showHealthPermission, onDismiss: { dismiss() }) {
             HealthPermissionSheet(
@@ -514,6 +522,7 @@ struct StarterListSheet: View {
                         editableTasks = []
                         selectedIndices = []
                         taskReminders = [:]
+                        taskReminderIsOneTime = [:]
                     }) {
                         Text("Redo")
                             .font(.system(size: 13, weight: .semibold))
@@ -564,12 +573,20 @@ struct StarterListSheet: View {
                                             .background(Circle().fill(taskReminders[idx] != nil ? Theme.accent.opacity(0.12) : Theme.bg3))
                                     }
                                     .buttonStyle(.plain)
+
+                                    Button { removeTask(at: idx) } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .font(.system(size: 17))
+                                            .foregroundColor(Theme.text2.opacity(0.55))
+                                    }
+                                    .buttonStyle(.plain)
                                 }
 
                                 if let time = taskReminders[idx] {
+                                    let isOT = taskReminderIsOneTime[idx] ?? false
                                     HStack(spacing: 6) {
                                         Image(systemName: "bell.fill").font(.system(size: 10)).foregroundColor(Theme.accent)
-                                        Text(starterTimeFormatter.string(from: time))
+                                        Text(isOT ? kOneTimeDateFormatter.string(from: time) : starterTimeFormatter.string(from: time))
                                             .font(.system(size: 11, weight: .medium)).foregroundColor(Theme.text1)
                                         Spacer()
                                         Button {
@@ -680,6 +697,28 @@ struct StarterListSheet: View {
         "⚡ Productivity"
     ]
 
+    private func removeTask(at idx: Int) {
+        withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
+            editableTasks.remove(at: idx)
+            selectedIndices = Set(selectedIndices.compactMap { i -> Int? in
+                if i == idx { return nil }
+                return i > idx ? i - 1 : i
+            })
+            var newReminders: [Int: Date] = [:]
+            var newOneTime: [Int: Bool] = [:]
+            for (i, d) in taskReminders {
+                if i == idx { continue }
+                newReminders[i > idx ? i - 1 : i] = d
+            }
+            for (i, v) in taskReminderIsOneTime {
+                if i == idx { continue }
+                newOneTime[i > idx ? i - 1 : i] = v
+            }
+            taskReminders = newReminders
+            taskReminderIsOneTime = newOneTime
+        }
+    }
+
     private func generate() {
         guard !goalInput.isEmpty else { return }
         isGenerating = true
@@ -697,11 +736,11 @@ struct StarterListSheet: View {
     }
 
     private func createList(_ starter: StarterList) {
-        let taskData: [(String, Date?)] = selectedIndices.sorted().compactMap { idx -> (String, Date?)? in
+        let taskData: [(title: String, reminder: Date?, isOneTime: Bool)] = selectedIndices.sorted().compactMap { idx in
             guard idx < editableTasks.count else { return nil }
             let trimmed = editableTasks[idx].trimmingCharacters(in: .whitespaces)
             guard !trimmed.isEmpty else { return nil }
-            return (trimmed, taskReminders[idx])
+            return (trimmed, taskReminders[idx], taskReminderIsOneTime[idx] ?? false)
         }
         guard !taskData.isEmpty else { return }
         vm.addListWithTasks(name: starter.listName, emoji: starter.emoji, taskData: taskData)

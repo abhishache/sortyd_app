@@ -124,28 +124,47 @@ enum Theme {
         }
     }
 
-    // ── Heatmap ───────────────────────────────────────────────
+    // ── Heatmap — analytics (purple → blue) ──────────────────
     static func heatColor(fraction: Double) -> Color {
+        guard fraction > 0 else {
+            return dark ? Color(hex: "#0E1019") : Color(hex: "#F0EEF8")
+        }
+        let t = max(0, min(fraction, 1.0))
         if dark {
-            let base = Color(hex: "#3ECFFF")
-            switch fraction {
-            case 0:        return Color(hex: "#0E1019")
-            case ..<0.25:  return base.opacity(0.15)
-            case ..<0.50:  return base.opacity(0.35)
-            case ..<0.75:  return base.opacity(0.60)
-            case ..<1.0:   return base.opacity(0.82)
-            default:       return base
-            }
+            let r = 124.0 + (62.0  - 124.0) * t
+            let g = 111.0 + (207.0 - 111.0) * t
+            return Color(red: r/255, green: g/255, blue: 1.0)
+                .opacity(0.28 + t * 0.72)
         } else {
-            let base = Color(hex: "#5A4ECC")
-            switch fraction {
-            case 0:        return Color(hex: "#F0EEF8")
-            case ..<0.25:  return base.opacity(0.15)
-            case ..<0.50:  return base.opacity(0.32)
-            case ..<0.75:  return base.opacity(0.55)
-            case ..<1.0:   return base.opacity(0.78)
-            default:       return base
-            }
+            let r = 90.0  + (0.0   - 90.0)  * t
+            let g = 78.0  + (153.0 - 78.0)  * t
+            let b = 204.0 + (200.0 - 204.0) * t
+            return Color(red: r/255, green: g/255, blue: b/255)
+                .opacity(0.25 + t * 0.75)
+        }
+    }
+
+    // ── Heatmap — home calendar (purple → blue, task-count discrete) ─
+    // Same colours as heatColor but snaps to whole-task steps so each
+    // cell represents exactly N tasks completed, not a continuous blend.
+    static func heatColorRG(fraction: Double, taskCount: Int) -> Color {
+        guard fraction > 0 else {
+            return dark ? Color(hex: "#0E1019") : Color(hex: "#F0EEF8")
+        }
+        let n    = max(1, taskCount)
+        let step = min(Int((fraction * Double(n)).rounded()), n)
+        let t    = Double(step) / Double(n)
+        if dark {
+            let r = 124.0 + (62.0  - 124.0) * t
+            let g = 111.0 + (207.0 - 111.0) * t
+            return Color(red: r/255, green: g/255, blue: 1.0)
+                .opacity(0.28 + t * 0.72)
+        } else {
+            let r = 90.0  + (0.0   - 90.0)  * t
+            let g = 78.0  + (153.0 - 78.0)  * t
+            let b = 204.0 + (200.0 - 204.0) * t
+            return Color(red: r/255, green: g/255, blue: b/255)
+                .opacity(0.25 + t * 0.75)
         }
     }
 

@@ -3,6 +3,7 @@
 
 import SwiftUI
 import Combine
+import FirebaseAnalytics
 
 struct HomeView: View {
     @EnvironmentObject var vm: AppViewModel
@@ -19,6 +20,7 @@ struct HomeView: View {
         let hv = hk.healthValues(for: list.tasks)
         return Int((list.completionFraction(healthValues: hv) * 100).rounded())
     }
+
 
     var body: some View {
         NavigationStack {
@@ -51,17 +53,20 @@ struct HomeView: View {
             .sheet(isPresented: $showSwitcher) {
                 ListSwitcherSheet().environmentObject(vm)
             }
-            
             .onReceive(Timer.publish(every: 60, on: .main, in: .common).autoconnect()) { _ in
                 currentTime = HomeView.timeString()
             }
-            // Refresh HealthKit data whenever app comes to foreground
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
                 hk.fetchToday()
             }
+            .onAppear {                                          // ← add this
+                Analytics.logEvent(AnalyticsEventScreenView, parameters: [
+                    AnalyticsParameterScreenName: "home",
+                    AnalyticsParameterScreenClass: "HomeView"
+                ])
+            }
         }
     }
-
     // MARK: - Header
 
     private var headerSection: some View {
@@ -146,8 +151,8 @@ struct HomeView: View {
                     .foregroundColor(Theme.text2)
             }
             .padding(.bottom, 4)
-            .accessibilityElement(children: .combine)          // ← add here
-            .accessibilityLabel("\(vm.cachedBestStreak) day streak")  // ← add here
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(vm.cachedBestStreak) day streak")
         }
     }
 
@@ -158,14 +163,14 @@ struct HomeView: View {
             if let id = list?.id {
                 HeatmapCalendarView(listID: id)
                     .environmentObject(vm)
-                    .frame(height: 120)
+                    .frame(height: 124)
             } else {
-                PlaceholderCalendarView().frame(height: 120)
+                PlaceholderCalendarView().frame(height: 108)
             }
         }
-        .padding(.all, 14)
-        .padding(.horizontal, 2)
-        .padding(.vertical, 6)
+        .padding(.horizontal, 14)
+        .padding(.top, 12)
+        .padding(.bottom, 19)
         .background(
             RoundedRectangle(cornerRadius: Theme.r20, style: .continuous)
                 .fill(Theme.bg1)
@@ -206,9 +211,6 @@ struct HomeView: View {
             } else {
                 EmptyStateView(onAddList: {
                     vm.selectedTab = 1
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                        NotificationCenter.default.post(name: .openNewListSheet, object: nil)
-                    }
                 })
                 .padding(.top, 1)
             }
@@ -796,8 +798,21 @@ struct PlaceholderCalendarView: View {
                 HStack {
                     Text(currentMonth).font(.system(size: 11, weight: .semibold)).foregroundColor(Theme.text1)
                     Spacer()
-                    Text(String(Calendar.current.component(.year, from: today)))
-                        .font(.system(size: 10, weight: .medium)).foregroundColor(Theme.text2)
+                    HStack(spacing: 3) {
+                        Text("Low")
+                            .font(.system(size: 7, weight: .medium))
+                            .foregroundColor(Theme.text2)
+                        HStack(spacing: 1) {
+                            ForEach([0.15, 0.35, 0.55, 0.75, 1.0], id: \.self) { f in
+                                RoundedRectangle(cornerRadius: 1)
+                                    .fill(Theme.heatColor(fraction: f))
+                                    .frame(width: 7, height: 7)
+                            }
+                        }
+                        Text("Best")
+                            .font(.system(size: 7, weight: .medium))
+                            .foregroundColor(Theme.text2)
+                    }
                 }.frame(height: 15)
                 Spacer(minLength: vSpacing)
                 HStack(spacing: 0) {
@@ -845,7 +860,6 @@ struct PlaceholderCalendarView: View {
 // ══════════════════════════════════════════════
 
 extension Notification.Name {
-    static let openNewListSheet   = Notification.Name("openNewListSheet")
     static let bounceCreateButton = Notification.Name("bounceCreateButton")
 }
 

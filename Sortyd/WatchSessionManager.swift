@@ -83,14 +83,24 @@ extension WatchSessionManager: WCSessionDelegate {
         }
     }
 
-    // Watch toggled a task — merge back into iOS app data
+    // Watch toggled a task while phone was foregrounded
     nonisolated func session(_ session: WCSession,
                              didReceiveMessage message: [String: Any]) {
         guard let raw = message["appData"] as? Data,
               let decoded = try? JSONDecoder().decode(AppData.self, from: raw) else { return }
         Task { @MainActor in
             self.save(decoded)
-            // Post a notification so AppViewModel can reload
+            NotificationCenter.default.post(name: .watchDidUpdateAppData, object: nil)
+        }
+    }
+
+    // Watch toggled a task while phone was backgrounded — arrives via application context
+    nonisolated func session(_ session: WCSession,
+                             didReceiveApplicationContext context: [String: Any]) {
+        guard let raw = context["appData"] as? Data,
+              let decoded = try? JSONDecoder().decode(AppData.self, from: raw) else { return }
+        Task { @MainActor in
+            self.save(decoded)
             NotificationCenter.default.post(name: .watchDidUpdateAppData, object: nil)
         }
     }

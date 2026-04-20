@@ -83,9 +83,13 @@ final class NotificationManager {
 
         do {
             try await center.add(request)
+            #if DEBUG
             print("[NotificationManager] Daily summary scheduled — \"\(title)\"")
+            #endif
         } catch {
+            #if DEBUG
             print("[NotificationManager] Failed to schedule daily summary: \(error.localizedDescription)")
+            #endif
         }
     }
 
@@ -249,9 +253,18 @@ final class NotificationManager {
         content.body      = task.title
         content.sound     = UNNotificationSound(named: UNNotificationSoundName("rise.wav"))
 
-        var comps    = Calendar.current.dateComponents([.hour, .minute], from: reminderTime)
-        comps.second = 0
-        let trigger  = UNCalendarNotificationTrigger(dateMatching: comps, repeats: true)
+        let comps: DateComponents
+        let repeats: Bool
+        if task.reminderIsOneTime {
+            comps   = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: reminderTime)
+            repeats = false
+        } else {
+            var dc  = Calendar.current.dateComponents([.hour, .minute], from: reminderTime)
+            dc.second = 0
+            comps   = dc
+            repeats = true
+        }
+        let trigger  = UNCalendarNotificationTrigger(dateMatching: comps, repeats: repeats)
 
         let request = UNNotificationRequest(
             identifier: identifier,
@@ -262,7 +275,9 @@ final class NotificationManager {
         do {
             try await center.add(request)
         } catch {
+            #if DEBUG
             print("[NotificationManager] Failed to register notification: \(error.localizedDescription)")
+            #endif
         }
     }
 
