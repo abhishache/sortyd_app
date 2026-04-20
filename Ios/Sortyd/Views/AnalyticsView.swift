@@ -440,7 +440,7 @@
 //
 //            Group {
 //                if snaps.count >= 2 {
-//                    SmoothLineChart(snapshots: snaps)
+//                    SmoothLineChart(snapshots: displaySnaps)
 //                        .frame(height: 140)
 //                        .transition(.asymmetric(
 //                            insertion: .opacity.combined(with: .move(edge: .trailing)),
@@ -887,22 +887,36 @@ struct AnalyticsView: View {
         return now
     }
 
+    // Full period — used by charts and heatmap so they always render the selected date range.
+    private var displaySnaps: [DailySnapshot] {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let all = vm.snapshotsForList(id: resolvedListID)
+        var lookup: [Date: DailySnapshot] = [:]
+        for s in all { lookup[cal.startOfDay(for: s.date)] = s }
+        switch period {
+        case .week:  return filledDays(count: 7,  endingOn: today, lookup: lookup)
+        case .month: return filledDays(count: 30, endingOn: today, lookup: lookup)
+        case .all:
+            let earliestSnap = all.first.map { cal.startOfDay(for: $0.date) }
+            let earliest = earliestSnap.map { min($0, installDate) } ?? installDate
+            let days = (cal.dateComponents([.day], from: earliest, to: today).day ?? 0) + 1
+            return filledDays(count: max(days, 1), endingOn: today, lookup: lookup)
+        }
+    }
+
+    // Install-anchored — used by grade/avg/streak/DNA so pre-install zeros don't inflate misses.
     private var snaps: [DailySnapshot] {
         let cal = Calendar.current
         let today = cal.startOfDay(for: Date())
         let all = vm.snapshotsForList(id: resolvedListID)
         var lookup: [Date: DailySnapshot] = [:]
         for s in all { lookup[cal.startOfDay(for: s.date)] = s }
-        // Never include days before the app was installed — those zeros aren't real misses.
         let daysSince = max(0, cal.dateComponents([.day], from: installDate, to: today).day ?? 0)
         switch period {
         case .week:  return filledDays(count: min(7,  daysSince + 1), endingOn: today, lookup: lookup)
         case .month: return filledDays(count: min(30, daysSince + 1), endingOn: today, lookup: lookup)
-        case .all:
-            let earliestSnap = all.first.map { cal.startOfDay(for: $0.date) }
-            let earliest = earliestSnap.map { min($0, installDate) } ?? installDate
-            let days = (cal.dateComponents([.day], from: earliest, to: today).day ?? 0) + 1
-            return filledDays(count: max(days, 1), endingOn: today, lookup: lookup)
+        case .all:   return displaySnaps  // .all is already install-anchored in displaySnaps
         }
     }
 
@@ -1371,7 +1385,7 @@ struct AnalyticsView: View {
 
             Group {
                 if snaps.count >= 2 {
-                    SmoothLineChart(snapshots: snaps)
+                    SmoothLineChart(snapshots: displaySnaps)
                         .frame(height: 114)   // was 126 → 114 (-9.5%)
                         .transition(.asymmetric(
                             insertion: .opacity.combined(with: .move(edge: .trailing)),
@@ -1436,7 +1450,7 @@ struct AnalyticsView: View {
                 }
             }
 
-            WeekdayHeatmap(snapshots: snaps)
+            WeekdayHeatmap(snapshots: displaySnaps)
                 .frame(height: 78)
         }
         .padding(14)
