@@ -3,7 +3,6 @@
 
 import SwiftUI
 
-// ── DEV ONLY: set false before App Store submission ──
 private let kDebugAllowPastEditing = false
 
 // ══════════════════════════════════════════════
@@ -113,21 +112,35 @@ struct MonthYear: Equatable, Hashable {
 struct HeatmapCalendarView: View {
     let listID: UUID
     @EnvironmentObject var vm: AppViewModel
-    
+
     @State private var selectedMonth: MonthYear = .current
     @State private var showMonthPicker   = false
     @State private var selectedDaySnap: DailySnapshot? = nil
     @State private var selectedDayDate: Date = Date()
     @State private var showDayDetail     = false
     @State private var showEmptyToast    = false
-    
+
     private let dayLetters = ["S","M","T","W","T","F","S"]
-    private let colGap: CGFloat  = 0
-    private let vSpacing: CGFloat = 1
-    
+    private let colGap: CGFloat   = 0
+    private let vSpacing: CGFloat = 4
+
     @State private var cachedSnapshotMap: [String: DailySnapshot] = [:]
     @State private var cachedDays: [Date?] = []
-    
+
+    private var taskCount: Int {
+        vm.lists.first(where: { $0.id == listID })?.tasks.count ?? 1
+    }
+
+    private var installDate: Date {
+        let key = "sortyd_install_date"
+        if let d = UserDefaults.standard.object(forKey: key) as? Date {
+            return Calendar.current.startOfDay(for: d)
+        }
+        let now = Calendar.current.startOfDay(for: Date())
+        UserDefaults.standard.set(Date(), forKey: key)
+        return now
+    }
+
     var body: some View {
         GeometryReader { geo in
             CalendarGrid(
@@ -142,7 +155,9 @@ struct HeatmapCalendarView: View {
                 showEmptyToast: $showEmptyToast,
                 dayLetters: dayLetters,
                 colGap: colGap,
-                vSpacing: vSpacing
+                vSpacing: vSpacing,
+                taskCount: taskCount,
+                installDate: installDate
             )
         }
         .sheet(isPresented: $showMonthPicker) {
@@ -175,6 +190,10 @@ struct HeatmapCalendarView: View {
             .presentationBackground(Theme.bg0)
         }
         .onAppear {
+            cachedSnapshotMap = buildSnapshotMap()
+            cachedDays = buildDays()
+        }
+        .onChange(of: listID) { _, _ in
             cachedSnapshotMap = buildSnapshotMap()
             cachedDays = buildDays()
         }
@@ -238,14 +257,17 @@ private struct CalendarGrid: View {
     let dayLetters: [String]
     let colGap: CGFloat
     let vSpacing: CGFloat
-    
+    let taskCount: Int
+    let installDate: Date
+
     private var cellSize: CGFloat {
-        let availW  = geo.size.width
-        let availH  = geo.size.height
-        let cellByW = (availW - colGap * 6) / 7
-        let nRows: CGFloat = 7
-        let cellByH = (availH - 13 - vSpacing * nRows) / nRows
-        return min(cellByW, cellByH) * 1.2
+        let availW    = geo.size.width
+        let availH    = geo.size.height
+        let cellByW   = (availW - colGap * 6) / 7
+        // +1 for the day-letters row; use actual row count so unused rows don't shrink cells
+        let nRows     = CGFloat(rows.count + 1)
+        let cellByH   = (availH - 15 - vSpacing * nRows) / nRows
+        return min(cellByW, max(0, cellByH)) * 1.2
     }
     
     private var rows: [[Date?]] {
@@ -261,7 +283,7 @@ private struct CalendarGrid: View {
         let cs = cellSize
         
         VStack(alignment: .leading, spacing: 0) {
-            
+
             // ── Header ──────────────────────────────────
             HStack {
                 Button { showMonthPicker = true } label: {
@@ -292,9 +314,22 @@ private struct CalendarGrid: View {
                     }
                     .buttonStyle(.plain)
                 } else {
-                    Text(selectedMonth.shortYear)
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(Theme.text2)
+                    let swatches = min(max(1, taskCount), 6)
+                    HStack(spacing: 3) {
+                        Text("Low")
+                            .font(.system(size: 7, weight: .medium))
+                            .foregroundColor(Theme.text2)
+                        HStack(spacing: 1) {
+                            ForEach(0..<swatches, id: \.self) { i in
+                                RoundedRectangle(cornerRadius: 1)
+                                    .fill(Theme.heatColorRG(fraction: Double(i + 1) / Double(swatches), taskCount: swatches))
+                                    .frame(width: 7, height: 7)
+                            }
+                        }
+                        Text("Best")
+                            .font(.system(size: 7, weight: .medium))
+                            .foregroundColor(Theme.text2)
+                    }
                 }
             }
             .frame(height: 15)
@@ -312,8 +347,8 @@ private struct CalendarGrid: View {
                 }
             }
             
-            // ── Grid rows ────────────────────────────────
-            ForEach(0..<6, id: \.self) { row in
+            // ── Grid rows (only actual weeks, no empty trailing rows) ─
+            ForEach(0..<rows.count, id: \.self) { row in
                 Spacer(minLength: vSpacing)
                 HStack(spacing: 0) {
                     ForEach(0..<7, id: \.self) { col in
@@ -324,7 +359,7 @@ private struct CalendarGrid: View {
                                 Calendar.current.startOfDay(for: date)
                                     .timeIntervalSince1970.description
                             ]
-                            CircleHeatCell(date: date, snapshot: snap, size: cs)
+                            CircleHeatCell(date: date, snapshot: snap, size: cs, taskCount: taskCount, installDate: installDate)
                                 .contentShape(Circle())
                                 .onTapGesture {
                                     guard date <= Date() else { return }
@@ -344,7 +379,6 @@ private struct CalendarGrid: View {
                 }
             }
             
-            Spacer(minLength: 0)
         }
         .frame(width: availW, height: availH)
     }
@@ -703,11 +737,14 @@ private struct CircleHeatCell: View {
     let date: Date
     let snapshot: DailySnapshot?
     let size: CGFloat
-    
-    private var frac: Double   { snapshot?.completionFraction ?? 0 }
-    private var isToday: Bool  { Calendar.current.isDateInToday(date) }
-    private var isFuture: Bool { date > Date() && !Calendar.current.isDateInToday(date) }
-    private var day: String    { "\(Calendar.current.component(.day, from: date))" }
+    let taskCount: Int
+    let installDate: Date
+
+    private var frac: Double       { snapshot?.completionFraction ?? 0 }
+    private var isToday: Bool      { Calendar.current.isDateInToday(date) }
+    private var isFuture: Bool     { date > Date() && !Calendar.current.isDateInToday(date) }
+    private var isInstallDay: Bool { Calendar.current.isDate(date, inSameDayAs: installDate) }
+    private var day: String        { "\(Calendar.current.component(.day, from: date))" }
     
     @State private var glowPulse: Bool = false
     @State private var sparkRotation: Double = 0
@@ -718,7 +755,7 @@ private struct CircleHeatCell: View {
             Circle()
                 .fill(isFuture
                       ? Theme.bg2.opacity(0.4)
-                      : frac == 0 ? Theme.text0.opacity(0.15) : Theme.heatColor(fraction: frac))
+                      : frac == 0 ? Theme.text0.opacity(0.15) : Theme.heatColorRG(fraction: frac, taskCount: taskCount))
                 .frame(width: size, height: size)
 
             // ── Day number ──
@@ -790,11 +827,65 @@ private struct CircleHeatCell: View {
                 .allowsHitTesting(false)
             }
         }
+        .overlay(alignment: .center) {
+            if isInstallDay && !isFuture {
+                InstallDayRing(size: size)
+                    .allowsHitTesting(false)
+            }
+        }
         .onAppear {
             guard isToday else { return }
             glowPulse = true
             withAnimation(.linear(duration: 4.5).repeatForever(autoreverses: false)) {
                 sparkRotation = 360
+            }
+        }
+    }
+}
+
+// ══════════════════════════════════════════════
+// MARK: InstallDayRing — rotating "FIRST DAY" text ring
+// ══════════════════════════════════════════════
+
+private struct InstallDayRing: View {
+    let size: CGFloat
+    @State private var rotation: Double = 0
+
+    private let label   = "· FIRST DAY "
+    private let green   = Color(hex: "#22C55E")
+
+    var body: some View {
+        let ringR  = size * 0.60
+        let chars  = Array(label)
+        let step   = 360.0 / Double(chars.count)
+        let fSize  = max(4.5, size * 0.20)
+
+        ZStack {
+            // Faint ring underline
+            Circle()
+                .strokeBorder(green.opacity(0.25), lineWidth: 0.75)
+                .frame(width: ringR * 2, height: ringR * 2)
+
+            // Characters placed on the ring
+            ZStack {
+                ForEach(chars.indices, id: \.self) { i in
+                    let angleDeg = Double(i) * step
+                    let angleRad = (angleDeg - 90) * .pi / 180
+                    Text(String(chars[i]))
+                        .font(.system(size: fSize, weight: .black))
+                        .foregroundColor(green)
+                        .rotationEffect(.degrees(angleDeg))
+                        .offset(
+                            x: ringR * CGFloat(cos(angleRad)),
+                            y: ringR * CGFloat(sin(angleRad))
+                        )
+                }
+            }
+            .rotationEffect(.degrees(rotation))
+        }
+        .onAppear {
+            withAnimation(.linear(duration: 7).repeatForever(autoreverses: false)) {
+                rotation = 360
             }
         }
     }

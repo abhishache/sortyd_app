@@ -16,9 +16,14 @@
 
 import SwiftUI
 import UserNotifications
+import FirebaseAnalytics
 
 private let kTimeFormatter: DateFormatter = {
     let f = DateFormatter(); f.dateFormat = "h:mm a"; return f
+}()
+
+private let kOneTimeDateFormatter: DateFormatter = {
+    let f = DateFormatter(); f.dateStyle = .medium; f.timeStyle = .short; return f
 }()
 
 // MARK: - ListManagementView
@@ -86,7 +91,6 @@ struct ListManagementView: View {
             .sheet(isPresented: $showStarterList) {
                 StarterListSheet().environmentObject(vm)
             }
-            .onReceive(NotificationCenter.default.publisher(for: .openNewListSheet)) { _ in showAdd = true }
             .alert(
                 "Delete List?",
                 isPresented: Binding(get: { confirmDeleteList != nil }, set: { if !$0 { confirmDeleteList = nil } })
@@ -104,6 +108,10 @@ struct ListManagementView: View {
             }
         }
         .onAppear {
+            Analytics.logEvent(AnalyticsEventScreenView, parameters: [
+                AnalyticsParameterScreenName: "list_management",
+                AnalyticsParameterScreenClass: "ListManagementView"
+            ])
             withAnimation(.spring(response: 0.55, dampingFraction: 0.8).delay(0.05)) { headerAppeared = true }
         }
     }
@@ -907,7 +915,7 @@ struct ListDetailView: View {
     private func taskList(list: TaskList) -> some View {
         List {
             ForEach(list.tasks) { task in
-                TaskDetailRow(task: task)
+                TaskDetailRow(task: task, onDelete: { vm.deleteTask(task, from: listID) })
                     .contentShape(Rectangle())
                     .onTapGesture { editing = task }
                     .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
@@ -934,6 +942,7 @@ struct ListDetailView: View {
 
 private struct TaskDetailRow: View {
     let task: SortydTask
+    var onDelete: (() -> Void)? = nil
 
     var body: some View {
         HStack(spacing: 12) {
@@ -951,7 +960,8 @@ private struct TaskDetailRow: View {
                     if let t = task.reminderTime {
                         HStack(spacing: 4) {
                             Image(systemName: "bell.fill").font(.system(size: 9.5)).foregroundColor(Theme.accent)
-                            Text(kTimeFormatter.string(from: t)).font(.system(size: 11)).foregroundColor(Theme.text2)
+                            Text(task.reminderIsOneTime ? kOneTimeDateFormatter.string(from: t) : kTimeFormatter.string(from: t))
+                                .font(.system(size: 11)).foregroundColor(Theme.text2)
                         }
                     } else if task.isHealthTask, let target = task.healthTarget,
                               let htStr = task.healthType, let ht = HealthTaskType(rawValue: htStr) {
@@ -963,6 +973,14 @@ private struct TaskDetailRow: View {
                 .animation(.spring(response: 0.3, dampingFraction: 0.7), value: task.reminderTime)
             }
             Spacer()
+            if let del = onDelete {
+                Button(action: del) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 17))
+                        .foregroundColor(Theme.text2.opacity(0.55))
+                }
+                .buttonStyle(.plain)
+            }
             Image(systemName: "pencil").font(.system(size: 14)).foregroundColor(Theme.text2.opacity(0.90))
         }
         .padding(.vertical, 10)
@@ -980,10 +998,6 @@ struct AddListSheet: View {
 
     @State private var name  = ""
     @State private var emoji = "📋"
-    // FIX: FocusState present but never auto-triggered
-    @FocusState private var nameFocused: Bool
-    
-    
 
     private let emojis = ["📋","💪","🧠","🎯","📚","💼","🌿","🎨","🏃","🍎",
                           "💤","🧘","✈️","🎵","💡","🔥","⚡","🏋️","📖","🎤",
@@ -998,7 +1012,6 @@ struct AddListSheet: View {
                     VStack(alignment: .leading, spacing: Theme.s20) {
                         sheetLabel("LIST NAME")
                         TextField("e.g. Morning Routine", text: $name)
-                            .focused($nameFocused)
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(Theme.text0)
                             .padding(Theme.s16)
@@ -1071,8 +1084,6 @@ struct AddListSheet: View {
                 .padding(.horizontal, Theme.s20).padding(.vertical, 12)
                 .background(Theme.bg0)
             }
-            // FIX: explicitly dismiss focus on appear — prevents any system auto-focus
-            .onAppear { nameFocused = false }
         }
         .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         .presentationCornerRadius(Theme.r32).presentationBackground(Theme.bg0)
@@ -1090,10 +1101,11 @@ struct AddTaskSheet: View {
     @StateObject private var hk = HealthKitManager.shared
 
     @State private var title               = ""
-    @State private var reminderTime: Date? = nil
-    @State private var showTimePicker      = false
-    @State private var showDeniedAlert     = false
-    @State private var isSaving            = false
+    @State private var reminderTime: Date?     = nil
+    @State private var reminderIsOneTime: Bool = false
+    @State private var showTimePicker          = false
+    @State private var showDeniedAlert         = false
+    @State private var isSaving                = false
     @State private var detectedHealthType: HealthTaskType = .none
     @State private var healthTargetText    = ""
     @State private var showHealthPermSheet = false
@@ -1132,7 +1144,8 @@ struct AddTaskSheet: View {
                         .padding(Theme.s16).background(fieldBG(Theme.r12))
 
                         if let t = reminderTime {
-                            ReminderBanner(time: t) { reminderTime = nil }.transition(.move(edge: .top).combined(with: .opacity))
+                            ReminderBanner(time: t, isOneTime: reminderIsOneTime) { reminderTime = nil; reminderIsOneTime = false }
+                                .transition(.move(edge: .top).combined(with: .opacity))
                         }
                         if detectedHealthType != .none {
                             HealthTargetBanner(taskType: detectedHealthType, targetText: $healthTargetText,
@@ -1166,7 +1179,11 @@ struct AddTaskSheet: View {
         }
         .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         .presentationCornerRadius(Theme.r32).presentationBackground(Theme.bg0)
-        .sheet(isPresented: $showTimePicker) { InlineTimePickerSheet(selectedTime: reminderDefault, onConfirm: { reminderTime = $0 }) }
+        .sheet(isPresented: $showTimePicker) {
+            ReminderPickerSheet(selectedTime: reminderDefault, isOneTime: reminderIsOneTime) { time, oneTime in
+                reminderTime = time; reminderIsOneTime = oneTime
+            }
+        }
         .sheet(isPresented: $showHealthPermSheet) {
             HealthPermissionSheet(taskType: detectedHealthType, onGrant: { hk.fetchToday() }, onSkip: {})
                 .presentationDetents([.large]).presentationCornerRadius(Theme.r32).presentationBackground(Theme.bg0)
@@ -1203,7 +1220,8 @@ struct AddTaskSheet: View {
                 let granted = await NotificationManager.shared.requestPermissionIfNeeded()
                 await MainActor.run {
                     isSaving = false
-                    vm.addTask(to: listID, title: t, reminderTime: granted ? time : nil, healthType: htString, healthTarget: healthTarget)
+                    vm.addTask(to: listID, title: t, reminderTime: granted ? time : nil,
+                               reminderIsOneTime: reminderIsOneTime, healthType: htString, healthTarget: healthTarget)
                     dismiss()
                     if !granted { DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { showDeniedAlert = true } }
                 }
@@ -1227,14 +1245,16 @@ struct EditTaskSheet: View {
 
     @State private var title: String
     @State private var reminderTime: Date?
+    @State private var reminderIsOneTime: Bool
     @State private var showTimePicker  = false
     @State private var showDeniedAlert = false
     @State private var isSaving        = false
 
     init(task: SortydTask, listID: UUID) {
         self.task = task; self.listID = listID
-        _title        = State(initialValue: task.title)
-        _reminderTime = State(initialValue: task.reminderTime)
+        _title             = State(initialValue: task.title)
+        _reminderTime      = State(initialValue: task.reminderTime)
+        _reminderIsOneTime = State(initialValue: task.reminderIsOneTime)
     }
 
     var body: some View {
@@ -1261,7 +1281,8 @@ struct EditTaskSheet: View {
                     .padding(Theme.s16).background(fieldBG(Theme.r12))
 
                     if let t = reminderTime {
-                        ReminderBanner(time: t) { reminderTime = nil }.transition(.move(edge: .top).combined(with: .opacity))
+                        ReminderBanner(time: t, isOneTime: reminderIsOneTime) { reminderTime = nil; reminderIsOneTime = false }
+                            .transition(.move(edge: .top).combined(with: .opacity))
                     }
                     if task.isHealthTask, let htStr = task.healthType, let ht = HealthTaskType(rawValue: htStr) {
                         HStack(spacing: 7) {
@@ -1296,7 +1317,11 @@ struct EditTaskSheet: View {
         }
         .presentationDetents([.height(task.isHealthTask ? 350 : 300)]).presentationDragIndicator(.visible)
         .presentationCornerRadius(Theme.r32).presentationBackground(Theme.bg0)
-        .sheet(isPresented: $showTimePicker) { InlineTimePickerSheet(selectedTime: reminderDefault, onConfirm: { reminderTime = $0 }) }
+        .sheet(isPresented: $showTimePicker) {
+            ReminderPickerSheet(selectedTime: reminderDefault, isOneTime: reminderIsOneTime) { time, oneTime in
+                reminderTime = time; reminderIsOneTime = oneTime
+            }
+        }
         .alert("Notifications Disabled", isPresented: $showDeniedAlert) {
             Button("Open Settings") { if let u = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(u) } }
             Button("Cancel", role: .cancel) {}
@@ -1316,7 +1341,7 @@ struct EditTaskSheet: View {
         if let time = reminderTime {
             isSaving = true
             Task {
-                let granted = await vm.setTaskReminder(task, in: listID, time: time)
+                let granted = await vm.setTaskReminder(task, in: listID, time: time, isOneTime: reminderIsOneTime)
                 await MainActor.run {
                     isSaving = false; dismiss()
                     if !granted { DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { showDeniedAlert = true } }
@@ -1330,54 +1355,136 @@ struct EditTaskSheet: View {
 }
 
 // ══════════════════════════════════════════════
-// MARK: InlineTimePickerSheet
+// MARK: ReminderPickerSheet
 // ══════════════════════════════════════════════
 
-struct InlineTimePickerSheet: View {
+struct ReminderPickerSheet: View {
     let selectedTime: Date
-    let onConfirm: (Date) -> Void
+    let isOneTime: Bool
+    let onConfirm: (Date, Bool) -> Void
     @Environment(\.dismiss) var dismiss
-    @State private var pickedTime: Date
 
-    init(selectedTime: Date, onConfirm: @escaping (Date) -> Void) {
-        self.selectedTime = selectedTime; self.onConfirm = onConfirm
-        _pickedTime = State(initialValue: selectedTime)
+    private enum ReminderMode { case daily, oneTime }
+    @State private var mode: ReminderMode
+    @State private var dailyTime: Date
+    @State private var oneTimeDate: Date
+
+    init(selectedTime: Date, isOneTime: Bool, onConfirm: @escaping (Date, Bool) -> Void) {
+        self.selectedTime = selectedTime
+        self.isOneTime    = isOneTime
+        self.onConfirm    = onConfirm
+        _mode      = State(initialValue: isOneTime ? .oneTime : .daily)
+        _dailyTime = State(initialValue: selectedTime)
+        let tomorrow9: Date = {
+            var c = Calendar.current.dateComponents([.year, .month, .day], from: Date())
+            c.day = (c.day ?? 0) + 1; c.hour = 9; c.minute = 0
+            return Calendar.current.date(from: c) ?? Date()
+        }()
+        _oneTimeDate = State(initialValue: isOneTime && selectedTime > Date() ? selectedTime : tomorrow9)
     }
 
     var body: some View {
         NavigationStack {
             ZStack {
                 Theme.bg0.ignoresSafeArea()
-                VStack(spacing: 16) {
-                    ZStack {
-                        Circle().fill(Theme.accent.opacity(0.10)).frame(width: 60, height: 60)
-                            .shadow(color: Theme.accent.opacity(0.25), radius: 14, x: 0, y: 4)
-                        Image(systemName: "clock.fill").font(.system(size: 22, weight: .semibold)).foregroundColor(Theme.accent)
-                    }.padding(.top, 20)
-                    Text("Pick a Time").font(.system(size: 17, weight: .bold)).foregroundColor(Theme.text0)
-                    Text("Fires every day at this time").font(.system(size: 12.5)).foregroundColor(Theme.text2)
-                    DatePicker("", selection: $pickedTime, displayedComponents: .hourAndMinute)
-                        .datePickerStyle(.wheel).labelsHidden().colorScheme(ThemeManager.shared.colorScheme)
-                    Button { onConfirm(pickedTime); dismiss() } label: {
+                VStack(spacing: 0) {
+                    // Mode toggle
+                    HStack(spacing: 0) {
+                        modeTab("Daily", active: mode == .daily) { withAnimation(.spring(response: 0.22, dampingFraction: 0.7)) { mode = .daily } }
+                        modeTab("One-time", active: mode == .oneTime) { withAnimation(.spring(response: 0.22, dampingFraction: 0.7)) { mode = .oneTime } }
+                    }
+                    .padding(4)
+                    .background(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Theme.bg2)
+                        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .strokeBorder(Theme.border, lineWidth: 0.5)))
+                    .padding(.horizontal, 24)
+                    .padding(.top, 20)
+                    .padding(.bottom, 4)
+
+                    if mode == .daily {
+                        dailyContent
+                    } else {
+                        oneTimeContent
+                    }
+
+                    Spacer()
+
+                    Button {
+                        switch mode {
+                        case .daily:   onConfirm(dailyTime, false)
+                        case .oneTime: onConfirm(oneTimeDate, true)
+                        }
+                        dismiss()
+                    } label: {
                         Text("Confirm").font(.system(size: 16, weight: .bold))
                             .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
                             .frame(maxWidth: .infinity).padding(.vertical, 14)
                             .background(RoundedRectangle(cornerRadius: Theme.r20, style: .continuous)
                                 .fill(Theme.accent).shadow(color: Theme.accent.opacity(0.42), radius: 16, x: 0, y: 5))
                     }
-                    .buttonStyle(ListScaleStyle()).padding(.horizontal, 24)
-                    Spacer()
+                    .buttonStyle(ListScaleStyle())
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 24)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Theme.bg0, for: .navigationBar)
             .toolbarColorScheme(ThemeManager.shared.colorScheme, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) { Button("Cancel") { dismiss() }.foregroundColor(Theme.text1) }
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { dismiss() }.foregroundColor(Theme.text1)
+                }
             }
         }
-        .presentationDetents([.medium]).presentationDragIndicator(.visible)
-        .presentationCornerRadius(Theme.r32).presentationBackground(Theme.bg0)
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+        .presentationCornerRadius(Theme.r32)
+        .presentationBackground(Theme.bg0)
+    }
+
+    @ViewBuilder
+    private var dailyContent: some View {
+        VStack(spacing: 10) {
+            ZStack {
+                Circle().fill(Theme.accent.opacity(0.10)).frame(width: 60, height: 60)
+                    .shadow(color: Theme.accent.opacity(0.25), radius: 14, x: 0, y: 4)
+                Image(systemName: "clock.fill").font(.system(size: 22, weight: .semibold)).foregroundColor(Theme.accent)
+            }.padding(.top, 20)
+            Text("Daily Reminder").font(.system(size: 17, weight: .bold)).foregroundColor(Theme.text0)
+            Text("Fires every day at this time").font(.system(size: 12.5)).foregroundColor(Theme.text2)
+            DatePicker("", selection: $dailyTime, displayedComponents: .hourAndMinute)
+                .datePickerStyle(.wheel).labelsHidden()
+                .colorScheme(ThemeManager.shared.colorScheme)
+        }
+    }
+
+    @ViewBuilder
+    private var oneTimeContent: some View {
+        VStack(spacing: 4) {
+            Text("Pick a date and time")
+                .font(.system(size: 12.5)).foregroundColor(Theme.text2)
+                .padding(.top, 16)
+            DatePicker("", selection: $oneTimeDate, in: Date()..., displayedComponents: [.date, .hourAndMinute])
+                .datePickerStyle(.graphical)
+                .labelsHidden()
+                .colorScheme(ThemeManager.shared.colorScheme)
+                .tint(Theme.accent)
+                .padding(.horizontal, 8)
+        }
+    }
+
+    private func modeTab(_ title: String, active: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(active ? (ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white) : Theme.text2)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 9)
+                .background(RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .fill(active ? Theme.accent : .clear))
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -1387,11 +1494,19 @@ struct InlineTimePickerSheet: View {
 
 private struct ReminderBanner: View {
     let time: Date
+    let isOneTime: Bool
     let onClear: () -> Void
+
+    private var label: String {
+        isOneTime
+            ? "One-time · \(kOneTimeDateFormatter.string(from: time))"
+            : "Daily · \(kTimeFormatter.string(from: time))"
+    }
+
     var body: some View {
         HStack(spacing: 7) {
             Image(systemName: "bell.fill").foregroundColor(Theme.accent).font(.system(size: 11))
-            Text("Reminder at \(kTimeFormatter.string(from: time)) · every day").font(.system(size: 12)).foregroundColor(Theme.text1)
+            Text(label).font(.system(size: 12)).foregroundColor(Theme.text1)
             Spacer()
             Button(action: onClear) { Image(systemName: "xmark.circle.fill").font(.system(size: 14)).foregroundColor(Theme.text2) }
                 .buttonStyle(.plain)

@@ -7,12 +7,6 @@
     <key>UILaunchScreen</key>
     <dict/>
 
-    <!-- ── Background modes ── -->
-    <key>UIBackgroundModes</key>
-    <array>
-        <string>healthkit</string>
-    </array>
-
     <!-- ── HealthKit ── -->
     <!-- FIX: was two <string> tags under one key (invalid plist, parser crash).
          Merged into a single string. App only reads — no write permission requested. -->
@@ -39,6 +33,12 @@
     <!-- NOTE: iOS does not require a usage description key for notifications
          (permission is requested via UNUserNotificationCenter at runtime),
          but adding a short reason here matches App Store Connect metadata. -->
+
+    <!-- ── Export compliance ── -->
+    <!-- CryptoKit is used only for HMAC-SHA256 request signing (authentication),
+         not for encrypting user data. Exempt from EAR non-exempt encryption. -->
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
 
 </dict>
 </plist>

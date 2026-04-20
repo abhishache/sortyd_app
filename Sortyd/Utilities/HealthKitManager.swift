@@ -91,22 +91,24 @@ final class HealthKitManager: ObservableObject {
     // AppViewModel sets this closure to auto-tick health tasks when target is hit
     var onHealthUpdate: ((_ steps: Double, _ calories: Double) -> Void)?
 
+    // Persists whether the user has ever granted HealthKit read access.
+    // iOS never returns .sharingAuthorized for read-only apps (intentional privacy
+    // design), so we track grant state ourselves to avoid re-prompting every launch.
+    private let hkDefaults = UserDefaults(suiteName: "group.com.sortyd.sortyd") ?? UserDefaults.standard
+    private let hkGrantedKey = "hk_permission_granted"
+
     private init() {
         guard HKHealthStore.isHealthDataAvailable() else { return }
-        // Check actual authorization status — don't assume granted just because
-        // the device supports HealthKit. isHealthDataAvailable() = device capability,
-        // NOT user permission. Calling fetchToday() before permission is granted
-        // returns zeros and onHealthUpdate never fires meaningfully.
-        let stepType = HKQuantityType(.stepCount)
-        let status   = HKHealthStore().authorizationStatus(for: stepType)
-        if status == .sharingAuthorized {
+        // If the user previously granted access, resume live tracking immediately
+        // without calling requestAuthorization (which would show the sheet again).
+        if hkDefaults.bool(forKey: hkGrantedKey) {
             isAuthorized = true
             fetchToday()
             startLiveUpdates()
         }
-        // If not yet authorized, permission is requested lazily when the user
+        // If not yet granted, permission is requested lazily when the user
         // adds a health task (HealthPermissionSheet). After granting,
-        // requestPermission() calls fetchToday() + startLiveUpdates().
+        // requestPermission() saves the flag, then calls fetchToday() + startLiveUpdates().
     }
 
     // MARK: - Permission
@@ -119,6 +121,7 @@ final class HealthKitManager: ObservableObject {
         ]
         do {
             try await store.requestAuthorization(toShare: [], read: readTypes)
+            hkDefaults.set(true, forKey: hkGrantedKey)
             isAuthorized = true
             fetchToday()
             startLiveUpdates()
