@@ -615,8 +615,20 @@ struct EmptyStateView: View {
     @EnvironmentObject var vm: AppViewModel
     let onAddList: () -> Void
 
-    private var line1: String { vm.localized("Lets Get") }
-    private var line2: String { vm.localized("Tracking") }
+    private var line1: String {
+        switch vm.appLanguage {
+        case .arabic:  return "لنبدأ"
+        case .spanish: return "Vamos a"
+        default:       return "Let's get"
+        }
+    }
+    private var line2: String {
+        switch vm.appLanguage {
+        case .arabic:  return "التتبع"
+        case .spanish: return "Rastrear"
+        default:       return "Tracking"
+        }
+    }
     @State private var line1Count: Int = 0
     @State private var line2Count: Int = 0
     @State private var typingLine: Int = 1
