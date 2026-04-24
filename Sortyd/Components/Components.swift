@@ -42,10 +42,10 @@ struct DonutChartView: View {
                 .rotationEffect(.degrees(-90))
             VStack(spacing: -2) {
                 Text("\(pct)")
-                    .font(.system(size: size * 0.29, weight: .black, design: .rounded))
+                    .font(Theme.font(size: size * 0.29, weight: .black, design: .rounded))
                     .foregroundColor(Theme.text0)
                 Text("%")
-                    .font(.system(size: size * 0.12, weight: .bold, design: .rounded))
+                    .font(Theme.font(size: size * 0.12, weight: .bold, design: .rounded))
                     .foregroundColor(Theme.accent)
             }
         }
@@ -75,7 +75,10 @@ struct MonthYear: Equatable, Hashable {
     }
     
     var label: String {
+        let langCode = (UserDefaults(suiteName: "group.com.sortyd.sortyd") ?? .standard).string(forKey: "sortyd_app_language") ?? "en"
+        let locale = Locale(identifier: langCode)
         let f = DateFormatter()
+        f.locale = locale
         f.dateFormat = "MMMM yyyy"
         return f.string(from: date)
     }
@@ -176,7 +179,6 @@ struct HeatmapCalendarView: View {
                 initialSnapshot: selectedDaySnap,
                 tappedDate: selectedDayDate,
                 listID: listID,
-                vm: vm,
                 onGoToToday: {
                     withAnimation(.easeOut(duration: 0.3)) {
                         selectedMonth = .current
@@ -245,6 +247,7 @@ struct HeatmapCalendarView: View {
 }
 
 private struct CalendarGrid: View {
+    @EnvironmentObject var appVM: AppViewModel
     let geo: GeometryProxy
     let cachedDays: [Date?]
     let cachedSnapshotMap: [String: DailySnapshot]
@@ -289,10 +292,10 @@ private struct CalendarGrid: View {
                 Button { showMonthPicker = true } label: {
                     HStack(spacing: 4) {
                         Text(selectedMonth.label)
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(Theme.font(size: 11, weight: .semibold))
                             .foregroundColor(Theme.text1)
                         Image(systemName: "chevron.down")
-                            .font(.system(size: 8, weight: .bold))
+                            .font(Theme.font(size: 8, weight: .bold))
                             .foregroundColor(Theme.accent)
                     }
                     .contentShape(Rectangle())
@@ -305,8 +308,8 @@ private struct CalendarGrid: View {
                     Button {
                         withAnimation(.easeOut(duration: 0.2)) { selectedMonth = .current }
                     } label: {
-                        Text("Today")
-                            .font(.system(size: 10, weight: .semibold))
+                        Text(appVM.localized("Today"))
+                            .font(Theme.font(size: 10, weight: .semibold))
                             .foregroundColor(Theme.accent)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 3)
@@ -316,8 +319,8 @@ private struct CalendarGrid: View {
                 } else {
                     let swatches = min(max(1, taskCount), 6)
                     HStack(spacing: 3) {
-                        Text("Low")
-                            .font(.system(size: 7, weight: .medium))
+                        Text(appVM.localized("Low"))
+                            .font(Theme.font(size: 7, weight: .medium))
                             .foregroundColor(Theme.text2)
                         HStack(spacing: 1) {
                             ForEach(0..<swatches, id: \.self) { i in
@@ -326,8 +329,8 @@ private struct CalendarGrid: View {
                                     .frame(width: 7, height: 7)
                             }
                         }
-                        Text("Best")
-                            .font(.system(size: 7, weight: .medium))
+                        Text(appVM.localized("Best"))
+                            .font(Theme.font(size: 7, weight: .medium))
                             .foregroundColor(Theme.text2)
                     }
                 }
@@ -340,7 +343,7 @@ private struct CalendarGrid: View {
             HStack(spacing: 0) {
                 ForEach(dayLetters.indices, id: \.self) { i in
                     Text(dayLetters[i])
-                        .font(.system(size: max(7, cs * 0.34), weight: .medium))
+                        .font(Theme.font(size: max(7, cs * 0.34), weight: .medium))
                         .foregroundColor(Theme.text2)
                         .frame(width: cs, height: cs)
                     if i < 6 { Spacer(minLength: 0) }
@@ -389,6 +392,7 @@ private struct CalendarGrid: View {
 // ══════════════════════════════════════════════
 
 struct MonthPickerSheet: View {
+    @EnvironmentObject var appVM: AppViewModel
     @Binding var selectedMonth: MonthYear
     @Environment(\.dismiss) var dismiss
     
@@ -402,8 +406,8 @@ struct MonthPickerSheet: View {
                 .padding(.top, 12)
                 .padding(.bottom, 16)
             
-            Text("SELECT MONTH")
-                .font(.system(size: 11, weight: .bold))
+            Text(appVM.localized("SELECT MONTH"))
+                .font(Theme.font(size: 11, weight: .bold))
                 .kerning(1.6)
                 .foregroundColor(Theme.text2)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -422,7 +426,7 @@ struct MonthPickerSheet: View {
                             Spacer()
                             
                             if month == .current {
-                                Text("current")
+                                Text(appVM.localized("current"))
                                     .font(.system(size: 10, weight: .medium))
                                     .foregroundColor(Theme.text2)
                                     .padding(.horizontal, 8)
@@ -433,7 +437,7 @@ struct MonthPickerSheet: View {
                             
                             if selectedMonth == month {
                                 Image(systemName: "checkmark")
-                                    .font(.system(size: 12, weight: .bold))
+                                    .font(Theme.font(size: 12, weight: .bold))
                                     .foregroundColor(Theme.accent)
                             }
                         }
@@ -476,10 +480,10 @@ struct MonthPickerSheet: View {
 // ══════════════════════════════════════════════
 
 struct DayDetailSheet: View {
+    @EnvironmentObject var appVM: AppViewModel
     let initialSnapshot: DailySnapshot?
     let tappedDate: Date
     let listID: UUID
-    @ObservedObject var vm: AppViewModel
     @Environment(\.dismiss) var dismiss
     /// Called when the user taps "Got it" on the cheat popup — navigates home to today
     var onGoToToday: (() -> Void)? = nil
@@ -495,16 +499,17 @@ struct DayDetailSheet: View {
     
     /// Used only to seed localCompletedIDs on appear and to get the snapshot id on flush.
     private var snapshot: DailySnapshot? {
-        vm.snapshots.first(where: {
+        appVM.snapshots.first(where: {
             $0.listID == listID &&
             Calendar.current.isDate($0.date, inSameDayAs: sheetDate)
         })
     }
     
-    private var list: TaskList? { vm.lists.first(where: { $0.id == listID }) }
+    private var list: TaskList? { appVM.lists.first(where: { $0.id == listID }) }
     
     private var dateLabel: String {
         let f = DateFormatter()
+        f.locale = appVM.appLanguage.locale
         f.dateFormat = "EEEE, d MMMM yyyy"
         return f.string(from: sheetDate)
     }
@@ -540,7 +545,7 @@ struct DayDetailSheet: View {
                         .padding(.bottom, 20)
                     
                     Text(dateLabel.uppercased())
-                        .font(.system(size: 10, weight: .bold))
+                        .font(Theme.font(size: 10, weight: .bold))
                         .kerning(1.6)
                         .foregroundColor(Theme.text2)
                         .padding(.horizontal, 20)
@@ -558,20 +563,20 @@ struct DayDetailSheet: View {
                                     .frame(width: 72, height: 72)
                                 VStack(spacing: -1) {
                                     Text("\(pct)")
-                                        .font(.system(size: 26, weight: .black, design: .rounded))
+                                        .font(Theme.font(size: 26, weight: .black, design: .rounded))
                                         .foregroundColor(Theme.accent)
                                     Text("%")
-                                        .font(.system(size: 11, weight: .bold))
+                                        .font(Theme.font(size: 11, weight: .bold))
                                         .foregroundColor(Theme.accent.opacity(0.7))
                                 }
                             }
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(performanceLabel(pct))
-                                    .font(.system(size: 18, weight: .black))
+                                    .font(Theme.font(size: 18, weight: .black))
                                     .foregroundColor(Theme.text0)
-                                Text("\(completedTasks.count) of \(completedTasks.count + missedTasks.count) tasks completed")
-                                    .font(.system(size: 13))
+                                Text(String(localized: "%lld of %lld tasks completed", locale: appVM.appLanguage.locale).replacingOccurrences(of: "%lld", with: "\(completedTasks.count)", range: nil).replacingOccurrences(of: "%lld", with: "\(completedTasks.count + missedTasks.count)"))
+                                    .font(Theme.font(size: 13))
                                     .foregroundColor(Theme.text2)
                             }
                             Spacer()
@@ -581,25 +586,25 @@ struct DayDetailSheet: View {
                         
                         if snapshot == nil && kDebugAllowPastEditing {
                             if let list = list, !list.tasks.isEmpty {
-                                taskGroup(title: "TASKS (DEBUG — NO DATA)", tasks: list.tasks)
+                                taskGroup(title: appVM.localized("TASKS") + " (DEBUG)", tasks: list.tasks)
                             } else {
-                                EmptyDark(icon: "🛠️", title: "Debug Mode", subtitle: "No tasks found for this list.")
+                                EmptyDark(icon: "🛠️", title: appVM.localized("Debug Mode"), subtitle: appVM.localized("No tasks found for this list."))
                                     .padding(.top, 16)
                             }
                         } else {
                             if !completedTasks.isEmpty {
-                                taskGroup(title: "COMPLETED", tasks: completedTasks)
+                                taskGroup(title: appVM.localized("COMPLETED"), tasks: completedTasks)
                             }
                             if !missedTasks.isEmpty {
-                                taskGroup(title: "MISSED", tasks: missedTasks)
+                                taskGroup(title: appVM.localized("MISSED"), tasks: missedTasks)
                             }
                         }
                         
                     } else {
                         EmptyDark(
                             icon: "📭",
-                            title: "No data",
-                            subtitle: "No performance was recorded\nfor this day."
+                            title: appVM.localized("No data"),
+                            subtitle: appVM.localized("No performance was recorded\nfor this day.")
                         )
                         .padding(.top, 16)
                     }
@@ -620,7 +625,7 @@ struct DayDetailSheet: View {
                     completionFraction: Double(localCompletedIDs.count) / Double(total),
                     completedTaskIDs: Array(localCompletedIDs)
                 )
-                vm.upsertSnapshot(updated)
+                appVM.upsertSnapshot(updated)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                     dismiss()
                     onGoToToday?()
@@ -639,7 +644,7 @@ struct DayDetailSheet: View {
                 completionFraction: Double(localCompletedIDs.count) / Double(total),
                 completedTaskIDs: Array(localCompletedIDs)
             )
-            vm.upsertSnapshot(updated)
+            appVM.upsertSnapshot(updated)
         }
     }
     
@@ -648,11 +653,11 @@ struct DayDetailSheet: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
                 Text(title)
-                    .font(.system(size: 10, weight: .bold))
+                    .font(Theme.font(size: 10, weight: .bold))
                     .kerning(1.4)
                     .foregroundColor(Theme.text2)
                 Text("\(tasks.count)")
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .font(Theme.font(size: 10, weight: .bold, design: .rounded))
                     .foregroundColor(localCompletedIDs.isEmpty ? Theme.text2 : Theme.accent)
                     .padding(.horizontal, 6).padding(.vertical, 2)
                     .background(Capsule().fill(localCompletedIDs.isEmpty ? Theme.bg3 : Theme.accent.opacity(0.15)))
@@ -665,7 +670,7 @@ struct DayDetailSheet: View {
                     
                     HStack(spacing: 12) {
                         Text(task.title)
-                            .font(.system(size: 14, weight: isChecked ? .regular : .medium))
+                            .font(Theme.font(size: 14, weight: isChecked ? .regular : .medium))
                             .foregroundColor(isChecked ? Theme.text2 : Theme.text0)
                             .strikethrough(isChecked, color: Theme.text2)
                             .lineLimit(2)
@@ -681,7 +686,7 @@ struct DayDetailSheet: View {
                                     .fill(Theme.accent)
                                     .frame(width: 22, height: 22)
                                 Image(systemName: "checkmark")
-                                    .font(.system(size: 9, weight: .black))
+                                    .font(Theme.font(size: 9, weight: .black))
                                     .foregroundColor(Color(hex: "#0A1A0A"))
                             }
                         }
@@ -720,11 +725,11 @@ struct DayDetailSheet: View {
     
     private func performanceLabel(_ pct: Int) -> String {
         switch pct {
-        case 100:    return "Perfect day 🏆"
-        case 75...:  return "Strong day 💪"
-        case 50...:  return "Half-way there"
-        case 25...:  return "Tough day"
-        default:     return "No tasks done"
+        case 100:    return appVM.localized("Perfect day 🏆")
+        case 75...:  return appVM.localized("Strong day 💪")
+        case 50...:  return appVM.localized("Half-way there")
+        case 25...:  return appVM.localized("Tough day")
+        default:     return appVM.localized("No tasks done")
         }
     }
 }
@@ -1002,14 +1007,32 @@ struct EmptyDark: View {
 // ══════════════════════════════════════════════
 
 struct GhostDayToast: View {
+    @EnvironmentObject var appVM: AppViewModel
     let onDismiss: () -> Void
     var onGoToToday: (() -> Void)? = nil
     
-    private let messages: [(emoji: String, headline: String, body: String)] = [
-        ("👻", "Looks like a ghost town.", "Nothing here — guess you didn't clock in."),
-        ("🌑", "Total blackout.", "No data for this day. Maybe tomorrow?"),
-        ("🕳️", "A void. Pure nothing.", "Seems like you skipped this one entirely."),
-    ]
+    private var localizedMessages: [(emoji: String, headline: String, body: String)] {
+        switch appVM.appLanguage {
+        case .arabic:
+            return [
+                ("👻", "تبدو كمدينة أشباح.", "لا يوجد شيء هنا — أعتقد أنك لم تسجل دخولك."),
+                ("🌑", "تعتيم كامل.", "لا توجد بيانات لهذا اليوم. ربما غداً؟"),
+                ("🕳️", "فراغ. لا شيء مطلق.", "يبدو أنك تخطيت هذا اليوم تماماً.")
+            ]
+        case .spanish:
+            return [
+                ("👻", "Parece un pueblo fantasma.", "No hay nada aquí — supongo que no fichaste."),
+                ("🌑", "Apagón total.", "No hay datos para este día. ¿Quizás mañana?"),
+                ("🕳️", "Un vacío. Nada puro.", "Parece que te saltaste este día por completo.")
+            ]
+        case .english:
+            return [
+                ("👻", "Looks like a ghost town.", "Nothing here — guess you didn't clock in."),
+                ("🌑", "Total blackout.", "No data for this day. Maybe tomorrow?"),
+                ("🕳️", "A void. Pure nothing.", "Seems like you skipped this one entirely.")
+            ]
+        }
+    }
     
     @State private var pick = Int.random(in: 0..<3)
     
@@ -1095,7 +1118,7 @@ struct GhostDayToast: View {
                             .opacity(p.opacity)
                     }
                     
-                    Text(messages[pick].emoji)
+                    Text(localizedMessages[pick].emoji)
                         .font(.system(size: 44))
                         .scaleEffect(emojiScale)
                         .opacity(emojiOpacity)
@@ -1106,7 +1129,7 @@ struct GhostDayToast: View {
                 .padding(.bottom, 16)
                 
                 // Headline
-                Text(messages[pick].headline)
+                Text(localizedMessages[pick].headline)
                     .font(.system(size: 22, weight: .black))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
@@ -1116,7 +1139,7 @@ struct GhostDayToast: View {
                     .opacity(textOpacity)
                 
                 // Body
-                Text(messages[pick].body)
+                Text(localizedMessages[pick].body)
                     .font(.system(size: 14))
                     .foregroundColor(.white.opacity(0.85))
                     .multilineTextAlignment(.center)
@@ -1127,8 +1150,8 @@ struct GhostDayToast: View {
                 
                 Spacer()
                 
-                Button(action: dismissToast) {
-                    Text("Alrighty !!")
+                Button(action: { dismissToast() }) {
+                    Text(appVM.appLanguage == .arabic ? "اذهب إلى اليوم" : (appVM.appLanguage == .spanish ? "Ir a Hoy" : "Go to Today"))
                         .font(.system(size: 15, weight: .bold))
                         .foregroundColor(Color(hex: "#0A1A0A"))
                         .padding(.horizontal, 28)
@@ -1250,14 +1273,34 @@ private struct GhostParticle: Identifiable {
 // ══════════════════════════════════════════════
 
 struct CheatBlockPopup: View {
+    @EnvironmentObject var appVM: AppViewModel
     let onDismiss: () -> Void
     
-    private let messages: [(emoji: String, headline: String, body: String)] = [
-        ("🕵️", "Nice try, cheater!", "We see you trying to rewrite history.\nThe past is locked — go crush tomorrow instead."),
-        ("🔒", "Nope. Not today.", "Sorry, we can't let you cheat for your own good.\nFocus on tomorrow, not fixing yesterday."),
-        ("😤", "History is sealed!", "What's done is done.\nChannel that energy into making today count."),
-        ("🚫", "Time machine? Denied.", "We want you to get better tomorrow,\nnot waste time polishing the past."),
-    ]
+    private var localizedMessages: [(emoji: String, headline: String, body: String)] {
+        switch appVM.appLanguage {
+        case .arabic:
+            return [
+                ("🕵️", "محاولة جيدة، غشاش!", "نراك تحاول إعادة كتابة التاريخ.\nالماضي مقفل — اذهب لسحق الغد بدلاً من ذلك."),
+                ("🔒", "كلا. ليس اليوم.", "عذرًا، لا يمكننا السماح لك بالغش لمصلحتك الخاصة.\nركز على الغد، وليس إصلاح الأمس."),
+                ("😤", "التاريخ مختوم!", "ما حدث قد حدث.\nوجه تلك الطاقة نحو جعل اليوم ذا قيمة."),
+                ("🚫", "آلة الزمن؟ مرفوض.", "نريدك أن تتحسن غدًا،\nلا تضيع الوقت في تلميع الماضي.")
+            ]
+        case .spanish:
+            return [
+                ("🕵️", "¡Buen intento, tramposo!", "Te vemos intentando reescribir la historia.\nEl pasado está bloqueado; ve a por todas mañana."),
+                ("🔒", "No. Hoy no.", "Lo sentimos, no podemos dejarte hacer trampa por tu propio bien.\nEnfócate en mañana, no en arreglar el ayer."),
+                ("😤", "¡Historia sellada!", "Lo hecho, hecho está.\nCanaliza esa energía para que hoy valga la pena."),
+                ("🚫", "¿Máquina del tiempo? Denegada.", "Queremos que mejores mañana,\nno que pierdas tiempo puliendo el pasado.")
+            ]
+        case .english:
+            return [
+                ("🕵️", "Nice try, cheater!", "We see you trying to rewrite history.\nThe past is locked — go crush tomorrow instead."),
+                ("🔒", "Nope. Not today.", "Sorry, we can't let you cheat for your own good.\nFocus on tomorrow, not fixing yesterday."),
+                ("😤", "History is sealed!", "What's done is done.\nChannel that energy into making today count."),
+                ("🚫", "Time machine? Denied.", "We want you to get better tomorrow,\nnot waste time polishing the past.")
+            ]
+        }
+    }
     
     @State private var pick = Int.random(in: 0..<4)
     
@@ -1346,7 +1389,7 @@ struct CheatBlockPopup: View {
                             .opacity(p.opacity)
                     }
                     
-                    Text(messages[pick].emoji)
+                    Text(localizedMessages[pick].emoji)
                         .font(.system(size: 44))
                         .scaleEffect(lockScale)
                         .opacity(lockOpacity)
@@ -1357,7 +1400,7 @@ struct CheatBlockPopup: View {
                 .padding(.bottom, 16)
                 
                 // Headline
-                Text(messages[pick].headline)
+                Text(localizedMessages[pick].headline)
                     .font(.system(size: 22, weight: .black))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
@@ -1367,7 +1410,7 @@ struct CheatBlockPopup: View {
                     .opacity(textOpacity)
                 
                 // Body
-                Text(messages[pick].body)
+                Text(localizedMessages[pick].body)
                     .font(.system(size: 14))
                     .foregroundColor(.white.opacity(0.85))
                     .multilineTextAlignment(.center)
@@ -1381,7 +1424,7 @@ struct CheatBlockPopup: View {
                 
                 // CTA — capsule pill, no enclosing box
                 Button(action: onDismiss) {
-                    Text("Got it, I'll do better 💪")
+                    Text(appVM.appLanguage == .arabic ? "فهمت، سأبلي بلاءً أفضل 💪" : (appVM.appLanguage == .spanish ? "Entendido, lo haré mejor 💪" : "Got it, I'll do better 💪"))
                         .font(.system(size: 15, weight: .bold))
                         .foregroundColor(Color(hex: "#0A1A0A"))
                         .padding(.horizontal, 28)

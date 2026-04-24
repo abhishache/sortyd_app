@@ -19,11 +19,18 @@ struct SortydTask: Identifiable, Codable, Hashable {
     var reminderTime: Date? = nil
     var healthType: String? = nil
     var healthTarget: Double? = nil
+    var reminderIsOneTime: Bool = false
 
     var isHealthTask: Bool { healthType != nil }
 
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
     static func == (lhs: SortydTask, rhs: SortydTask) -> Bool { lhs.id == rhs.id }
+}
+
+enum AppLanguage: String, Codable {
+    case english = "en"
+    case arabic  = "ar"
+    case spanish = "es"
 }
 
 struct TaskList: Identifiable, Codable, Hashable {
@@ -68,6 +75,7 @@ final class WatchStore: NSObject, ObservableObject {
     // MARK: Published
     @Published var appData: AppData = AppData()
     @Published var isSyncing: Bool = false
+    @Published var appLanguage: AppLanguage = .english
 
     // MARK: Private
     private let suiteName = "group.com.sortyd.sortyd"
@@ -81,6 +89,12 @@ final class WatchStore: NSObject, ObservableObject {
     override init() {
         super.init()
         appData = load()
+        
+        if let langRaw = defaults.string(forKey: "sortyd_app_language"),
+           let lang = AppLanguage(rawValue: langRaw) {
+            self.appLanguage = lang
+        }
+        
         setupWatchConnectivity()
     }
 
@@ -145,6 +159,11 @@ final class WatchStore: NSObject, ObservableObject {
                     self.appData = decoded
                     self.save(decoded)
                 }
+                if let langRaw = reply["appLanguage"] as? String,
+                   let lang = AppLanguage(rawValue: langRaw) {
+                    self.appLanguage = lang
+                    self.defaults.set(langRaw, forKey: "sortyd_app_language")
+                }
                 self.isSyncing = false
             }
         }, errorHandler: { [weak self] _ in
@@ -174,21 +193,33 @@ extension WatchStore: WCSessionDelegate {
 
     nonisolated func session(_ session: WCSession,
                              didReceiveMessage message: [String: Any]) {
-        guard let raw = message["appData"] as? Data,
-              let decoded = try? JSONDecoder().decode(AppData.self, from: raw) else { return }
         Task { @MainActor in
-            self.appData = decoded
-            self.save(decoded)
+            if let raw = message["appData"] as? Data,
+               let decoded = try? JSONDecoder().decode(AppData.self, from: raw) {
+                self.appData = decoded
+                self.save(decoded)
+            }
+            if let langRaw = message["appLanguage"] as? String,
+               let lang = AppLanguage(rawValue: langRaw) {
+                self.appLanguage = lang
+                self.defaults.set(langRaw, forKey: "sortyd_app_language")
+            }
         }
     }
 
     nonisolated func session(_ session: WCSession,
                              didReceiveApplicationContext context: [String: Any]) {
-        guard let raw = context["appData"] as? Data,
-              let decoded = try? JSONDecoder().decode(AppData.self, from: raw) else { return }
         Task { @MainActor in
-            self.appData = decoded
-            self.save(decoded)
+            if let raw = context["appData"] as? Data,
+               let decoded = try? JSONDecoder().decode(AppData.self, from: raw) {
+                self.appData = decoded
+                self.save(decoded)
+            }
+            if let langRaw = context["appLanguage"] as? String,
+               let lang = AppLanguage(rawValue: langRaw) {
+                self.appLanguage = lang
+                self.defaults.set(langRaw, forKey: "sortyd_app_language")
+            }
         }
     }
 }

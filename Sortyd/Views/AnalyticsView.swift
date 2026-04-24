@@ -94,13 +94,13 @@ struct AnalyticsView: View {
 
     private var gradeSubtitle: String {
         switch avg {
-        case 90...100: return "Exceptional"
-        case 80..<90:  return "Great work"
-        case 75..<80:  return "Almost there"
-        case 70..<75:  return "On track"
-        case 60..<70:  return "Room to grow"
-        case 50..<60:  return "Keep pushing"
-        default:       return "Just starting"
+        case 90...100: return vm.localized("Exceptional")
+        case 80..<90:  return vm.localized("Great work")
+        case 75..<80:  return vm.localized("Almost there")
+        case 70..<75:  return vm.localized("On track")
+        case 60..<70:  return vm.localized("Room to grow")
+        case 50..<60:  return vm.localized("Keep pushing")
+        default:       return vm.localized("Just starting")
         }
     }
 
@@ -160,7 +160,9 @@ struct AnalyticsView: View {
     }
 
     private func weekdayName(_ weekday: Int) -> String {
-        ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][max(0, min(weekday - 1, 6))]
+        let f = DateFormatter()
+        f.locale = vm.appLanguage.locale
+        return f.shortWeekdaySymbols[max(0, min(weekday - 1, 6))]
     }
 
     // MARK: - Task DNA helpers
@@ -255,7 +257,7 @@ struct AnalyticsView: View {
                 }
             }
         }
-        .onChange(of: selectedListID) { _ in
+        .onChange(of: selectedListID) { oldValue, newValue in
             withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
                 heroAppeared = false
             }
@@ -272,11 +274,11 @@ struct AnalyticsView: View {
     private var headerRow: some View {
         HStack(alignment: .center, spacing: 8) {
             VStack(alignment: .leading, spacing: 1) {
-                Text("ANALYTICS")
+                Text(vm.localized("ANALYTICS"))
                     .font(.system(size: 9, weight: .bold))
                     .kerning(2.5)
                     .foregroundColor(Theme.text2)
-                Text("Report")
+                Text(vm.localized("Report"))
                     .font(.system(size: 26, weight: .black))
                     .foregroundColor(Theme.text0)
             }
@@ -334,8 +336,8 @@ struct AnalyticsView: View {
                     .frame(width: 0.5, height: 56)
 
                 HStack(spacing: 20) {
-                    heroStat(label: "AVG",    value: "\(avg)",                unit: "%", color: Theme.text0)
-                    heroStat(label: "STREAK", value: "\(bestStreakForPeriod)", unit: "d", color: Theme.coral)
+                    heroStat(label: vm.localized("AVG"),    value: "\(avg)",                unit: "%", color: Theme.text0)
+                    heroStat(label: vm.localized("STREAK"), value: "\(bestStreakForPeriod)", unit: "d", color: Theme.coral)
                 }
                 .padding(.trailing, Theme.s16)
                 .padding(.vertical, Theme.s16)
@@ -412,7 +414,7 @@ struct AnalyticsView: View {
             HStack(spacing: 6) {
                 Text(selectedList?.emoji ?? "📋")
                     .font(.system(size: 13))
-                Text(selectedList?.name ?? "No list")
+                Text(selectedList?.cleanName ?? vm.localized("No list"))
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(Theme.text0)
                     .lineLimit(1)
@@ -446,21 +448,25 @@ struct AnalyticsView: View {
 
     private var insightRibbon: some View {
         HStack(spacing: 8) {
+            let vsLabel = vm.localized("VS LAST")
+            let bestDayLabel = vm.localized("BEST DAY")
+            let weakestLabel = vm.localized("WEAKEST")
+
             if let vs = vsLastPeriod {
                 ribbonChip(
                     icon: vs >= 0 ? "arrow.up.right" : "arrow.down.right",
                     value: vs >= 0 ? "+\(vs)%" : "\(vs)%",
-                    label: "VS LAST",
+                    label: vsLabel,
                     valueColor: vs >= 0 ? Theme.accent : Theme.danger,
                     iconColor:  vs >= 0 ? Theme.accent : Theme.danger
                 )
             } else {
-                ribbonChip(icon: "minus", value: "N/A", label: "VS LAST",
+                ribbonChip(icon: "minus", value: vm.localized("N/A"), label: vsLabel,
                            valueColor: Theme.text2, iconColor: Theme.text2)
             }
-            ribbonChip(icon: "star.fill",  value: bestDay,    label: "BEST DAY",
+            ribbonChip(icon: "star.fill",  value: bestDay,    label: bestDayLabel,
                        valueColor: Theme.text0, iconColor: Theme.accent)
-            ribbonChip(icon: "moon.fill",  value: weakestDay, label: "WEAKEST",
+            ribbonChip(icon: "moon.fill",  value: weakestDay, label: weakestLabel,
                        valueColor: Theme.text0, iconColor: Theme.coral)
         }
     }
@@ -498,10 +504,25 @@ struct AnalyticsView: View {
     // MARK: - Trend Chart Card (height reduced 10%: 126 → 114)
 
     private var trendChartTitle: String {
-        switch period {
-        case .week:  return "7-DAY TREND"
-        case .month: return "30-DAY TREND"
-        case .all:   return "ALL-TIME TREND"
+        switch vm.appLanguage {
+        case .arabic:
+            switch period {
+            case .week:  return "اتجاه 7 أيام"
+            case .month: return "اتجاه 30 يوماً"
+            case .all:   return "اتجاه كل الأوقات"
+            }
+        case .spanish:
+            switch period {
+            case .week:  return "TENDENCIA 7D"
+            case .month: return "TENDENCIA 30D"
+            case .all:   return "TENDENCIA TOTAL"
+            }
+        default:
+            switch period {
+            case .week:  return "7-DAY TREND"
+            case .month: return "30-DAY TREND"
+            case .all:   return "ALL-TIME TREND"
+            }
         }
     }
 
@@ -517,7 +538,7 @@ struct AnalyticsView: View {
                 Spacer()
                 HStack(spacing: 4) {
                     Circle().fill(Theme.accent).frame(width: 4, height: 4)
-                    Text("completion")
+                    Text(vm.appLanguage == .arabic ? "الإنجاز" : (vm.appLanguage == .spanish ? "cumplimiento" : "completion"))
                         .font(.system(size: 9, weight: .medium))
                         .foregroundColor(Theme.text2)
                 }
@@ -551,17 +572,17 @@ struct AnalyticsView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("DAY-OF-WEEK PATTERN")
+                    Text(vm.appLanguage == .arabic ? "نمط أيام الأسبوع" : (vm.appLanguage == .spanish ? "PATRÓN SEMANAL" : "DAY-OF-WEEK PATTERN"))
                         .font(.system(size: 9, weight: .bold))
                         .kerning(1.8)
                         .foregroundColor(Theme.text2)
-                    Text("When you perform best")
+                    Text(vm.appLanguage == .arabic ? "عندما تؤدي بشكل أفضل" : (vm.appLanguage == .spanish ? "Cuando mejor rindes" : "When you perform best"))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundColor(Theme.text0.opacity(0.45))
                 }
                 Spacer()
                 HStack(spacing: 5) {
-                    Text("LOW")
+                    Text(vm.appLanguage == .arabic ? "منخفض" : (vm.appLanguage == .spanish ? "BAJO" : "LOW"))
                         .font(.system(size: 7, weight: .bold))
                         .foregroundColor(Theme.text2)
                     HStack(spacing: 2) {
@@ -571,7 +592,7 @@ struct AnalyticsView: View {
                                 .frame(width: 10, height: 10)
                         }
                     }
-                    Text("HIGH")
+                    Text(vm.appLanguage == .arabic ? "مرتفع" : (vm.appLanguage == .spanish ? "ALTO" : "HIGH"))
                         .font(.system(size: 7, weight: .bold))
                         .foregroundColor(Theme.text2)
                 }
@@ -611,11 +632,11 @@ struct AnalyticsView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("TASK DNA")
+                    Text(vm.appLanguage == .arabic ? "DNA المهام" : (vm.appLanguage == .spanish ? "DNA DE TAREAS" : "TASK DNA"))
                         .font(.system(size: 9, weight: .bold))
                         .kerning(1.8)
                         .foregroundColor(Theme.text2)
-                    Text("Per-task completion breakdown")
+                    Text(vm.appLanguage == .arabic ? "تحليل إنجاز كل مهمة" : (vm.appLanguage == .spanish ? "Desglose por tarea" : "Per-task completion breakdown"))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundColor(Theme.text0.opacity(0.40))
                 }
@@ -629,7 +650,7 @@ struct AnalyticsView: View {
                         Image(systemName: "flame.fill")
                             .font(.system(size: 7))
                             .foregroundColor(Theme.coral)
-                        Text("3d+")
+                        Text(vm.appLanguage == .arabic ? "3أيام+" : "3d+")
                             .font(.system(size: 7.5, weight: .medium))
                             .foregroundColor(Theme.text2)
                     }
@@ -679,13 +700,13 @@ struct AnalyticsView: View {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: 9))
                         .foregroundColor(Theme.coral)
-                    Text("NEEDS WORK")
+                    Text(vm.appLanguage == .arabic ? "تحتاج لعمل" : (vm.appLanguage == .spanish ? "NECESITA TRABAJO" : "NEEDS WORK"))
                         .font(.system(size: 9, weight: .bold))
                         .kerning(1.6)
                         .foregroundColor(Theme.text2)
                 }
                 Spacer()
-                Text("\(weakTasks.count) tasks")
+                Text("\(weakTasks.count) \(vm.appLanguage == .arabic ? "مهام" : (vm.appLanguage == .spanish ? "tareas" : "tasks"))")
                     .font(.system(size: 10, weight: .semibold, design: .rounded))
                     .foregroundColor(Theme.accent)
             }
@@ -1146,7 +1167,7 @@ struct AnalyticsListPickerSheet: View {
                                             Text(list.emoji).font(.title3)
                                         }
                                         VStack(alignment: .leading, spacing: 3) {
-                                            Text(list.name).font(.system(size: 15, weight: .semibold)).foregroundColor(Theme.text0)
+                                            Text(list.cleanName).font(.system(size: 15, weight: .semibold)).foregroundColor(Theme.text0)
                                             Text("\(list.tasks.count) tasks").font(.system(size: 12)).foregroundColor(Theme.text1)
                                         }
                                         Spacer()
@@ -1216,14 +1237,17 @@ struct NewUserBanner: View {
 
     private var messages: [String] {
         let day = daysSinceInstall + 1
+        let locale = vm.appLanguage.locale
         return [
-            "🌱 Day \(day) of 7 — your journey just started with Sortyd",
-            "Give Sortyd time to learn how you work",
+            String(localized: "🌱 Day %lld of 7 — your journey just started with Sortyd", locale: locale).replacingOccurrences(of: "%lld", with: "\(day)"),
+            String(localized: "Give Sortyd time to learn how you work", locale: locale),
             daysClocked > 0
-                ? "\(daysClocked) day\(daysClocked == 1 ? "" : "s") clocked in so far — keep it up!"
-                : "Complete tasks today to start tracking your progress",
-            "Better insights unlock as more data builds",
-            "Track consistently and your grade will reflect it ✨"
+                ? (daysClocked == 1 
+                   ? String(localized: "1 day clocked in so far — keep it up!", locale: locale)
+                   : String(localized: "%lld days clocked in so far — keep it up!", locale: locale).replacingOccurrences(of: "%lld", with: "\(daysClocked)"))
+                : String(localized: "Complete tasks today to start tracking your progress", locale: locale),
+            String(localized: "Better insights unlock as more data builds", locale: locale),
+            String(localized: "Track consistently and your grade will reflect it ✨", locale: locale)
         ]
     }
 
@@ -1244,7 +1268,7 @@ struct NewUserBanner: View {
                     .animation(.easeInOut(duration: 0.38), value: msgIndex)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                Text("\(7 - daysSinceInstall)d left")
+                Text("\(7 - daysSinceInstall)\(vm.localized("d left"))")
                     .font(.system(size: 9, weight: .semibold))
                     .foregroundColor(Theme.text2)
                     .fixedSize()

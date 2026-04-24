@@ -83,13 +83,7 @@ final class NotificationManager {
 
         do {
             try await center.add(request)
-            #if DEBUG
-            print("[NotificationManager] Daily summary scheduled — \"\(title)\"")
-            #endif
         } catch {
-            #if DEBUG
-            print("[NotificationManager] Failed to schedule daily summary: \(error.localizedDescription)")
-            #endif
         }
     }
 
@@ -251,7 +245,7 @@ final class NotificationManager {
         let content       = UNMutableNotificationContent()
         content.title     = list.emoji + " " + list.name
         content.body      = task.title
-        content.sound     = UNNotificationSound(named: UNNotificationSoundName("rise.wav"))
+        content.sound     = UNNotificationSound(named: UNNotificationSoundName("gong.wav"))
 
         let comps: DateComponents
         let repeats: Bool
@@ -275,9 +269,6 @@ final class NotificationManager {
         do {
             try await center.add(request)
         } catch {
-            #if DEBUG
-            print("[NotificationManager] Failed to register notification: \(error.localizedDescription)")
-            #endif
         }
     }
 

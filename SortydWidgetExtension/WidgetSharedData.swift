@@ -1,8 +1,24 @@
-// MARK: - WidgetSharedData.swift
-// SortydWidgetExtension — Shared data model & store read by all widgets
-
 import Foundation
 import WidgetKit
+
+// MARK: - Global Emoji Helpers
+extension Character {
+    var isEmoji: Bool {
+        guard let scalar = unicodeScalars.first else { return false }
+        return scalar.properties.isEmojiPresentation || (unicodeScalars.count > 1 && scalar.properties.isEmoji)
+    }
+}
+
+extension String {
+    func removingLeadingEmojis() -> String {
+        var n = self.trimmingCharacters(in: .whitespaces)
+        while !n.isEmpty, n.first!.isEmoji {
+            n.removeFirst()
+            n = n.trimmingCharacters(in: .whitespaces)
+        }
+        return n
+    }
+}
 
 // ─────────────────────────────────────────────────────────────
 // MARK: WidgetData   (written by the main app, read by widgets)
@@ -23,12 +39,25 @@ struct WidgetData: Codable {
     var caloriesGoal:   Double?
     var stepCount:      Double?
     var stepGoal:       Double?
+    /// The ID of the most recently checked (completed) task — kept visible so the user can uncheck it.
+    var lastCheckedTaskID: UUID?
+    
+    /// Summary data for all active lists (for the multi-list widget)
+    var allLists: [MultiListEntry]?
 
     struct WidgetTask: Codable, Identifiable {
         var id:          UUID
         var title:       String
         var isCompleted: Bool
         var weight:      Double
+    }
+
+    struct MultiListEntry: Codable, Identifiable {
+        var id: UUID
+        var name: String
+        var emoji: String
+        var completionFraction: Double
+        var grade: String
     }
 
     static var placeholder: WidgetData {
@@ -57,7 +86,14 @@ struct WidgetData: Codable {
             caloriesBurned: nil,
             caloriesGoal: nil,
             stepCount: nil,
-            stepGoal: nil
+            stepGoal: nil,
+            lastCheckedTaskID: nil,
+            allLists: [
+                MultiListEntry(id: UUID(), name: "Morning", emoji: "🌅", completionFraction: 0.8, grade: "A-"),
+                MultiListEntry(id: UUID(), name: "Work",    emoji: "💻", completionFraction: 0.4, grade: "C"),
+                MultiListEntry(id: UUID(), name: "Health",  emoji: "💪", completionFraction: 0.6, grade: "B"),
+                MultiListEntry(id: UUID(), name: "Evening", emoji: "🌙", completionFraction: 0.2, grade: "D")
+            ]
         )
     }
 
@@ -83,6 +119,11 @@ struct WidgetDataStore {
             let data     = try? JSONDecoder().decode(WidgetData.self, from: raw)
         else { return .placeholder }
         return data
+    }
+
+    static func loadLanguage() -> String {
+        let defaults = UserDefaults(suiteName: suiteName)
+        return defaults?.string(forKey: "sortyd_app_language") ?? "en"
     }
 }
 

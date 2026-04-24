@@ -10,7 +10,6 @@
 		4663A63C2F7B39120021CF8A /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4663A63B2F7B39120021CF8A /* WidgetKit.framework */; };
 		4663A63E2F7B39120021CF8A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4663A63D2F7B39120021CF8A /* SwiftUI.framework */; };
 		4663A64D2F7B39130021CF8A /* SortydWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4663A6392F7B39120021CF8A /* SortydWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		4663DC242F7FF57D0036A9D2 /* gong.wav in Resources */ = {isa = PBXBuildFile; fileRef = 4663DC232F7FF57D0036A9D2 /* gong.wav */; };
 		4663DC332F805E480036A9D2 /* SortydWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 4663DC292F805E460036A9D2 /* SortydWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		46BBEB072F95089F0022DBAF /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 46BBEB062F95089F0022DBAF /* FirebaseAnalytics */; };
 /* End PBXBuildFile section */
@@ -70,7 +69,6 @@
 		4663A63B2F7B39120021CF8A /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		4663A63D2F7B39120021CF8A /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		4663A67D2F7B395C0021CF8A /* SortydWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SortydWidgetExtension.entitlements; sourceTree = "<group>"; };
-		4663DC232F7FF57D0036A9D2 /* gong.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = gong.wav; sourceTree = "<group>"; };
 		4663DC292F805E460036A9D2 /* SortydWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SortydWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		46EACFD32F7B8F96003C4AD6 /* SortydWidgetExtensionExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SortydWidgetExtensionExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -155,7 +153,6 @@
 		4663A5E92F7B38CA0021CF8A = {
 			isa = PBXGroup;
 			children = (
-				4663DC232F7FF57D0036A9D2 /* gong.wav */,
 				46EACFD32F7B8F96003C4AD6 /* SortydWidgetExtensionExtension.entitlements */,
 				4663A67D2F7B395C0021CF8A /* SortydWidgetExtension.entitlements */,
 				4663A5F42F7B38CA0021CF8A /* Sortyd */,
@@ -289,6 +286,8 @@
 			knownRegions = (
 				en,
 				Base,
+				es,
+				ar,
 			);
 			mainGroup = 4663A5E92F7B38CA0021CF8A;
 			minimizedProjectReferenceProxies = 1;
@@ -312,7 +311,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4663DC242F7FF57D0036A9D2 /* gong.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -504,7 +502,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = Sortyd/Sortyd.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 25E5AWSP4F;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -522,7 +520,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sortyd.sortyd;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -543,7 +541,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = Sortyd/Sortyd.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 25E5AWSP4F;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -561,7 +559,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sortyd.sortyd;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -582,7 +580,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = SortydWidgetExtension/SortydWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 25E5AWSP4F;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SortydWidgetExtension/Info.plist;
@@ -594,7 +592,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sortyd.sortyd.widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -617,7 +615,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = SortydWidgetExtension/SortydWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 25E5AWSP4F;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SortydWidgetExtension/Info.plist;
@@ -629,7 +627,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sortyd.sortyd.widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -652,7 +650,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "SortydWatch Watch App/SortydWatch Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 25E5AWSP4F;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -664,7 +662,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sortyd.sortyd.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -691,7 +689,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "SortydWatch Watch App/SortydWatch Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 25E5AWSP4F;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -703,7 +701,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sortyd.sortyd.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;

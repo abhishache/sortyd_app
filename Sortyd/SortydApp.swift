@@ -20,6 +20,8 @@ struct SortydApp: App {
                 .environmentObject(ThemeManager.shared)
                 .environmentObject(vm)
                 .preferredColorScheme(ThemeManager.shared.colorScheme)
+                .environment(\.locale, vm.appLanguage.locale)
+                .environment(\.layoutDirection, vm.appLanguage.isRTL ? .rightToLeft : .leftToRight)
                 .onAppear {
                     _ = WatchSessionManager.shared
                     vm.setupHealthAutoComplete()
@@ -70,7 +72,7 @@ struct SortydApp: App {
                     guard url.scheme == "sortyd" else { return }
                     // Small async hop so the scene is fully active before tab switch.
                     DispatchQueue.main.async {
-                        vm.selectedTab = 0
+                        vm.handleURL(url)
                     }
                 }
         }

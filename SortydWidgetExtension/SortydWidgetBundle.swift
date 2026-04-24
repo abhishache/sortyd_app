@@ -17,7 +17,6 @@
 
 import WidgetKit
 import SwiftUI
-
 @main
 struct SortydWidgetBundle: WidgetBundle {
     var body: some Widget {
@@ -26,6 +25,7 @@ struct SortydWidgetBundle: WidgetBundle {
         SortydMediumWidget()
         SortydLargeWidget()
         SortydMonthlyWidget()
+        SortydMultiListWidget()
         // ── Lock screen ──────────────────────────
         SortydLockCircularWidget()
         SortydLockRectangularWidget()

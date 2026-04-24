@@ -1,5 +1,5 @@
 // MARK: - AICoach.swift
-// Sortyd — AI Coach powered by Groq (free tier)
+// Sortyd — AI Coach powered by Cerebras
 // Handles: Weekly Recap, Procrastination Detection, List Health,
 //          Behavioural Pillars, NL Task Entry, Starter Lists
 
@@ -88,7 +88,6 @@ struct BehaviouralAnalysis: Codable {
 }
 
 // MARK: - AICoach
-
 @MainActor
 final class AICoach: ObservableObject {
 
@@ -102,7 +101,7 @@ final class AICoach: ObservableObject {
     @Published var isBehaviourLoading = false
     @Published var errorMessage: String?
 
-    // ─── Groq config ─────────────────────────────────────────────────────────
+    // ─── Cerebras config ──────────────────────────────────────────────────────
     // Security: No secret is stored in the client binary.
     // Each request is authenticated by a HMAC-SHA256 signature over the
     // request body + a Unix timestamp, using a salt derived at build time
@@ -114,18 +113,14 @@ final class AICoach: ObservableObject {
     // To rotate: change hmacSalt here and update SORTYD_HMAC_SALT in the
     // Cloudflare Worker secret store. Both must match.
 
-    private let model  = "llama-3.3-70b-versatile"
-    private let apiURL = URL(string: "https://sortyd-proxy.abhishek918.workers.dev/api/ai")!
+    private let model  = "llama3.1-8b"
+    private let apiURL = URL(string: "https://sortyd-proxy.abhishek918.workers.dev/api/ai") ?? URL(string: "about:blank")!
 
     // This is NOT a secret — it is a public HMAC salt derived from your
     // bundle ID + app name. It prevents trivial replay attacks but is not
-    // a substitute for server-side rate limiting. The actual Groq API key
-    // lives only in the Cloudflare Worker environment variable GROQ_API_KEY.
+    // a substitute for server-side rate limiting. The actual Cerebras API key
+    // lives only in the Cloudflare Worker environment variable CEREBRAS_API_KEY.
     private let hmacSalt = "com.sortyd.sortyd|Sortyd|v1"
-
-    /// Throttle: minimum seconds between API calls
-    private var lastCallTime: Date = .distantPast
-    private let minCallInterval: TimeInterval = 5
     // ─────────────────────────────────────────────────────────────────────────
 
     private init() {}
@@ -138,35 +133,40 @@ final class AICoach: ObservableObject {
 
         let summary = buildWeekSummary(lists: lists, snapshots: snapshots)
         let windowDays = min(7, daysSinceInstall + 1)
-        let newUserNote = daysSinceInstall < 7
-            ? "Note: User installed \(daysSinceInstall + 1) day(s) ago — this is early data. Be encouraging, acknowledge they are just starting.\n"
-            : ""
+        let groupDefaults = UserDefaults(suiteName: "group.com.sortyd.sortyd")
+        let language = AppLanguage(rawValue: groupDefaults?.string(forKey: "sortyd_app_language") ?? "en") ?? .english
+        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : "English")
+        let langNote = "IMPORTANT: You MUST respond in \(langName). Every single text value in the JSON must be written in fluent \(langName). Do not use English."
+
         let prompt = """
         You are a sharp, no-BS habit coach. You see patterns others miss.
         Rules: Use "you", never "the user". Name SPECIFIC tasks. Short punchy sentences. No fluff.
+        \(langNote)
         \(newUserNote)
         DATA (\(windowDays) days, per-task daily breakdown):
         \(summary)
 
         ANALYSIS INSTRUCTIONS:
-        - Look at which specific tasks were skipped and on which days
-        - Identify the weakest task (lowest completion) and the strongest
-        - Notice day-of-week patterns (e.g. weekends drop, Mondays strong)
-        - Check if streaks are building or breaking
-        - The headline should reference a SPECIFIC pattern you found
+        - Look at which specific tasks were skipped and on which days.
+        - Identify the weakest task (lowest completion) and the strongest.
+        - Notice day-of-week patterns (e.g., weekends drop, Mondays strong).
+        - Check if streaks are building or breaking.
+        - The headline should reference a SPECIFIC pattern you found.
+        - For Arabic: Ensure the tone is professional yet direct.
+        - For Spanish: Use an encouraging but firm "tú" tone.
 
         Respond ONLY with valid JSON (no markdown, no backticks):
         {
-          "headline": "Max 6 words + 1 emoji. Reference a specific finding (e.g. 'Weekends are killing you 💀' or 'Meditation streak on fire 🔥')",
+          "headline": "Max 6 words + 1 emoji. Reference a specific finding.",
           "summary": "2 sentences. Name the weakest task and strongest task BY NAME. State the specific pattern.",
-          "highlight": "Name ONE specific task + what they did well. e.g. 'You hit Meditate 7/7 days — that's a real streak.'",
-          "nudge": "ONE specific action targeting their weakest task. e.g. 'Do [task name] before breakfast tomorrow.' Verb-first, under 15 words.",
+          "highlight": "Name ONE specific task + what they did well.",
+          "nudge": "ONE specific action targeting their weakest task. Verb-first, under 15 words.",
           "grade": "Letter grade: A, A-, B+, B, B-, C+, C, or D",
-          "gradeReason": "Reference the data. e.g. 'You averaged 60% and skipped 3 tasks entirely on weekends.'"
+          "gradeReason": "Reference the data explicitly."
         }
         """
 
-        if let result: WeeklyRecap = await callGroq(prompt: prompt) {
+        if let result: WeeklyRecap = await callGroq(prompt: prompt, maxTokens: 500) {
             weeklyRecap = result
         } else if errorMessage == nil {
             // Network succeeded but response couldn't be parsed — show a clear message
@@ -190,36 +190,40 @@ final class AICoach: ObservableObject {
         }
 
         let procWindow = min(14, daysSinceInstall + 1)
-        let procNewNote = daysSinceInstall < 14
-            ? "Note: App installed \(daysSinceInstall + 1) day(s) ago — only \(procWindow) days of data. Be constructive, not harsh.\n"
-            : ""
+        let groupDefaults = UserDefaults(suiteName: "group.com.sortyd.sortyd")
+        let language = AppLanguage(rawValue: groupDefaults?.string(forKey: "sortyd_app_language") ?? "en") ?? .english
+        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : "English")
+        let langNote = "IMPORTANT: You MUST respond in \(langName). All JSON text values including taskTitle and suggestion must be in fluent \(langName)."
+
         let prompt = """
         You are a direct habit coach who diagnoses WHY tasks get skipped.
         Rules: Use "you". Name each task. One punchy sentence. Diagnose the root cause, don't just say "try harder".
+        \(langNote)
         \(procNewNote)
         These tasks are being skipped (includes completion rate, last done, and most-skipped day):
         \(flagData)
 
         ANALYSIS INSTRUCTIONS:
-        - If "lastDone" is "never", the task may be too ambitious or poorly defined
-        - If done 1-3 out of \(procWindow), there's a trigger/motivation problem
-        - If "mostSkippedDay" clusters on weekends, it's a routine gap
+        - If "lastDone" is "never", the task may be too ambitious or poorly defined.
+        - If done 1-3 out of \(procWindow), there's a trigger/motivation problem.
+        - If "mostSkippedDay" clusters on weekends, it's a routine gap.
         - Suggest a ROOT CAUSE: too vague? too hard? wrong time of day? no trigger? boring?
+        - Ensure suggestions are culturally relevant for \(langName) speakers.
 
         Respond ONLY with valid JSON array (no markdown, no backticks):
         [
           {
             "id": "<same UUID>",
-            "taskTitle": "<same title>",
+            "taskTitle": "<same title in \(langName)>",
             "daysSkipped": <\(procWindow) minus done count>,
-            "suggestion": "Diagnose WHY. Under 20 words.",
-            "actionLabel": "Shrink it" or "Reschedule" or "Remove it" or "Pair it"
+            "suggestion": "Diagnose WHY. Under 20 words in \(langName).",
+            "actionLabel": "Short localized label like 'Shrink it' or 'Reschedule'"
           }
         ]
-        Max 6 items. "Pair it" means attach it to an existing habit.
+        Max 6 items.
         """
 
-        if let result: [ProcrastinationFlag] = await callGroqArray(prompt: prompt) {
+        if let result: [ProcrastinationFlag] = await callGroqArray(prompt: prompt, maxTokens: 400) {
             procrastinationFlags = result
         } else if errorMessage == nil {
             errorMessage = "Couldn't read the AI response. Try again in a moment."
@@ -237,8 +241,14 @@ final class AICoach: ObservableObject {
         let recentCompletedIDs = Set(recentSnaps.flatMap(\.completedTaskIDs))
         let neverDoneTasks = list.tasks.filter { !recentCompletedIDs.contains($0.id) }.map(\.title)
 
+        let groupDefaults = UserDefaults(suiteName: "group.com.sortyd.sortyd")
+        let language = AppLanguage(rawValue: groupDefaults?.string(forKey: "sortyd_app_language") ?? "en") ?? .english
+        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : "English")
+        let langNote = "IMPORTANT: You MUST respond in \(langName). Every single text value in the JSON must be written in fluent \(langName). Do not use English."
+
         let prompt = """
         You are a habit coach who diagnoses list problems. Use "you", never "the user".
+        \(langNote)
 
         List: "\(list.name)"
         Total tasks: \(list.tasks.count)
@@ -255,13 +265,13 @@ final class AICoach: ObservableObject {
         Respond ONLY with valid JSON (no markdown, no backticks):
         {
           "score": <0-100>,
-          "label": "Healthy" or "Overloaded" or "Stale" or "Needs Work" or "Great Shape",
+          "label": "Translate 'Healthy' or 'Overloaded' or 'Stale' or 'Needs Work' or 'Great Shape' into \(langName)",
           "insight": "Name the problem. e.g. 'You have 3 tasks you've never done — they're dragging your score down.' Under 20 words.",
           "tips": ["Name a specific task or pattern in each tip. Verb-first, under 10 words.", "tip 2", "tip 3"]
         }
         """
 
-        return await callGroq(prompt: prompt)
+        return await callGroq(prompt: prompt, maxTokens: 300)
     }
 
     // MARK: - Behavioural Pillar Analysis
@@ -276,9 +286,15 @@ final class AICoach: ObservableObject {
             return
         }
 
+        let groupDefaults = UserDefaults(suiteName: "group.com.sortyd.sortyd")
+        let language = AppLanguage(rawValue: groupDefaults?.string(forKey: "sortyd_app_language") ?? "en") ?? .english
+        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : "English")
+        let langNote = "IMPORTANT: You MUST respond in \(langName). All JSON text values including pillar names, insights, and advice must be in fluent \(langName)."
+
         let prompt = """
         You are a habit coach who finds the real patterns. Use "you", never "the user".
         Be specific — name tasks, name days, name numbers.
+        \(langNote)
 
         DATA (per task: completion rate, weekday vs weekend split, trend, current streak):
         \(taskData)
@@ -296,10 +312,10 @@ final class AICoach: ObservableObject {
           "pillars": [
             {
               "id": "<UUID string>",
-              "name": "Pillar name",
+              "name": "Pillar name (Translate into \(langName))",
               "emoji": "<single emoji>",
               "score": <0-100 based on actual completion data>,
-              "status": "Strong" (75+) or "Developing" (50–74) or "Struggling" (<50),
+              "status": "Translate 'Strong' or 'Developing' or 'Struggling' into \(langName)",
               "insight": "Name specific tasks and numbers. e.g. 'You do Workout 80% on weekdays but 0% on weekends. The routine breaks when structure disappears.'",
               "tasks": ["exact task title 1", "exact task title 2"],
               "advice": "Target the weakest task in this pillar. e.g. 'Do [task] right after [strongest task] to piggyback the habit.' Under 15 words."
@@ -310,7 +326,7 @@ final class AICoach: ObservableObject {
         }
         """
 
-        if let result: BehaviouralAnalysis = await callGroq(prompt: prompt) {
+        if let result: BehaviouralAnalysis = await callGroq(prompt: prompt, maxTokens: 900) {
             behaviouralAnalysis = result
         } else if errorMessage == nil {
             errorMessage = "Couldn't read the AI response. Try again in a moment."
@@ -321,26 +337,54 @@ final class AICoach: ObservableObject {
     // MARK: - Natural Language Task Parsing
 
     func parseNaturalLanguageTask(_ input: String) async -> ParsedTask? {
+        let groupDefaults = UserDefaults(suiteName: "group.com.sortyd.sortyd")
+        let language = AppLanguage(rawValue: groupDefaults?.string(forKey: "sortyd_app_language") ?? "en") ?? .english
+        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : "English")
+        let langNote = "IMPORTANT: You MUST respond in \(langName). The parsed 'title' must be in \(langName)."
+
+        let examples: String
+        switch language {
+        case .arabic:
+            examples = """
+            "اتصل بأمي الساعة 6 مساءً" → {"title":"اتصل بأمي","hasReminder":true,"reminderHour":18,"reminderMinute":0}
+            "اذهب للجري" → {"title":"اذهب للجري","hasReminder":false,"reminderHour":null,"reminderMinute":null}
+            "اجتماع الفريق 9:30 صباحاً" → {"title":"اجتماع الفريق","hasReminder":true,"reminderHour":9,"reminderMinute":30}
+            "call mom at 6pm" → {"title":"اتصل بأمي","hasReminder":true,"reminderHour":18,"reminderMinute":0}
+            """
+        case .spanish:
+            examples = """
+            "llamar a mamá a las 6pm" → {"title":"Llamar a mamá","hasReminder":true,"reminderHour":18,"reminderMinute":0}
+            "salir a correr" → {"title":"Salir a correr","hasReminder":false,"reminderHour":null,"reminderMinute":null}
+            "reunión de equipo 9:30am" → {"title":"Reunión de equipo","hasReminder":true,"reminderHour":9,"reminderMinute":30}
+            "call mom at 6pm" → {"title":"Llamar a mamá","hasReminder":true,"reminderHour":18,"reminderMinute":0}
+            """
+        default:
+            examples = """
+            "call mom at 6pm" → {"title":"Call mom","hasReminder":true,"reminderHour":18,"reminderMinute":0}
+            "go for a run" → {"title":"Go for a run","hasReminder":false,"reminderHour":null,"reminderMinute":null}
+            "team standup 9:30am" → {"title":"Team standup","hasReminder":true,"reminderHour":9,"reminderMinute":30}
+            """
+        }
+
         let prompt = """
         Parse this task input from a productivity app. Extract the task title and any time/reminder info.
+        \(langNote)
 
         Input: "\(input)"
 
         Respond ONLY with valid JSON (no markdown, no backticks):
         {
-          "title": "Clean task title, remove time references",
+          "title": "Clean task title in \(langName), remove time references",
           "hasReminder": true or false,
           "reminderHour": <0-23 or null>,
           "reminderMinute": <0-59 or null>
         }
 
-        Examples:
-        "call mom at 6pm" → {"title":"Call mom","hasReminder":true,"reminderHour":18,"reminderMinute":0}
-        "go for a run" → {"title":"Go for a run","hasReminder":false,"reminderHour":null,"reminderMinute":null}
-        "team standup 9:30am" → {"title":"Team standup","hasReminder":true,"reminderHour":9,"reminderMinute":30}
+        Examples (note: title is always in \(langName) regardless of input language):
+        \(examples)
         """
 
-        return await callGroq(prompt: prompt)
+        return await callGroq(prompt: prompt, maxTokens: 150)
     }
 
     // MARK: - Daily Summary (one-liner for 10 PM notification)
@@ -361,8 +405,14 @@ final class AICoach: ObservableObject {
         let completedTitles = list.tasks.filter {  completedIDs.contains($0.id) }.map(\.title)
         let missedTitles    = list.tasks.filter { !completedIDs.contains($0.id) }.map(\.title)
 
+        let groupDefaults = UserDefaults(suiteName: "group.com.sortyd.sortyd")
+        let language = AppLanguage(rawValue: groupDefaults?.string(forKey: "sortyd_app_language") ?? "en") ?? .english
+        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : "English")
+        let langNote = "IMPORTANT: You MUST respond in \(langName). Output ONLY the single sentence in \(langName)."
+
         let prompt = """
         You are a sharp habit coach writing a single push notification sentence. No fluff, no filler.
+        \(langNote)
 
         List: "\(list.name)"
         Tasks done today: \(done)/\(total) (\(pct)%)
@@ -379,7 +429,7 @@ final class AICoach: ObservableObject {
         - Output ONLY the sentence. No quotes, no JSON, no explanation.
        """
 
-        guard let data = await postToGroqUnthrottled(prompt: prompt) else { return nil }
+        guard let data = await postToGroqUnthrottled(prompt: prompt, maxTokens: 80) else { return nil }
         return extractText(from: data)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .components(separatedBy: "\n").first
@@ -388,66 +438,62 @@ final class AICoach: ObservableObject {
     /// MARK: - Starter List Generation
     
     func generateStarterList(goal: String) async -> StarterList? {
+        let groupDefaults = UserDefaults(suiteName: "group.com.sortyd.sortyd")
+        let language = AppLanguage(rawValue: groupDefaults?.string(forKey: "sortyd_app_language") ?? "en") ?? .english
+        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : "English")
+        let langNote = "IMPORTANT: You MUST respond in \(langName). The listName and every task in the tasks array must be in fluent \(langName)."
+
         let prompt = """
         You are a world-class habit coach helping someone build their first task list in Sortyd.
         Their goal: "\(goal)"
+        \(langNote)
 
         YOUR JOB: Generate a complete, well-structured daily habit list that covers ALL dimensions of this goal.
 
         TASK COUNT RULES — this is critical:
         - ALWAYS generate between 4 and 6 tasks. Never fewer than 4. Never more than 6.
-        - A list with 1–3 tasks is a failure. A list with 4–6 tasks is a success.
-        - If the goal is broad (e.g. "get fit", "morning routine", "eat healthy"), find 6–8 distinct daily actions that together build that lifestyle.
-        - If the goal is narrow (e.g. "walk 10,000 steps"), expand it into the surrounding habits that support and reinforce that goal (e.g. hydration, sleep, stretching, tracking).
-        - Think in SYSTEMS, not single tasks. What does someone who has fully achieved this goal do every single day?
+        - If the goal is broad, find distinct daily actions that build that lifestyle.
+        - If the goal is narrow, expand it into supporting habits (hydration, sleep, prep).
+        - Think in SYSTEMS, not single tasks.
 
         TASK QUALITY RULES:
-        - Each task must be concrete, completable in one sitting, and trackable as done/not done.
-        - Vary the tasks — cover different times of day, different effort levels, different aspects of the goal.
-        - Include at least one "anchor" habit (the core action), one "support" habit (enables the core), and one "reflection" or "tracking" habit.
-        - Keep tasks short: 3–6 words. Capitalize the first word only.
-        - No duplicates, no vague tasks like "Be healthy" or "Work on goal".
+        - Each task must be concrete and trackable.
+        - Keep tasks short: 3–6 words in \(langName). Capitalize appropriately for the language.
+        - For Arabic: Use natural, modern phrasing.
+        - For Spanish: Use direct, actionable verbs.
 
-        EXAMPLES of good 6-task lists:
-        Goal: "Get fit" →
-          ["Morning workout — 30 min", "Walk 8,000 steps", "Drink 2.5L of water",
-           "Eat a high-protein meal", "Stretch for 10 min", "Sleep by 10:30pm",
-           "Log today's workout", "Prep gym bag tonight"]
+        HEALTH TASK INTEGRATION — extremely important:
+        - If the goal involves fitness, weight, gym, cardio, running, health, or activity, you MUST include:
+          1. ONE steps task (e.g., "10,000 steps").
+          2. ONE calories task (e.g., "Burn 500 kcal").
+          3. ONE running/distance task (e.g., "Run 5km").
+        - For these 3 tasks, you MUST shuffle/randomize the numeric targets slightly around these baselines:
+          - Steps: baseline 10,000 (randomize between 6,000 and 12,000).
+          - Calories: baseline 500 (randomize between 300 and 700).
+          - Distance: baseline 5 (randomize between 3 and 10).
+        - Example Distance task: "Run 5km", "Daily 3km run", "5km jog".
+        - For non-health goals, DO NOT include these special tracking tasks.
 
-        Goal: "Morning routine" →
-          ["Wake up at 6:30am", "Drink water before coffee", "10-min morning stretch",
-           "Cold shower", "Review today's priorities", "No phone for first 30 min",
-           "Eat a real breakfast", "Journal 3 lines"]
-
-        Goal: "Learn Spanish" →
-          ["Duolingo — 15 min", "Learn 10 new vocab words", "Listen to Spanish podcast",
-           "Review yesterday's vocab", "Watch one Spanish video", "Speak 5 sentences aloud",
-           "Write 3 sentences in Spanish"]
-
-        LIST NAME RULES:
-        - Max 3 words, Title Case.
-        - Should sound like a lifestyle identity, not a chore (e.g. "Fit Life System", "Morning Power Routine", "Language Builder").
-
-        Respond ONLY with valid JSON (no markdown, no backticks, no explanation):
+        Respond ONLY with valid JSON (no markdown, no backticks). IMPORTANT: the listName must NOT contain any emojis and MUST be concise. Do NOT add redundant words like "Builder", "Habit", "Routine", or "Program" unless they are part of the core goal. Stick to the essence of the goal.
         {
-          "emoji": "<single emoji that best represents the goal>",
-          "listName": "<max 3 words, Title Case>",
-          "tasks": ["Task 1", "Task 2", "Task 3", "Task 4", "Task 5"]
+          "emoji": "single relevant emoji",
+          "listName": "max 2-3 words, the core goal name in \(langName)",
+          "tasks": ["Task 1 in \(langName)", "Task 2", "Task 3", "Task 4", "Task 5"]
         }
         """
 
-        return await callGroq(prompt: prompt)
+        return await callGroq(prompt: prompt, maxTokens: 700)
     }
 
     // MARK: - Private: Groq API
 
-    private func callGroq<T: Decodable>(prompt: String) async -> T? {
-        guard let responseData = await postToGroq(prompt: prompt) else { return nil }
+    private func callGroq<T: Decodable>(prompt: String, maxTokens: Int = 800) async -> T? {
+        guard let responseData = await postToGroq(prompt: prompt, maxTokens: maxTokens) else { return nil }
         return parseResponse(responseData)
     }
 
-    private func callGroqArray<T: Decodable>(prompt: String) async -> [T]? {
-        guard let responseData = await postToGroq(prompt: prompt) else { return nil }
+    private func callGroqArray<T: Decodable>(prompt: String, maxTokens: Int = 800) async -> [T]? {
+        guard let responseData = await postToGroq(prompt: prompt, maxTokens: maxTokens) else { return nil }
         return parseArrayResponse(responseData)
     }
 
@@ -463,7 +509,7 @@ final class AICoach: ObservableObject {
 
         var request = URLRequest(url: apiURL)
         request.httpMethod    = "POST"
-        request.timeoutInterval = 30
+        request.timeoutInterval = 120
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(timestamp,  forHTTPHeaderField: "x-sortyd-ts")
         request.setValue(signature,  forHTTPHeaderField: "x-sortyd-sig")
@@ -480,26 +526,19 @@ final class AICoach: ObservableObject {
 
     // MARK: - Network calls
 
-    private func postToGroq(prompt: String) async -> Data? {
-        // Rate limiting — prevent API spam
-        let now = Date()
-        if now.timeIntervalSince(lastCallTime) < minCallInterval {
-            errorMessage = "Please wait a moment before trying again."
-            return nil
-        }
-        lastCallTime = now
-        return await executeRequest(prompt: prompt)
+    private func postToGroq(prompt: String, maxTokens: Int = 800) async -> Data? {
+        await executeRequest(prompt: prompt, maxTokens: maxTokens)
     }
 
-    private func postToGroqUnthrottled(prompt: String) async -> Data? {
-        await executeRequest(prompt: prompt)
+    private func postToGroqUnthrottled(prompt: String, maxTokens: Int = 800) async -> Data? {
+        await executeRequest(prompt: prompt, maxTokens: maxTokens)
     }
 
-    private func executeRequest(prompt: String) async -> Data? {
+    private func executeRequest(prompt: String, maxTokens: Int = 800) async -> Data? {
         let body: [String: Any] = [
             "model": model,
             "messages": [["role": "user", "content": prompt]],
-            "max_tokens": 1500,
+            "max_tokens": maxTokens,
             "temperature": 0.7
         ]
         guard let data = try? JSONSerialization.data(withJSONObject: body) else {
@@ -511,8 +550,22 @@ final class AICoach: ObservableObject {
 
         do {
             let (responseData, response) = try await URLSession.shared.data(for: request)
+            // Check for Groq error in body regardless of HTTP status
+            // (the proxy forwards Groq errors with status 200)
+            if let json = try? JSONSerialization.jsonObject(with: responseData) as? [String: Any],
+               let errObj = json["error"] as? [String: Any],
+               let msg = errObj["message"] as? String {
+                if msg.contains("rate_limit") || msg.contains("Rate limit") || msg.contains("tokens per day") {
+                    errorMessage = "Daily AI limit reached. Resets at midnight — try again later."
+                } else if msg.contains("model") && msg.contains("not found") {
+                    errorMessage = "AI model unavailable. Try again later."
+                } else {
+                    errorMessage = "AI service error: \(msg.prefix(80))."
+                }
+                return nil
+            }
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
-                errorMessage = "AI service temporarily unavailable. Try again later."
+                errorMessage = "AI service temporarily unavailable (HTTP \(httpResponse.statusCode))."
                 return nil
             }
             return responseData
@@ -520,7 +573,7 @@ final class AICoach: ObservableObject {
             errorMessage = "No internet connection. Connect and try again."
             return nil
         } catch let error as URLError where error.code == .timedOut {
-            errorMessage = "Request timed out. Try again."
+            errorMessage = "Request is taking too long — still trying. Please wait."
             return nil
         } catch {
             errorMessage = "Something went wrong. Please try again."
@@ -547,19 +600,11 @@ final class AICoach: ObservableObject {
         guard let text = extractText(from: data),
               let jsonData = text.data(using: .utf8)
         else {
-            #if DEBUG
-            let raw = String(data: data, encoding: .utf8) ?? "<binary>"
-            print("[AICoach] extractText failed. Raw response:\n\(raw)")
-            #endif
             return nil
         }
         do {
             return try JSONDecoder().decode(T.self, from: jsonData)
         } catch {
-            #if DEBUG
-            print("[AICoach] JSON decode failed for \(T.self): \(error)")
-            print("[AICoach] Raw model text:\n\(String(data: jsonData, encoding: .utf8) ?? "<nil>")")
-            #endif
             return nil
         }
     }
@@ -568,19 +613,11 @@ final class AICoach: ObservableObject {
         guard let text = extractText(from: data),
               let jsonData = text.data(using: .utf8)
         else {
-            #if DEBUG
-            let raw = String(data: data, encoding: .utf8) ?? "<binary>"
-            print("[AICoach] extractText failed. Raw response:\n\(raw)")
-            #endif
             return nil
         }
         do {
             return try JSONDecoder().decode([T].self, from: jsonData)
         } catch {
-            #if DEBUG
-            print("[AICoach] JSON array decode failed for \(T.self): \(error)")
-            print("[AICoach] Raw model text:\n\(String(data: jsonData, encoding: .utf8) ?? "<nil>")")
-            #endif
             return nil
         }
     }
@@ -597,6 +634,22 @@ final class AICoach: ObservableObject {
     private var daysSinceInstall: Int {
         let today = Calendar.current.startOfDay(for: Date())
         return max(0, Calendar.current.dateComponents([.day], from: installDate, to: today).day ?? 0)
+    }
+
+    private var newUserNote: String {
+        if daysSinceInstall < 3 {
+            return "NOTE: This user just started. Be extra encouraging and don't judge the lack of data."
+        } else {
+            return ""
+        }
+    }
+
+    private var procNewNote: String {
+        if daysSinceInstall < 5 {
+            return "NOTE: The user is still building their routine. Focus on definition and setup tips."
+        } else {
+            return ""
+        }
     }
 
     // MARK: - Private: Data Builders
@@ -797,6 +850,6 @@ final class AICoach: ObservableObject {
             sections.append(section)
         }
 
-        return sections.joined(separator: "\n")
+        return sections.joined(separator: "\n\n")
     }
 }
