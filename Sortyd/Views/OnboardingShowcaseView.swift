@@ -7,7 +7,9 @@ import FirebaseAnalytics
 struct OnboardingShowcaseView: View {
     let onDismiss: () -> Void
 
+    @EnvironmentObject var vm: AppViewModel
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.locale) private var locale
     @State private var currentPage    = 0
     @State private var launched       = false
     @State private var cardReady      = false
@@ -44,20 +46,134 @@ struct OnboardingShowcaseView: View {
     private var blobTeal:      Color { isDark ? teal.opacity(0.10) : teal.opacity(0.06) }
     private var blobViolet:    Color { isDark ? violet.opacity(0.14) : violet.opacity(0.08) }
 
-    private let pages: [OBPage] = [
-        OBPage(tag: 0,
-               headline: "Stop planning.\nStart becoming.",
-               sub: "Free forever. No paywalls. No catches.",
-               accentHex: "#3ECFFF"),
-        OBPage(tag: 1,
-               headline: "Tiny wins compound.\nTrack them all.",
-               sub: "One tap from morning to midnight.",
-               accentHex: "#7C6FFF"),
-        OBPage(tag: 2,
-               headline: "AI that learns\nyour rhythm.",
-               sub: "Real insights from your real data.",
-               accentHex: "#3ECFFF")
-    ]
+    private func l(_ key: String) -> String {
+        switch vm.appLanguage {
+        case .arabic:
+            switch key {
+            case "YOUR HABITS": return "عاداتك"
+            case "Free forever": return "مجاني للأبد"
+            case "Morning Routine": return "الروتين الصباحي"
+            case "5 of 5": return "٥ من ٥"
+            case "complete": return "مكتمل"
+            case "Fitness": return "اللياقة"
+            case "Learning": return "التعلم"
+            case "Mindfulness": return "التأمل"
+            case "TODAY": return "اليوم"
+            case "Morning meditation": return "تأمل الصباح"
+            case "Workout 30 min": return "تمرين ٣٠ دقيقة"
+            case "Read 20 pages": return "قراءة ٢٠ صفحة"
+            case "Journal entry": return "كتابة يوميات"
+            case "Cold shower": return "دش بارد"
+            case "done": return "تم"
+            case "day streak": return "يوم متتالي"
+            case "AI COACH INSIGHTS": return "رؤى مدرب الذكاء الاصطناعي"
+            case "Mornings beat evenings by 2×": return "الصباح أفضل بمرتين"
+            case "8am completion vs. 8pm — consistently": return "إكمال الساعة ٨ صباحاً مقابل ٨ مساءً — باستمرار"
+            case "You skip Fridays 80% of the time": return "تتخطى أيام الجمعة ٨٠٪ من الوقت"
+            case "Workout streak: personal best!": return "أفضل رقم شخصي للتمارين!"
+            case "Grade": return "الدرجة"
+            case "Weekly": return "أسبوعي"
+            case "Streak": return "سلسلة"
+            case "Continue": return "متابعة"
+            case "Get Started": return "ابدأ الآن"
+            default: return vm.localized(key)
+            }
+        case .spanish:
+            switch key {
+            case "YOUR HABITS": return "TUS HÁBITOS"
+            case "Free forever": return "Gratis para siempre"
+            case "Morning Routine": return "Rutina Mañanera"
+            case "5 of 5": return "5 de 5"
+            case "complete": return "completo"
+            case "Fitness": return "Fitness"
+            case "Learning": return "Aprendizaje"
+            case "Mindfulness": return "Mindfulness"
+            case "TODAY": return "HOY"
+            case "Morning meditation": return "Meditación matutina"
+            case "Workout 30 min": return "Entreno 30 min"
+            case "Read 20 pages": return "Leer 20 páginas"
+            case "Journal entry": return "Diario personal"
+            case "Cold shower": return "Ducha fría"
+            case "done": return "hecho"
+            case "day streak": return "días seguidos"
+            case "AI COACH INSIGHTS": return "RECOMENDACIONES DE IA"
+            case "Mornings beat evenings by 2×": return "Mañanas rinden 2× más"
+            case "8am completion vs. 8pm — consistently": return "Cumplimiento 8am vs 8pm — constante"
+            case "You skip Fridays 80% of the time": return "Fallas los viernes un 80%"
+            case "Workout streak: personal best!": return "¡Récord personal de entreno!"
+            case "Grade": return "Nota"
+            case "Weekly": return "Semanal"
+            case "Streak": return "Racha"
+            case "Continue": return "Continuar"
+            case "Get Started": return "Empezar"
+            default: return vm.localized(key)
+            }
+        default:
+            return vm.localized(key)
+        }
+    }
+
+    private var pages: [OBPage] {
+        switch vm.appLanguage {
+        case .arabic:
+            return [
+                OBPage(tag: 0,
+                       headline: "اختر لغتك",
+                       sub: "يمكنك تغيير هذا لاحقاً في إعدادات الآيفون.",
+                       accentHex: "#3ECFFF"),
+                OBPage(tag: 1,
+                       headline: "نظم يومك",
+                       sub: "نظم عاداتك في قوائم يومية. ركز على ما يهم، قائمة تلو الأخرى.",
+                       accentHex: "#A78BFF"),
+                OBPage(tag: 2,
+                       headline: "رؤى الذكاء الاصطناعي",
+                       sub: "احصل على تحليل دقيق لسلوكك. يجد الذكاء الاصطناعي الأنماط التي تفوتك.",
+                       accentHex: "#FF7EB3"),
+                OBPage(tag: 3,
+                       headline: "تكامل HealthKit",
+                       sub: "زامِن خطواتك وسعراتك تلقائياً. شاهد تقدمك في الوقت الفعلي.",
+                       accentHex: "#4FD1C5")
+            ]
+        case .spanish:
+            return [
+                OBPage(tag: 0,
+                       headline: "Elige tu\nidioma",
+                       sub: "Puedes cambiar esto más tarde en los Ajustes del iPhone.",
+                       accentHex: "#3ECFFF"),
+                OBPage(tag: 1,
+                       headline: "Estructura\ntu día",
+                       sub: "Agrupa hábitos en listas. Enfócate en lo que importa, una lista a la vez.",
+                       accentHex: "#A78BFF"),
+                OBPage(tag: 2,
+                       headline: "Análisis con IA",
+                       sub: "Obtén un desglose de tu comportamiento. La IA encuentra lo que tú no ves.",
+                       accentHex: "#FF7EB3"),
+                OBPage(tag: 3,
+                       headline: "Salud de Apple",
+                       sub: "Sincroniza pasos y calorías. Mira tu progreso en tiempo real.",
+                       accentHex: "#4FD1C5")
+            ]
+        default:
+            return [
+                OBPage(tag: 0,
+                       headline: "Choose your\nlanguage",
+                       sub: "You can change this later in iPhone Settings.",
+                       accentHex: "#3ECFFF"),
+                OBPage(tag: 1,
+                       headline: "Structure\nyour day",
+                       sub: "Group habits into daily lists. Focus on what matters, one list at a time.",
+                       accentHex: "#A78BFF"),
+                OBPage(tag: 2,
+                       headline: "AI-Powered\nInsights",
+                       sub: "Get a sharp breakdown of your behavior. AI finds the patterns you miss.",
+                       accentHex: "#FF7EB3"),
+                OBPage(tag: 3,
+                       headline: "HealthKit\nIntegration",
+                       sub: "Sync your steps and calories automatically. See your progress in real-time.",
+                       accentHex: "#4FD1C5")
+            ]
+        }
+    }
 
     var body: some View {
         ZStack {
@@ -261,12 +377,13 @@ struct OnboardingShowcaseView: View {
 
     private var showcaseCard: some View {
         TabView(selection: $currentPage) {
+            LanguageSelectCard(isDark: isDark).tag(0)
             Page0Card(teal: teal, violet: violet, cardReady: cardReady,
-                      isActive: currentPage == 0, isDark: isDark).tag(0)
+                      isActive: currentPage == 1, isDark: isDark, l: l).tag(1)
             Page1Card(teal: teal, violet: violet, cardReady: cardReady,
-                      isActive: currentPage == 1, isDark: isDark).tag(1)
+                      isActive: currentPage == 2, isDark: isDark, l: l).tag(2)
             Page2Card(teal: teal, violet: violet, cardReady: cardReady,
-                      isActive: currentPage == 2, isDark: isDark).tag(2)
+                      isActive: currentPage == 3, isDark: isDark, l: l).tag(3)
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
         .frame(height: 300)
@@ -313,7 +430,8 @@ struct OnboardingShowcaseView: View {
 
             // Headline — gradient on keyword portion only
             Group {
-                let parts = pages[currentPage].headline.components(separatedBy: "\n")
+                let headline = pages[currentPage].headline
+                let parts = headline.components(separatedBy: "\n")
                 VStack(spacing: 2) {
                     Text(parts[0])
                         .foregroundColor(textPrimary)
@@ -353,7 +471,13 @@ struct OnboardingShowcaseView: View {
             healthKitDisclosure.padding(.bottom, 10)
 
             // AI disclaimer
-            Text("AI insights use habit titles only — processed securely, never sold.")
+            Text({
+                switch vm.appLanguage {
+                case .arabic: return "تستخدم رؤى الذكاء الاصطناعي عناوين العادات فقط - تتم معالجتها بأمان."
+                case .spanish: return "La IA solo usa títulos de hábitos — procesados de forma segura."
+                default: return "AI insights use habit titles only — processed securely, never sold."
+                }
+            }())
                 .font(.system(size: 10, weight: .regular))
                 .foregroundColor(textMuted)
                 .multilineTextAlignment(.center)
@@ -369,7 +493,7 @@ struct OnboardingShowcaseView: View {
 
     private var pageDots: some View {
         HStack(spacing: 6) {
-            ForEach(0..<3) { i in
+            ForEach(0..<4) { i in
                 Capsule()
                     .fill(i == currentPage
                           ? AnyShapeStyle(LinearGradient(colors: [teal, violet],
@@ -398,10 +522,22 @@ struct OnboardingShowcaseView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Uses Apple HealthKit")
+                    Text({
+                        switch vm.appLanguage {
+                        case .arabic: return "يستخدم Apple HealthKit"
+                        case .spanish: return "Usa Apple HealthKit"
+                        default: return "Uses Apple HealthKit"
+                        }
+                    }())
                         .font(.system(size: 12, weight: .bold, design: .rounded))
                         .foregroundColor(isDark ? Color.white.opacity(0.82) : Color(hex: "#1A1A2E").opacity(0.85))
-                    Text("Reads steps & active calories to track fitness habits")
+                    Text({
+                        switch vm.appLanguage {
+                        case .arabic: return "يقرأ الخطوات والسعرات لتتبع العادات اللياقة البدنية"
+                        case .spanish: return "Lee pasos y calorías para rastrear hábitos de fitness"
+                        default: return "Reads steps & active calories to track fitness habits"
+                        }
+                    }())
                         .font(.system(size: 10, weight: .regular, design: .rounded))
                         .foregroundColor(isDark ? Color.white.opacity(0.40) : Color(hex: "#1A1A2E").opacity(0.46))
                         .lineLimit(2)
@@ -437,7 +573,7 @@ struct OnboardingShowcaseView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.13) {
                 withAnimation(.spring(response: 0.28, dampingFraction: 0.58)) { buttonDown = false }
             }
-            if currentPage < 2 {
+            if currentPage < 3 {
                 withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
                     currentPage += 1
                     cardReady = false
@@ -450,10 +586,11 @@ struct OnboardingShowcaseView: View {
             }
         } label: {
             HStack(spacing: 8) {
-                Text(currentPage == 2 ? "Get Started" : "Continue")
+                Text(currentPage == 3 ? l("Get Started") : l("Continue"))
                     .font(.system(size: 15, weight: .bold, design: .rounded))
                     .animation(nil, value: currentPage)
                 Image(systemName: "arrow.right")
+                    .flipsForRightToLeftLayoutDirection(true)
                     .font(.system(size: 12, weight: .bold))
             }
             .foregroundColor(.white)
@@ -485,14 +622,60 @@ struct OnboardingShowcaseView: View {
         let accentHex: String
     }
 
+    // MARK: - Language Select Page
+
+    private struct LanguageSelectCard: View {
+        @EnvironmentObject var vm: AppViewModel
+        let isDark: Bool
+
+        var body: some View {
+            ZStack {
+                AdaptiveCardBase(top: Color(hex: "#3ECFFF"), bottom: Color(hex: "#7C6FFF"), isDark: isDark)
+
+                VStack(spacing: 12) {
+                    ForEach(AppLanguage.allCases, id: \.self) { lang in
+                        Button {
+                            let impact = UIImpactFeedbackGenerator(style: .light)
+                            impact.impactOccurred()
+                            vm.setLanguage(lang)
+                        } label: {
+                            HStack {
+                                Text(lang.name)
+                                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                                Spacer()
+                                if vm.appLanguage == lang {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(Color(hex: "#3ECFFF"))
+                                }
+                            }
+                            .padding()
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(isDark ? Color.white.opacity(0.05) : Color.black.opacity(0.05))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(vm.appLanguage == lang ? Color(hex: "#3ECFFF") : Color.clear, lineWidth: 2)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(24)
+            }
+        }
+    }
+
     // MARK: - Page 0: Habits
 
     private struct Page0Card: View {
+        @EnvironmentObject var vm: AppViewModel
         let teal: Color
         let violet: Color
         let cardReady: Bool
         let isActive: Bool
         let isDark: Bool
+        let l: (String) -> String
 
         @State private var innerTilt: CGFloat = 0
 
@@ -517,7 +700,7 @@ struct OnboardingShowcaseView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     HStack {
                         eyebrow(icon: "square.stack.3d.up.fill",
-                                label: "YOUR HABITS", color: teal)
+                                label: l("YOUR HABITS"), color: teal)
                         Spacer()
                         freePill
                     }
@@ -526,9 +709,9 @@ struct OnboardingShowcaseView: View {
                     heroRow.padding(.bottom, 10)
 
                     VStack(spacing: 6) {
-                        supportRow(emoji: "💪", name: "Fitness",     pct: 0.72, delay: 1)
-                        supportRow(emoji: "📚", name: "Learning",    pct: 0.40, delay: 2)
-                        supportRow(emoji: "🧘", name: "Mindfulness", pct: 0.60, delay: 3)
+                        supportRow(emoji: "💪", name: l("Fitness"),     pct: 0.72, delay: 1)
+                        supportRow(emoji: "📚", name: l("Learning"),    pct: 0.40, delay: 2)
+                        supportRow(emoji: "🧘", name: l("Mindfulness"), pct: 0.60, delay: 3)
                     }
                 }
                 .padding(18)
@@ -557,7 +740,7 @@ struct OnboardingShowcaseView: View {
             HStack(spacing: 4) {
                 Image(systemName: "checkmark.seal.fill")
                     .font(.system(size: 9)).foregroundColor(teal)
-                Text("Free forever")
+                Text(l("Free forever"))
                     .font(.system(size: 9, weight: .semibold, design: .rounded))
                     .foregroundColor(isDark ? Color.white.opacity(0.45) : Color(hex: "#0C0D20").opacity(0.48))
             }
@@ -577,7 +760,7 @@ struct OnboardingShowcaseView: View {
                 }
                 VStack(alignment: .leading, spacing: 5) {
                     HStack {
-                        Text("Morning Routine")
+                        Text(l("Morning Routine"))
                             .font(.system(size: 13, weight: .bold, design: .rounded))
                             .foregroundColor(isDark ? .white : Color(hex: "#0C0D20"))
                         Spacer()
@@ -601,7 +784,7 @@ struct OnboardingShowcaseView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 9)).foregroundColor(teal)
-                        Text("5 of 5 complete")
+                        Text("\(l("5 of 5")) \(l("complete"))")
                             .font(.system(size: 10, design: .rounded))
                             .foregroundColor(isDark ? Color.white.opacity(0.48) : Color(hex: "#0C0D20").opacity(0.46))
                     }
@@ -658,11 +841,13 @@ struct OnboardingShowcaseView: View {
     // MARK: - Page 1: Today & Streak
 
     private struct Page1Card: View {
+        @EnvironmentObject var vm: AppViewModel
         let teal: Color
         let violet: Color
         let cardReady: Bool
         let isActive: Bool
         let isDark: Bool
+        let l: (String) -> String
 
         private var eyebrowColor: Color { isDark ? Color(hex: "#7C6FFF").opacity(0.85) : Color(hex: "#5A4ECC").opacity(0.85) }
         private var divColor:     Color { isDark ? Color.white.opacity(0.05) : Color(hex: "#0C0D20").opacity(0.05) }
@@ -670,13 +855,15 @@ struct OnboardingShowcaseView: View {
         private var footerBg1:   Color { isDark ? Color.white.opacity(0.04) : Color(hex: "#5A4ECC").opacity(0.03) }
         private var footerBg2:   Color { isDark ? Color.white.opacity(0.02) : Color(hex: "#5A4ECC").opacity(0.015) }
 
-        private let tasks: [(String, Bool)] = [
-            ("Morning meditation", true),
-            ("Workout 30 min",     true),
-            ("Read 20 pages",      true),
-            ("Journal entry",      false),
-            ("Cold shower",        false)
-        ]
+        private var tasks: [(String, Bool)] {
+            [
+                (l("Morning meditation"), true),
+                (l("Workout 30 min"),     true),
+                (l("Read 20 pages"),      true),
+                (l("Journal entry"),      false),
+                (l("Cold shower"),        false)
+            ]
+        }
 
         var body: some View {
             ZStack(alignment: .topLeading) {
@@ -695,7 +882,7 @@ struct OnboardingShowcaseView: View {
                         HStack(spacing: 5) {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 9)).foregroundColor(violet)
-                            Text("TODAY")
+                            Text(l("TODAY"))
                                 .font(.system(size: 9, weight: .heavy, design: .rounded))
                                 .tracking(2.0).foregroundColor(eyebrowColor)
                         }
@@ -780,7 +967,7 @@ struct OnboardingShowcaseView: View {
                         Text("3/5")
                             .font(.system(size: 11, weight: .black, design: .rounded))
                             .foregroundColor(isDark ? .white : Color(hex: "#0C0D20"))
-                        Text("done")
+                        Text(l("done"))
                             .font(.system(size: 7, weight: .bold, design: .rounded))
                             .foregroundColor(teal)
                     }
@@ -805,7 +992,7 @@ struct OnboardingShowcaseView: View {
                             .font(.system(size: 34, weight: .black, design: .rounded))
                             .foregroundColor(isDark ? .white : Color(hex: "#0C0D20"))
                     }
-                    Text("day streak")
+                    Text(l("day streak"))
                         .font(.system(size: 10, weight: .medium, design: .rounded))
                         .foregroundColor(isDark ? Color.white.opacity(0.38) : Color(hex: "#0C0D20").opacity(0.42))
                 }
@@ -826,11 +1013,13 @@ struct OnboardingShowcaseView: View {
     // MARK: - Page 2: AI Insights
 
     private struct Page2Card: View {
+        @EnvironmentObject var vm: AppViewModel
         let teal: Color
         let violet: Color
         let cardReady: Bool
         let isActive: Bool
         let isDark: Bool
+        let l: (String) -> String
 
         private let insights: [(String, String, String)] = [
             ("Mornings beat evenings by 2×",     "sun.max.fill", "#FFD60A"),
@@ -863,21 +1052,21 @@ struct OnboardingShowcaseView: View {
                     HStack(spacing: 5) {
                         Image(systemName: "sparkles")
                             .font(.system(size: 9, weight: .bold)).foregroundColor(violet)
-                        Text("AI COACH INSIGHTS")
+                        Text(l("AI COACH INSIGHTS"))
                             .font(.system(size: 9, weight: .heavy, design: .rounded))
                             .tracking(2.0)
                             .foregroundColor(isDark ? violet.opacity(0.85) : Color(hex: "#5A4ECC").opacity(0.90))
                     }
                     featuredInsight
                     VStack(spacing: 4) {
-                        secondaryRow(text: insights[1].0, icon: insights[1].1,
-                                     color: Color(hex: insights[1].2), delay: 1)
-                        secondaryRow(text: insights[2].0, icon: insights[2].1,
-                                     color: Color(hex: insights[2].2), delay: 2)
+                    secondaryRow(text: l(insights[1].0), icon: insights[1].1,
+                                 color: Color(hex: insights[1].2), delay: 1)
+                    secondaryRow(text: l(insights[2].0), icon: insights[2].1,
+                                 color: Color(hex: insights[2].2), delay: 2)
                     }
                     HStack(spacing: 6) {
                         ForEach(Array(stats.enumerated()), id: \.offset) { idx, s in
-                            statPill(value: s.0, label: s.1, color: Color(hex: s.2), delay: idx)
+                            statPill(value: s.0, label: l(s.1), color: Color(hex: s.2), delay: idx)
                         }
                     }
                 }
@@ -906,10 +1095,10 @@ struct OnboardingShowcaseView: View {
                 .scaleEffect(cardReady ? 1 : 0.50)
                 .animation(.spring(response: 0.36, dampingFraction: 0.52).delay(0.10), value: cardReady)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Mornings beat evenings by 2×")
+                    Text(l("Mornings beat evenings by 2×"))
                         .font(.system(size: 12, weight: .bold, design: .rounded))
                         .foregroundColor(isDark ? Color.white.opacity(0.92) : Color(hex: "#0C0D20").opacity(0.90))
-                    Text("8am completion vs. 8pm — consistently")
+                    Text(l("8am completion vs. 8pm — consistently"))
                         .font(.system(size: 10, design: .rounded))
                         .foregroundColor(isDark ? Color.white.opacity(0.38) : Color(hex: "#0C0D20").opacity(0.42))
                 }
@@ -1018,10 +1207,12 @@ struct AdaptiveCardBase: View {
     OnboardingShowcaseView(onDismiss: {})
         .preferredColorScheme(.dark)
         .environmentObject(ThemeManager.shared)
+        .environmentObject(AppViewModel())
 }
 
 #Preview("Light") {
     OnboardingShowcaseView(onDismiss: {})
         .preferredColorScheme(.light)
         .environmentObject(ThemeManager.shared)
+        .environmentObject(AppViewModel())
 }

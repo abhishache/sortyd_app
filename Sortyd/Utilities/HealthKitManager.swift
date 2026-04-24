@@ -11,15 +11,65 @@ import Combine
 enum HealthTaskType: String, Codable {
     case steps
     case calories
+    case distance
     case none
 
     /// Keyword-based detection from task title
     static func detect(from title: String) -> HealthTaskType {
         let lower = title.lowercased()
-        let stepKeywords = ["step", "steps", "walk", "walking", "10k", "10,000", "10000"]
-        let calKeywords  = ["calorie", "calories", "kcal", "cal burned", "burn", "active energy"]
-        if stepKeywords.contains(where: { lower.contains($0) })  { return .steps }
-        if calKeywords.contains(where:  { lower.contains($0) })  { return .calories }
+
+        // 1. Exclusions (Higher priority — if these exist, it's NOT a health task)
+        let exclusions = [
+            "energy drink", "energy bill", "energy level", "energy bar",
+            "step by step", "next step", "step up", "step down",
+            "walk through", "walk in", "sidewalk", "cake walk",
+            "burn out", "burn down", "burnish", "sideburn",
+            "job", "career", "guitar", "instrument", "lesson", "piano", "study", "work" 
+        ]
+        if exclusions.contains(where: { lower.contains($0) }) { return .none }
+
+        // 2. High-confidence phrases (English, Arabic, Spanish)
+        let stepPhrases = [
+            "10k steps", "10,000 steps", "hit 10k", "pedometer", "daily steps", "steps today",
+            "١٠ آلاف خطوة", "خطوات اليوم", "10k pasos", "pasos diarios"
+        ]
+        let calPhrases  = [
+            "active energy", "cal burned", "calories burned", "fat burn", "weight loss", "calorie deficit",
+            "سعرات محروقة", "حرق دهون", "calorías quemadas", "déficit calórico"
+        ]
+        let distPhrases = [
+            "run 5km", "run 10km", "5km run", "10km run", "track distance", "jog 5k",
+            "جري ٥ كم", "مسافة اليوم", "correr 5km", "distancia diaria"
+        ]
+
+        if stepPhrases.contains(where: { lower.contains($0) }) { return .steps }
+        if calPhrases.contains(where: { lower.contains($0) }) { return .calories }
+        if distPhrases.contains(where: { lower.contains($0) }) { return .distance }
+
+        // 3. Base keywords (checked as whole words)
+        // English
+        let stepWordsEn: Set<String> = ["steps", "walk", "walking", "pedometer"]
+        let calWordsEn:  Set<String> = ["calorie", "calories", "kcal", "burn", "burned", "activity", "hike", "hiking", "cardio", "fitness", "workout", "gym", "exercise", "training", "sport"]
+        let distWordsEn: Set<String> = ["run", "running", "jog", "jogging", "km", "kms", "kilometer", "kilometers", "distance", "mile", "miles"]
+        
+        // Arabic
+        let stepWordsAr: Set<String> = ["خطوة", "خطوات", "مشي"]
+        let calWordsAr:  Set<String> = ["سعرة", "سعرات", "حرارية", "حرق", "نشاط", "تمارين", "تمرين", "رياضة", "لياقة", "جم", "تدريب", "كارديو", "جيم"]
+        let distWordsAr: Set<String> = ["جري", "ركض", "كم", "كيلومتر", "مسافة"]
+        
+        // Spanish
+        let stepWordsEs: Set<String> = ["pasos", "caminar", "andar"]
+        let calWordsEs:  Set<String> = ["caloría", "calorías", "caloria", "calorias", "quemar", "quemado", "activo", "entrenamiento", "ejercicio", "gimnasio", "deporte", "actividad", "fitness", "cardio", "gym"]
+        let distWordsEs: Set<String> = ["correr", "trote", "distancia", "km", "kms", "kilómetro", "kilómetros"]
+
+        // 3. Base keywords (checked as whole words)
+        let words = lower.components(separatedBy: CharacterSet.alphanumerics.inverted)
+            .filter { !$0.isEmpty }
+
+        if words.contains(where: { distWordsEn.contains($0) || distWordsAr.contains($0) || distWordsEs.contains($0) }) { return .distance }
+        if words.contains(where: { stepWordsEn.contains($0) || stepWordsAr.contains($0) || stepWordsEs.contains($0) }) { return .steps }
+        if words.contains(where: { calWordsEn.contains($0) || calWordsAr.contains($0) || calWordsEs.contains($0) })  { return .calories }
+
         return .none
     }
 
@@ -27,6 +77,7 @@ enum HealthTaskType: String, Codable {
         switch self {
         case .steps:    return HKQuantityType(.stepCount)
         case .calories: return HKQuantityType(.activeEnergyBurned)
+        case .distance: return HKQuantityType(.distanceWalkingRunning)
         case .none:     return nil
         }
     }
@@ -35,6 +86,7 @@ enum HealthTaskType: String, Codable {
         switch self {
         case .steps:    return .count()
         case .calories: return .kilocalorie()
+        case .distance: return .meterUnit(with: .kilo)
         case .none:     return .count()
         }
     }
@@ -43,14 +95,18 @@ enum HealthTaskType: String, Codable {
         switch self {
         case .steps:    return "figure.walk"
         case .calories: return "flame.fill"
+        case .distance: return "figure.run"
         case .none:     return "checkmark"
         }
     }
 
     var label: String {
+        let langCode = (UserDefaults(suiteName: "group.com.sortyd.sortyd") ?? .standard).string(forKey: "sortyd_app_language") ?? "en"
+        let locale = Locale(identifier: langCode)
         switch self {
-        case .steps:    return "Steps"
-        case .calories: return "Cal"
+        case .steps:    return String(localized: "Steps", locale: locale)
+        case .calories: return String(localized: "Cal", locale: locale)
+        case .distance: return String(localized: "Km", locale: locale)
         case .none:     return ""
         }
     }
@@ -59,14 +115,18 @@ enum HealthTaskType: String, Codable {
         switch self {
         case .steps:    return "#4FC3F7"
         case .calories: return "#FF7043"
-        case .none:     return "#C8A96E"
+        case .distance: return "#2E7D32" // Darker Green for Distance/Run
+        case .none:     return "#FFC107"
         }
     }
 
     var placeholder: String {
+        let langCode = (UserDefaults(suiteName: "group.com.sortyd.sortyd") ?? .standard).string(forKey: "sortyd_app_language") ?? "en"
+        let locale = Locale(identifier: langCode)
         switch self {
-        case .steps:    return "e.g. 10000"
-        case .calories: return "e.g. 500"
+        case .steps:    return String(localized: "e.g. 10000", locale: locale)
+        case .calories: return String(localized: "e.g. 500", locale: locale)
+        case .distance: return String(localized: "e.g. 5", locale: locale)
         case .none:     return ""
         }
     }
@@ -82,6 +142,7 @@ final class HealthKitManager: ObservableObject {
     @Published private(set) var isAuthorized: Bool = false
     @Published private(set) var todaySteps: Double    = 0
     @Published private(set) var todayCalories: Double = 0
+    @Published private(set) var todayDistance: Double = 0
 
     private let store = HKHealthStore()
     private var refreshTask: Task<Void, Never>?
@@ -89,7 +150,7 @@ final class HealthKitManager: ObservableObject {
     private var anchoredQueries: [HKAnchoredObjectQuery] = []
 
     // AppViewModel sets this closure to auto-tick health tasks when target is hit
-    var onHealthUpdate: ((_ steps: Double, _ calories: Double) -> Void)?
+    var onHealthUpdate: ((_ steps: Double, _ calories: Double, _ distance: Double) -> Void)?
 
     // Persists whether the user has ever granted HealthKit read access.
     // iOS never returns .sharingAuthorized for read-only apps (intentional privacy
@@ -117,7 +178,8 @@ final class HealthKitManager: ObservableObject {
         guard HKHealthStore.isHealthDataAvailable() else { return false }
         let readTypes: Set<HKObjectType> = [
             HKQuantityType(.stepCount),
-            HKQuantityType(.activeEnergyBurned)
+            HKQuantityType(.activeEnergyBurned),
+            HKQuantityType(.distanceWalkingRunning)
         ]
         do {
             try await store.requestAuthorization(toShare: [], read: readTypes)
@@ -138,11 +200,13 @@ final class HealthKitManager: ObservableObject {
         refreshTask = Task {
             async let steps    = fetchSum(type: HKQuantityType(.stepCount), unit: .count())
             async let calories = fetchSum(type: HKQuantityType(.activeEnergyBurned), unit: .kilocalorie())
-            let (s, c) = await (steps, calories)
+            async let distance = fetchSum(type: HKQuantityType(.distanceWalkingRunning), unit: .meterUnit(with: .kilo))
+            let (s, c, d) = await (steps, calories, distance)
             guard !Task.isCancelled else { return }
             todaySteps    = s
             todayCalories = c
-            onHealthUpdate?(s, c)
+            todayDistance = d
+            onHealthUpdate?(s, c, d)
         }
     }
 
@@ -154,8 +218,9 @@ final class HealthKitManager: ObservableObject {
         stopLiveUpdates()
 
         let types: [(HKQuantityType, HKUnit)] = [
-            (HKQuantityType(.stepCount),          .count()),
-            (HKQuantityType(.activeEnergyBurned), .kilocalorie())
+            (HKQuantityType(.stepCount),              .count()),
+            (HKQuantityType(.activeEnergyBurned),     .kilocalorie()),
+            (HKQuantityType(.distanceWalkingRunning), .meterUnit(with: .kilo))
         ]
 
         for (quantityType, _) in types {
@@ -232,6 +297,7 @@ final class HealthKitManager: ObservableObject {
         switch type {
         case .steps:    return min(todaySteps    / target, 1.0)
         case .calories: return min(todayCalories / target, 1.0)
+        case .distance: return min(todayDistance / target, 1.0)
         case .none:     return 0
         }
     }
@@ -240,6 +306,7 @@ final class HealthKitManager: ObservableObject {
         switch type {
         case .steps:    return todaySteps
         case .calories: return todayCalories
+        case .distance: return todayDistance
         case .none:     return 0
         }
     }

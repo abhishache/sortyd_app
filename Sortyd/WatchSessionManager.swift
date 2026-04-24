@@ -40,6 +40,17 @@ final class WatchSessionManager: NSObject, ObservableObject {
         }
     }
 
+    func pushLanguageToWatch(_ langCode: String) {
+        guard WCSession.default.isPaired,
+              WCSession.default.isWatchAppInstalled else { return }
+
+        try? WCSession.default.updateApplicationContext(["appLanguage": langCode])
+
+        if WCSession.default.isReachable {
+            WCSession.default.sendMessage(["appLanguage": langCode], replyHandler: nil, errorHandler: nil)
+        }
+    }
+
     private func currentAppData() -> AppData {
         guard
             let raw     = defaults.data(forKey: dataKey),
@@ -74,11 +85,12 @@ extension WatchSessionManager: WCSessionDelegate {
         if message["request"] as? String == "appData" {
             Task { @MainActor in
                 let data = self.currentAppData()
+                let lang = UserDefaults.standard.string(forKey: "sortyd_app_language") ?? "en"
+                var reply: [String: Any] = ["appLanguage": lang]
                 if let encoded = try? JSONEncoder().encode(data) {
-                    replyHandler(["appData": encoded])
-                } else {
-                    replyHandler([:])
+                    reply["appData"] = encoded
                 }
+                replyHandler(reply)
             }
         }
     }
@@ -86,22 +98,24 @@ extension WatchSessionManager: WCSessionDelegate {
     // Watch toggled a task while phone was foregrounded
     nonisolated func session(_ session: WCSession,
                              didReceiveMessage message: [String: Any]) {
-        guard let raw = message["appData"] as? Data,
-              let decoded = try? JSONDecoder().decode(AppData.self, from: raw) else { return }
+        guard let raw = message["appData"] as? Data else { return }
         Task { @MainActor in
-            self.save(decoded)
-            NotificationCenter.default.post(name: .watchDidUpdateAppData, object: nil)
+            if let decoded = try? JSONDecoder().decode(AppData.self, from: raw) {
+                self.save(decoded)
+                NotificationCenter.default.post(name: .watchDidUpdateAppData, object: nil)
+            }
         }
     }
 
     // Watch toggled a task while phone was backgrounded — arrives via application context
     nonisolated func session(_ session: WCSession,
                              didReceiveApplicationContext context: [String: Any]) {
-        guard let raw = context["appData"] as? Data,
-              let decoded = try? JSONDecoder().decode(AppData.self, from: raw) else { return }
+        guard let raw = context["appData"] as? Data else { return }
         Task { @MainActor in
-            self.save(decoded)
-            NotificationCenter.default.post(name: .watchDidUpdateAppData, object: nil)
+            if let decoded = try? JSONDecoder().decode(AppData.self, from: raw) {
+                self.save(decoded)
+                NotificationCenter.default.post(name: .watchDidUpdateAppData, object: nil)
+            }
         }
     }
 }

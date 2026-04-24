@@ -30,6 +30,45 @@ final class AppViewModel: ObservableObject {
     @Published private(set) var snapshots: [DailySnapshot] = []
     @Published private(set) var cachedBestStreak: Int = 0
     @Published var selectedTab: Int = 0
+    private let sharedDefaults = UserDefaults(suiteName: "group.com.sortyd.sortyd") ?? UserDefaults.standard
+
+    @Published var appLanguage: AppLanguage = .english {
+        didSet {
+            sharedDefaults.set(appLanguage.rawValue, forKey: "sortyd_app_language")
+            UserDefaults.standard.set(appLanguage.rawValue, forKey: "sortyd_app_language") // fallback
+            // Also set AppleLanguages for system-wide effect on next launch
+            UserDefaults.standard.set([appLanguage.rawValue], forKey: "AppleLanguages")
+            UserDefaults.standard.synchronize()
+            sharedDefaults.synchronize()
+            
+            WatchSessionManager.shared.pushLanguageToWatch(appLanguage.rawValue)
+            // Re-trigger computed best streak if language impacts anything
+            cachedBestStreak = computeBestStreak()
+        }
+    }
+
+    func setLanguage(_ lang: AppLanguage) {
+        appLanguage = lang
+    }
+
+    /// Helper for resolving localized strings manually using the app's selected language.
+    /// Used for TextFields, AI Prompts, and arrays where LocalizedStringKey isn't sufficient.
+    func localized(_ key: String) -> String {
+        return String(localized: String.LocalizationValue(key), locale: appLanguage.locale)
+    }
+    
+    var calendar: Calendar {
+        var cal = Calendar.current
+        cal.locale = appLanguage.locale
+        return cal
+    }
+    
+    func dateFormatter(format: String) -> DateFormatter {
+        let df = DateFormatter()
+        df.dateFormat = format
+        df.locale = appLanguage.locale
+        return df
+    }
 
     // Internal source of truth — never directly observed by views.
     private var appData: AppData {
@@ -58,11 +97,13 @@ final class AppViewModel: ObservableObject {
         self.appData = data
         syncPublished()
 
-        // FIX: resetTasksIfNewDay is NOT called here anymore.
-        // It was also called in SortydApp via .onChange(of: scenePhase) { .active },
-        // which fires immediately on cold launch — causing a double-call on the
-        // same RunLoop tick. On cold launch the scenePhase handler is sufficient.
-        // resetTasksIfNewDay is still called from scenePhase in SortydApp.swift.
+        // Load language
+        let defaults = UserDefaults(suiteName: "group.com.sortyd.sortyd") ?? UserDefaults.standard
+        if let langRaw = defaults.string(forKey: "sortyd_app_language") ?? UserDefaults.standard.string(forKey: "sortyd_app_language"),
+           let lang = AppLanguage(rawValue: langRaw) {
+            self.appLanguage = lang
+        }
+
         snapshotTodayIfNeeded()
         cachedBestStreak = computeBestStreak()
     }
@@ -99,11 +140,8 @@ final class AppViewModel: ObservableObject {
 
     // MARK: - Auto tick HealthKit
     func setupHealthAutoComplete() {
-        HealthKitManager.shared.onHealthUpdate = { [weak self] steps, calories in
+        HealthKitManager.shared.onHealthUpdate = { [weak self] steps, calories, distance in
             guard let self else { return }
-            #if DEBUG
-            print("🏃 Health update fired — steps: \(steps), cal: \(calories)") // add this
-            #endif
             for listIdx in self.appData.lists.indices {
                 for taskIdx in self.appData.lists[listIdx].tasks.indices {
                         let task = self.appData.lists[listIdx].tasks[taskIdx]
@@ -119,6 +157,7 @@ final class AppViewModel: ObservableObject {
                         switch ht {
                         case .steps:    current = steps
                         case .calories: current = calories
+                        case .distance: current = distance
                         case .none:     continue
                         }
      
@@ -140,11 +179,9 @@ final class AppViewModel: ObservableObject {
     // MARK: - List Management
 
     func addList(name: String, emoji: String) {
-        // FIX: Batch both mutations into a single appData write.
-        // Previously, append + activeListID= triggered didSet (and syncPublished)
-        // twice per call, causing 2 full re-render passes.
         var updated = appData
-        let list = TaskList(id: UUID(), name: name, emoji: emoji, tasks: [])
+        let cleanName = name.removingLeadingEmojis()
+        let list = TaskList(id: UUID(), name: cleanName, emoji: emoji, tasks: [])
         updated.lists.append(list)
         if updated.activeListID == nil {
             updated.activeListID = list.id
@@ -159,7 +196,8 @@ final class AppViewModel: ObservableObject {
     /// taskData: array of (title, optional reminderTime) tuples.
     func addListWithTasks(name: String, emoji: String, taskData: [(title: String, reminder: Date?, isOneTime: Bool)]) {
         var updated = appData
-        let capitalizedName = name.prefix(1).uppercased() + name.dropFirst()
+        let cleanName = name.removingLeadingEmojis()
+        let capitalizedName = cleanName.prefix(1).uppercased() + cleanName.dropFirst()
         var list = TaskList(id: UUID(), name: capitalizedName, emoji: emoji, tasks: [])
         for (title, reminder, isOneTime) in taskData {
             let capitalized = title.prefix(1).uppercased() + title.dropFirst()
@@ -273,6 +311,23 @@ final class AppViewModel: ObservableObject {
         PersistenceManager.shared.saveImmediately(appData)
     }
 
+    func renameList(_ list: TaskList, name: String, emoji: String) {
+        guard let idx = appData.lists.firstIndex(where: { $0.id == list.id }) else { return }
+        let trimmed = name.removingLeadingEmojis()
+        guard !trimmed.isEmpty else { return }
+        appData.lists[idx].name  = trimmed
+        appData.lists[idx].emoji = emoji
+        PersistenceManager.shared.saveImmediately(appData)
+    }
+
+    func updateHealthTarget(_ task: SortydTask, in listID: UUID, target: Double?) {
+        guard let listIdx = appData.lists.firstIndex(where: { $0.id == listID }),
+              let taskIdx = appData.lists[listIdx].tasks.firstIndex(where: { $0.id == task.id })
+        else { return }
+        appData.lists[listIdx].tasks[taskIdx].healthTarget = target
+        PersistenceManager.shared.saveImmediately(appData, reloadWidget: false)
+    }
+
     func moveList(from source: IndexSet, to destination: Int) {
         // Batch mutations, skip full syncPublished.
         // During drag this fires every frame — only publish lists + activeListID.
@@ -303,7 +358,36 @@ final class AppViewModel: ObservableObject {
         PersistenceManager.shared.saveImmediately(appData)
     }
 
+    func handleURL(_ url: URL) {
+        guard url.scheme == "sortyd" else { return }
+        
+        // Handle sortyd://list/<UUID>
+        if url.host == "list", let listID = UUID(uuidString: url.lastPathComponent) {
+            if let list = lists.first(where: { $0.id == listID }) {
+                setActiveList(list)
+                selectedTab = 0 // Switch to Today tab
+                Analytics.logEvent("widget_list_opened", parameters: ["list_name": list.name])
+            }
+        }
+    }
+
     // MARK: - Task Management
+
+    /// Returns the HealthTaskType that already exists in the list if adding
+    /// another task of `healthType` would create a duplicate, otherwise nil.
+    /// Used by AddTaskSheet / SmartAddTaskSheet to block & surface the conflict
+    /// before calling addTask.
+    func duplicateHealthType(_ healthType: String?, in listID: UUID) -> HealthTaskType? {
+        guard let htStr = healthType,
+              let ht = HealthTaskType(rawValue: htStr),
+              ht != .none,
+              let idx = appData.lists.firstIndex(where: { $0.id == listID })
+        else { return nil }
+        let alreadyExists = appData.lists[idx].tasks.contains { task in
+            task.healthType == htStr
+        }
+        return alreadyExists ? ht : nil
+    }
 
     func addTask(to listID: UUID, title: String, reminderTime: Date? = nil,
                  reminderIsOneTime: Bool = false,
@@ -340,23 +424,53 @@ final class AppViewModel: ObservableObject {
         PersistenceManager.shared.saveImmediately(appData)
     }
 
-    func deleteTask(_ task: SortydTask, from listID: UUID) {
+    func deleteTask(_ task: SortydTask, from listID: UUID, undoManager: UndoManager? = nil) {
         guard let listIdx = appData.lists.firstIndex(where: { $0.id == listID }),
               let taskIdx = appData.lists[listIdx].tasks.firstIndex(where: { $0.id == task.id })
         else { return }
+        let snapshot = task
         Analytics.logEvent("task_deleted", parameters: nil)
         NotificationManager.shared.cancelReminder(for: task.id)
         appData.lists[listIdx].tasks.remove(at: taskIdx)
         appData.lists[listIdx].recalculateWeights()
         updateTodaySnapshot()
         PersistenceManager.shared.saveImmediately(appData)
+        undoManager?.registerUndo(withTarget: self) { vm in
+            vm.insertTask(snapshot, at: taskIdx, in: listID, undoManager: undoManager)
+        }
+        undoManager?.setActionName("Delete Task")
     }
 
-    func moveTasks(in listID: UUID, from source: IndexSet, to destination: Int) {
+    func insertTask(_ task: SortydTask, at index: Int, in listID: UUID, undoManager: UndoManager? = nil) {
+        guard let listIdx = appData.lists.firstIndex(where: { $0.id == listID }) else { return }
+        let safeIndex = min(index, appData.lists[listIdx].tasks.count)
+        appData.lists[listIdx].tasks.insert(task, at: safeIndex)
+        if task.reminderTime != nil {
+            let list = appData.lists[listIdx]
+            Task { await NotificationManager.shared.scheduleReminder(for: task, in: list) }
+        }
+        PersistenceManager.shared.saveImmediately(appData)
+        undoManager?.registerUndo(withTarget: self) { vm in
+            vm.deleteTask(task, from: listID, undoManager: undoManager)
+        }
+        undoManager?.setActionName("Add Task")
+    }
+
+    func moveTasks(in listID: UUID, from source: IndexSet, to destination: Int, undoManager: UndoManager? = nil) {
         guard let idx = appData.lists.firstIndex(where: { $0.id == listID }) else { return }
+        let tasksBefore = appData.lists[idx].tasks
         appData.lists[idx].tasks.move(fromOffsets: source, toOffset: destination)
         // Debounced save — task drag fires on every frame, not just on drop.
         PersistenceManager.shared.save(appData)
+        undoManager?.registerUndo(withTarget: self) { vm in
+            guard let undoIdx = vm.appData.lists.firstIndex(where: { $0.id == listID }) else { return }
+            vm.appData.lists[undoIdx].tasks = tasksBefore
+            PersistenceManager.shared.save(vm.appData)
+            undoManager?.registerUndo(withTarget: vm) { vm2 in
+                vm2.moveTasks(in: listID, from: source, to: destination, undoManager: undoManager)
+            }
+        }
+        undoManager?.setActionName("Move Task")
     }
 
     func updateTaskTitle(_ task: SortydTask, in listID: UUID, newTitle: String) {
@@ -547,32 +661,46 @@ final class AppViewModel: ObservableObject {
     }
 
     /// Cached regex — compiled once at class load; avoids try! and repeated compilation.
-    private static let _numericRegex: NSRegularExpression? = try? NSRegularExpression(pattern: "\\b(\\d+)\\b")
+    /// Matches both Western Arabic (0-9) and Eastern Arabic (٠-٩) numerals.
+    private static let _numericRegex: NSRegularExpression? = try? NSRegularExpression(pattern: "\\b([0-9٠-٩]+)\\b")
 
     /// Extract a numeric target from a task title (e.g. "Walk 10,000 steps" → 10000).
     /// Falls back to sensible defaults if no number is found.
     static func extractNumericTarget(from title: String, type: HealthTaskType) -> Double {
-        let cleaned = title.replacingOccurrences(of: ",", with: "")
+        // Clean common thousands separators (comma for EN, dot for ES)
+        var cleaned = title.replacingOccurrences(of: ",", with: "")
+        cleaned = cleaned.replacingOccurrences(of: ".", with: "")
+        
+        // Convert Eastern Arabic numerals to Western Arabic for parsing
+        let easternToWestern: [Character: Character] = [
+            "٠": "0", "١": "1", "٢": "2", "٣": "3", "٤": "4",
+            "٥": "5", "٦": "6", "٧": "7", "٨": "8", "٩": "9"
+        ]
+        let mapped = String(cleaned.map { easternToWestern[$0] ?? $0 })
+
         guard let pattern = _numericRegex else {
             switch type {
             case .steps:    return 10000
             case .calories: return 500
+            case .distance: return 5
             case .none:     return 0
             }
         }
-        let matches = pattern.matches(in: cleaned, range: NSRange(cleaned.startIndex..., in: cleaned))
-        // Pick the largest number found — "Walk 10000 steps in 60 minutes" → 10000
+        let matches = pattern.matches(in: mapped, range: NSRange(mapped.startIndex..., in: mapped))
+        // Pick the largest number found
         let numbers = matches.compactMap { match -> Double? in
-            guard let range = Range(match.range(at: 1), in: cleaned) else { return nil }
-            return Double(cleaned[range])
+            guard let range = Range(match.range(at: 1), in: mapped) else { return nil }
+            return Double(mapped[range])
         }
-        if let best = numbers.max(), best >= 50 {
-            return best
+        if let best = numbers.max() {
+            if type == .distance && best > 0 { return best }
+            if best >= 50 { return best }
         }
         // Sensible defaults
         switch type {
         case .steps:    return 10000
         case .calories: return 500
+        case .distance: return 5
         case .none:     return 0
         }
     }
@@ -590,5 +718,3 @@ final class AppViewModel: ObservableObject {
         PersistenceManager.shared.saveImmediately(appData)
     }
 }
-
-

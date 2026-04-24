@@ -1,8 +1,5 @@
 // MARK: - WidgetColors.swift
-// SortydWidgetExtension — Design tokens mirrored from Theme.swift
-// Widgets always render in dark mode using the deep space palette.
-// Palette: #0C0D16 / #13141F backgrounds · #3ECFFF violet · #7C6FFF cyan
-// (Widgets can't import the main app target, so we duplicate the raw values here.)
+// SortydWidgetExtension — Unified Theme Colors (matching app theme)
 
 import SwiftUI
 
@@ -24,58 +21,72 @@ extension Color {
 }
 
 enum WTheme {
-    // ── Backgrounds — Deep space (mirrors Theme.swift dark mode) ─────────────
-//    static let bg0   = Color(widgetHex: "#0C0D16")   // true dark canvas
-//    static let bg1   = Color(widgetHex: "#13141F")   // card surface
-//    static let bg2   = Color(widgetHex: "#1A1B2E")   // input / secondary surface
-//    static let bg3   = Color(widgetHex: "#21223A")   // subtle fill / track ring
-    static let bg0   = Color(widgetHex: "#111114")   // true dark — neutral near-black
-    static let bg1   = Color(widgetHex: "#1A1A1F")   // card surface — cool grey
-    static let bg2   = Color(widgetHex: "#222228")   // input / secondary surface
-    static let bg3   = Color(widgetHex: "#2A2A32")   // subtle fill / track ring
+    // ── Backgrounds (Matching actual app theme) ───────────────────────────────
+    static let bg0   = Color(widgetHex: "#141414")   // true dark 
+    static let bg1   = Color(widgetHex: "#1E1E1E")   // card surface
+    static let bg2   = Color(widgetHex: "#282828")   // input / secondary surface
+    static let bg3   = Color(widgetHex: "#333333")   // track ring
+    
+    // ── Text ──────────────────────────────────────────────────────────────────
+    static let text0 = Color(widgetHex: "#FFFFFF")   // pristine white
+    static let text1 = Color(widgetHex: "#A0A0A0")   // secondary
+    static let text2 = Color(widgetHex: "#707070")   // muted
 
-    // ── Primary Accent — Violet #3ECFFF (mirrors Theme.accent dark mode) ─────
-    static let amber = Color(widgetHex: "#3ECFFF")   // primary accent (violet)
+    // ── Theme Accents ─────────────────────────────────────────────────────────
+    static let primary   = Color(widgetHex: "#3ECFFF") // Violet/Magenta accent
+    static let secondary = Color(widgetHex: "#7C6FFF") // Cyan/Blue accent
+    
+    // Subdued variations
+    static let primaryDim   = primary.opacity(0.6)
+    static let secondaryDim = secondary.opacity(0.6)
+    
+    static let glassBorder = Color.white.opacity(0.12)
+    
+    // ── Health/Stat Colors ───────────────────────────────────────────────────
+    static let orange  = Color(widgetHex: "#FF7043") // Calories
+    static let yellow  = Color(widgetHex: "#FFCC00") // Streak
+    static let skyBlue = Color(widgetHex: "#4FC3F7") // Steps
+    
+    
+    // Dynamic status color fading from subdued to full bright primary
+    static func statusColor(fraction: Double) -> Color {
+        switch fraction {
+        case 0:        return bg3
+        case ..<0.40:  return secondaryDim
+        case ..<0.80:  return primaryDim
+        case ..<1.0:   return secondary
+        default:       return primary
+        }
+    }
 
-    // ── Secondary Accent — Cyan #7C6FFF ──────────────────────────────────────
-    static let coral = Color(widgetHex: "#7C6FFF")   // secondary / gradient partner
-    static let mint  = Color(widgetHex: "#7C6FFF").opacity(0.65)  // tertiary / dimmed
-
-    // ── Text ─────────────────────────────────────────────────────────────────
-    static let text0 = Color(widgetHex: "#EEEEFF")   // primary — cool violet-white
-    static let text1 = Color(widgetHex: "#7878AA")   // secondary
-    static let text2 = Color(widgetHex: "#3A3A60")   // muted
-
-    // ── Borders — dim violet glow edge ────────────────────────────────────────
-    static let border = Color(widgetHex: "#3ECFFF").opacity(0.12)
-
-    // ── Donut arc gradient — violet → cyan ────────────────────────────────────
+    // ── Solid Base (Replaces Mesh) ────────────────────────────────────────────
+    static let meshGradient = SolidColorGradient(color: bg0)
+    
     static let arcGradient = AngularGradient(
-        colors: [
-            Color(widgetHex: "#7C6FFF"),   // cyan at start
-            Color(widgetHex: "#3ECFFF")    // violet at end
-        ],
+        colors: [secondary, primary],
         center: .center,
         startAngle: .degrees(-90),
         endAngle: .degrees(270)
     )
 
-    // ── Progress bar linear gradient — cyan → violet ──────────────────────────
     static let barGradient = LinearGradient(
-        colors: [Color(widgetHex: "#7C6FFF"), Color(widgetHex: "#3ECFFF")],
+        colors: [secondary, primary],
         startPoint: .leading,
         endPoint: .trailing
     )
+    
+    static func bubbleHeat(_ fraction: Double) -> Color {
+        if fraction == 0 { return bg2 }
+        if fraction < 0.4 { return secondaryDim }
+        if fraction < 0.8 { return primaryDim }
+        return primary
+    }
+}
 
-    // ── Heatmap — space base → violet → cyan intensity ramp ──────────────────
-    static func heat(_ fraction: Double) -> Color {
-        switch fraction {
-        case 0:        return Color(widgetHex: "#13141F")
-        case ..<0.20:  return Color(widgetHex: "#3ECFFF").opacity(0.20)
-        case ..<0.40:  return Color(widgetHex: "#3ECFFF").opacity(0.40)
-        case ..<0.60:  return Color(widgetHex: "#5A7FFF").opacity(0.65)
-        case ..<0.80:  return Color(widgetHex: "#7C6FFF").opacity(0.80)
-        default:       return Color(widgetHex: "#7C6FFF")
-        }
+// A simple structure to act as a solid background mimicking the gradient type where needed.
+struct SolidColorGradient: View {
+    var color: Color
+    var body: some View {
+        color.ignoresSafeArea()
     }
 }

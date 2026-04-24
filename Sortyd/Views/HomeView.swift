@@ -10,7 +10,6 @@ struct HomeView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var hk = HealthKitManager.shared
     @State private var showSwitcher = false
-    @State private var currentTime: String = HomeView.timeString()
 
     private var list: TaskList? { vm.activeList }
 
@@ -31,8 +30,9 @@ struct HomeView: View {
                     VStack(spacing: 0) {
                         headerSection
                             .padding(.horizontal, Theme.s16)
-                            .padding(.top, 14)
-                            .padding(.bottom, 20)
+                            .padding(.top, 1)
+                            .padding(.bottom, 0)
+
 
                         heroSection
                             .padding(.horizontal, Theme.s16)
@@ -53,9 +53,6 @@ struct HomeView: View {
             .sheet(isPresented: $showSwitcher) {
                 ListSwitcherSheet().environmentObject(vm)
             }
-            .onReceive(Timer.publish(every: 60, on: .main, in: .common).autoconnect()) { _ in
-                currentTime = HomeView.timeString()
-            }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
                 hk.fetchToday()
             }
@@ -70,40 +67,66 @@ struct HomeView: View {
     // MARK: - Header
 
     private var headerSection: some View {
-        HStack(alignment: .center) {
-            Text(currentTime)
-                .font(.system(size: 13, weight: .medium, design: .monospaced))
-                .foregroundColor(Theme.text2)
+        HStack(alignment: .center, spacing: 0) {
+            // Scrollable Lists
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        let activeLists = vm.lists.filter { !$0.isArchived }
+                        ForEach(activeLists) { l in
+                            let hv = hk.healthValues(for: l.tasks)
+                            let fraction = l.completionFraction(healthValues: hv)
+                            
+                            OrbitalDonutPill(
+                                list: l,
+                                isActive: vm.activeListID == l.id,
+                                fraction: fraction,
+                                onTap: {
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
+                                        vm.setActiveList(l)
+                                    }
+                                }
+                            )
+                            .id(l.id)
+                        }
+                    }
+                    .padding(.leading, 16)
+                    .padding(.trailing, 8)
+                    .padding(.vertical, 24) // Extra room for glow & shadow falloff
+                }
+                .onChange(of: vm.activeListID) { _, newID in
+                    if let id = newID {
+                        withAnimation(.spring(response: 0.45, dampingFraction: 0.8)) {
+                            proxy.scrollTo(id, anchor: .leading)
+                        }
+                    }
+                }
+            }
+            .mask(
+                LinearGradient(
+                    stops: [
+                        .init(color: .clear, location: 0),
+                        .init(color: .black, location: 0.08),
+                        .init(color: .black, location: 0.92),
+                        .init(color: .clear, location: 1)
+                    ],
+                    startPoint: .init(x: 0, y: 0.5),
+                    endPoint: .init(x: 1, y: 0.5)
+                )
+            )
 
-            Spacer()
-
+            // Theme Toggle (Right)
             ThemeToggleButton()
                 .environmentObject(themeManager)
-
-            Button(action: { showSwitcher = true }) {
-                HStack(spacing: 6) {
-                    Text(list?.emoji ?? "📋").font(.system(size: 13))
-                    Text(list?.name ?? "No list")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(Theme.text0)
-                        .lineLimit(1)
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(Theme.text1)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule(style: .continuous)
-                        .fill(Theme.bg2)
-                        .overlay(Capsule(style: .continuous).strokeBorder(Theme.border, lineWidth: 0.5))
-                )
-            }
-            .buttonStyle(.plain)
-            .padding(.leading, 8)
-            .accessibilityLabel("Switch list, currently \(list?.name ?? "no list")")
-                        .accessibilityHint("Double tap to choose a different list")
+                .frame(width: 58, alignment: .trailing)
+                .padding(.trailing, 6)
         }
+        .background(
+            Capsule()
+                .fill(Theme.bg1.opacity(0.3))
+                .blur(radius: 20)
+                .offset(y: 10)
+        )
     }
 
     // MARK: - Hero (uses live health-aware %)
@@ -111,28 +134,24 @@ struct HomeView: View {
     private var heroSection: some View {
         HStack(alignment: .bottom, spacing: 0) {
             VStack(alignment: .leading, spacing: 0) {
-                Text(list?.name.uppercased() ?? "NO LIST")
-                    .font(.system(size: 12, weight: .bold))
+                Text(list?.cleanName.uppercased() ?? vm.localized("NO LIST"))
+                    .font(Theme.font(size: 12, weight: .bold))
                     .kerning(1.8)
                     .foregroundColor(Theme.accent)
                     .padding(.bottom, 4)
 
                 HStack(alignment: .firstTextBaseline, spacing: 0) {
-                    Text("\(liveCompletionPct)")
-                        .font(.system(size: 86, weight: .black, design: .rounded))
+                    Text("\(liveCompletionPct)%")
+                        .font(Theme.font(size: 86, weight: .black, design: .rounded))
                         .foregroundColor(Theme.accent)
                         .lineLimit(1)
                         .minimumScaleFactor(0.4)
-                    Text("%")
-                        .font(.system(size: 38, weight: .black, design: .rounded))
-                        .foregroundColor(Theme.accent.opacity(0.75))
-                        .offset(y: -10)
                 }
                 .accessibilityElement(children: .combine)
-                .accessibilityLabel("\(liveCompletionPct) percent complete today")  // ← add here
+                .accessibilityLabel(String(localized: "\(liveCompletionPct) percent complete today"))
 
-                Text("Done Today")
-                    .font(.system(size: 14, weight: .medium))
+                Text(vm.localized("Done Today"))
+                    .font(Theme.font(size: 14, weight: .medium))
                     .foregroundColor(Theme.text2)
                     .padding(.top, 2)
             }
@@ -140,19 +159,24 @@ struct HomeView: View {
             Spacer()
 
             VStack(alignment: .trailing, spacing: 0) {
-                Text("🔥").font(.system(size: 32)).padding(.bottom, 2)
-                Text("\(vm.cachedBestStreak)")
-                    .font(.system(size: 50, weight: .black, design: .rounded))
-                    .foregroundColor(Theme.text0)
-                    .lineLimit(1)
-                Text("Day Streak")
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text("🔥")
+                        .font(.system(size: 24))
+                    
+                    Text("\(vm.cachedBestStreak)")
+                        .font(.system(size: 50, weight: .black, design: .rounded))
+                        .foregroundColor(Theme.text0)
+                        .lineLimit(1)
+                }
+                
+                    Text(vm.localized("Day Streak"))
                     .font(.system(size: 9, weight: .bold))
                     .kerning(1.4)
                     .foregroundColor(Theme.text2)
             }
             .padding(.bottom, 4)
             .accessibilityElement(children: .combine)
-            .accessibilityLabel("\(vm.cachedBestStreak) day streak")
+            .accessibilityLabel(String(localized: "\(vm.cachedBestStreak) day streak"))
         }
     }
 
@@ -169,7 +193,7 @@ struct HomeView: View {
             }
         }
         .padding(.horizontal, 14)
-        .padding(.top, 12)
+        .padding(.top, 20)
         .padding(.bottom, 19)
         .background(
             RoundedRectangle(cornerRadius: Theme.r20, style: .continuous)
@@ -188,16 +212,16 @@ struct HomeView: View {
     private var taskSection: some View {
         VStack(spacing: 10) {
             HStack {
-                Text("TASKS")
-                    .font(.system(size: 11, weight: .bold))
+                Text(vm.localized("TASKS"))
+                    .font(Theme.font(size: 11, weight: .bold))
                     .kerning(1.6)
                     .foregroundColor(Theme.text2)
                 Spacer()
                 if let list = list {
                     let done = list.tasks.filter(\.isCompleted).count
                     let left = list.tasks.count - done
-                    Text("\(done) done · \(left) left")
-                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    Text("\(done) \(String(localized: "done", locale: vm.appLanguage.locale)) · \(left) \(String(localized: "left", locale: vm.appLanguage.locale))")
+                        .font(Theme.font(size: 12, weight: .semibold, design: .rounded))
                         .foregroundColor(Theme.text1)
                 }
             }
@@ -216,10 +240,155 @@ struct HomeView: View {
             }
         }
     }
+}
 
-    private static func timeString() -> String {
-        let f = DateFormatter(); f.dateFormat = "h:mm a"
-        return f.string(from: Date())
+// ══════════════════════════════════════════════
+// MARK: ListDoughnutPill
+// ══════════════════════════════════════════════
+
+// ══════════════════════════════════════════════
+// MARK: OrbitalDonutPill
+// ══════════════════════════════════════════════
+
+struct OrbitalDonutPill: View {
+    let list: TaskList
+    let isActive: Bool
+    let fraction: Double
+    let onTap: () -> Void
+    
+    @State private var pulse = false
+    @State private var showName = true
+    @State private var hideTask: Task<Void, Never>? = nil
+    
+    var body: some View {
+        Button(action: {
+            onTap()
+            revealName()
+        }) {
+            HStack(spacing: (isActive && showName) ? 10 : 0) {
+                ZStack {
+                    // ── Orbital Glow ──
+                    if isActive {
+                        Circle()
+                            .fill(Color(hex: "#3ECFFF").opacity(0.18))
+                            .frame(width: 34, height: 34)
+                            .blur(radius: 6)
+                            .scaleEffect(pulse ? 1.08 : 0.92)
+                    }
+                    
+                    // ── Background Ring ──
+                    Circle()
+                        .stroke(Theme.bg3.opacity(0.5), lineWidth: 3.2)
+                        .frame(width: 26, height: 26)
+                    
+                    // ── Progress Arcs ──
+                    Circle()
+                        .trim(from: 0, to: max(0.001, fraction))
+                        .stroke(
+                            Color.black.opacity(0.2),
+                            style: StrokeStyle(lineWidth: 4.2, lineCap: .round)
+                        )
+                        .rotationEffect(.degrees(-90))
+                        .frame(width: 26, height: 26)
+                        .blur(radius: 1).offset(y: 1)
+                    
+                    Circle()
+                        .trim(from: 0, to: max(0.001, fraction))
+                        .stroke(
+                            LinearGradient(colors: [Theme.accent, Theme.coral], startPoint: .topLeading, endPoint: .bottomTrailing),
+                            style: StrokeStyle(lineWidth: 3.2, lineCap: .round)
+                        )
+                        .rotationEffect(.degrees(-90))
+                        .frame(width: 26, height: 26)
+                    
+                    if fraction > 0 && fraction < 1 {
+                        Circle()
+                            .fill(Color.white)
+                            .frame(width: 4, height: 4)
+                            .shadow(color: Theme.accent, radius: 3)
+                            .offset(y: -13)
+                            .rotationEffect(.degrees(360 * fraction - 90))
+                    }
+                    
+                    Text(list.emoji)
+                        .font(.system(size: 14))
+                        .scaleEffect(isActive ? 1.1 : 1.0)
+                }
+                .frame(width: 34, height: 34)
+                
+                if isActive && showName {
+                    Text(list.cleanName.replacingOccurrences(of: " System", with: "", options: .caseInsensitive))
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .foregroundColor(Theme.text0)
+                        .lineLimit(1)
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .leading).combined(with: .opacity),
+                            removal: .scale.combined(with: .opacity)
+                        ))
+                }
+            }
+            .padding(.leading, 4)
+            .padding(.trailing, (isActive && showName) ? 12 : 4)
+            .padding(.vertical, 4)
+            .background(
+                ZStack {
+                    if isActive {
+                        Capsule()
+                            .fill(Theme.bg1)
+                            .shadow(color: Theme.accent.opacity(0.45), radius: 12, x: 0, y: 4)
+                    } else {
+                        Circle()
+                            .fill(Theme.bg2.opacity(0.4))
+                    }
+                }
+            )
+            .overlay(
+                Group {
+                    if isActive {
+                        Capsule().strokeBorder(Theme.accent.opacity(0.5), lineWidth: 1.0)
+                    } else {
+                        Circle().strokeBorder(Theme.border, lineWidth: 0.5)
+                    }
+                }
+            )
+            .scaleEffect(isActive ? 1.08 : 1.0)
+        }
+        .buttonStyle(.plain)
+        .onAppear {
+            if isActive {
+                revealName()
+                withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                    pulse = true
+                }
+            }
+        }
+        .onChange(of: isActive) { _, newValue in
+            if newValue {
+                revealName()
+                withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                    pulse = true
+                }
+            } else {
+                hideTask?.cancel()
+                showName = false
+                pulse = false
+            }
+        }
+    }
+    
+    private func revealName() {
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+            showName = true
+        }
+        hideTask?.cancel()
+        hideTask = Task {
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            if !Task.isCancelled {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                    showName = false
+                }
+            }
+        }
     }
 }
 
@@ -228,6 +397,7 @@ struct HomeView: View {
 // ══════════════════════════════════════════════
 
 struct TaskRowView: View {
+    @EnvironmentObject var vm: AppViewModel
     let task: SortydTask
     let hk: HealthKitManager
     let onToggle: () -> Void
@@ -247,20 +417,20 @@ struct TaskRowView: View {
 
     private var timeLabel: String? {
         guard let t = task.reminderTime else { return nil }
-        let f = DateFormatter(); f.dateFormat = "h:mm a"
+        let f = DateFormatter()
+        f.dateFormat = "h:mm a"
+        f.locale = vm.appLanguage.locale
         return f.string(from: t)
     }
 
     private var subtitleText: String {
-        if needsHealthPermission { return "Tap to allow Health access" }
-        if task.isCompleted { return "Completed" }
-        if let t = timeLabel { return "Due \(t)" }
-        if let ht = resolvedHealthType, let target = task.healthTarget {
-            let current = hk.currentValue(for: ht)
-            let formatted = String(format: "%.0f / %.0f", current, target)
-            return "\(formatted) \(ht.label.lowercased())"
-        }
-        return "Anytime"
+        if needsHealthPermission { return String(localized: "Tap to allow Health access") }
+        if task.isCompleted { return String(localized: "Completed") }
+        
+        if let t = timeLabel { return String(localized: "Due \(t)") }
+        
+        // Removed health measure from subtitle - shown vertically next to tank
+        return vm.localized("Anytime")
     }
 
     var body: some View {
@@ -289,7 +459,7 @@ struct TaskRowView: View {
                                 Image(systemName: "hand.tap.fill")
                                     .font(.system(size: 9, weight: .bold))
                                     .foregroundColor(Color(hex: resolvedHealthType?.accentColor ?? "#4FC3F7"))
-                                Text("Tap to enable Health tracking")
+                                Text(vm.localized("Tap to enable Health tracking"))
                                     .font(.system(size: 11, weight: .semibold))
                                     .foregroundColor(Color(hex: resolvedHealthType?.accentColor ?? "#4FC3F7"))
                             }
@@ -299,6 +469,7 @@ struct TaskRowView: View {
 
                         // Arrow CTA
                         Image(systemName: "chevron.right")
+                            .flipsForRightToLeftLayoutDirection(true)
                             .font(.system(size: 12, weight: .bold))
                             .foregroundColor(Color(hex: resolvedHealthType?.accentColor ?? "#4FC3F7").opacity(0.7))
                     }
@@ -310,27 +481,53 @@ struct TaskRowView: View {
             } else {
                 // ── Normal task row ──
                 HStack(spacing: 14) {
-                    VStack(alignment: .leading, spacing: 3) {
+                    VStack(alignment: .leading, spacing: 1) { // Reduced spacing
                         Text(task.title)
                             .font(.system(size: 15, weight: task.isCompleted ? .regular : .semibold))
                             .foregroundColor(task.isCompleted ? Theme.text2 : Theme.text0)
                             .strikethrough(task.isCompleted, color: Theme.text2)
                             .lineLimit(1)
 
-                        Text(subtitleText)
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(task.isCompleted ? Theme.accent.opacity(0.6) : Theme.text2)
+                        HStack(spacing: 3) {
+                            if timeLabel != nil && !task.isCompleted {
+                                Image(systemName: "bell.fill").font(.system(size: 7))
+                                    .foregroundColor(Color(hex: "#00E5FF"))
+                            }
+                            Text(subtitleText)
+                                .font(.system(size: 9, weight: .bold)) // Matches alert size
+                                .foregroundColor(timeLabel != nil && !task.isCompleted ? Color(hex: "#00E5FF") : (task.isCompleted ? Theme.accent.opacity(0.6) : Theme.text2))
+                        }
                     }
 
                     Spacer()
 
                     if let ht = resolvedHealthType, let target = task.healthTarget, !task.isCompleted {
-                        SmallHealthBar(
-                            taskType: ht,
-                            target: target,
-                            current: hk.currentValue(for: ht),
-                            height: 44
-                        )
+                        HStack(spacing: 8) {
+                            let current = hk.currentValue(for: ht)
+                            // Vertical Measure (Achieved / Target)
+                            VStack(spacing: 2) {
+                                Text(ht == .distance ? String(format: "%.1f", current) : String(format: "%.0f", current))
+                                    .font(.system(size: 10, weight: .black, design: .rounded))
+                                
+                                Rectangle()
+                                    .fill(Color(hex: ht.accentColor).opacity(0.4))
+                                    .frame(width: 14, height: 1.5)
+                                
+                                Text("\(Int(target))")
+                                    .font(.system(size: 8, weight: .bold, design: .rounded))
+                                    .opacity(0.8)
+                            }
+                            .foregroundColor(Color(hex: ht.accentColor))
+                            .frame(minWidth: 24)
+
+                            SmallHealthBar(
+                                taskType: ht,
+                                target: target,
+                                current: current,
+                                height: 38,
+                                tankWidth: 32
+                            )
+                        }
                     } else if let t = timeLabel, !task.isCompleted {
                         Text(t)
                             .font(.system(size: 12, weight: .semibold, design: .monospaced))
@@ -415,10 +612,11 @@ struct TaskRowView: View {
 // ══════════════════════════════════════════════
 
 struct EmptyStateView: View {
+    @EnvironmentObject var vm: AppViewModel
     let onAddList: () -> Void
 
-    private let line1 = "Let's get"
-    private let line2 = "Tracking."
+    private var line1: String { vm.localized("Lets Get") }
+    private var line2: String { vm.localized("Tracking") }
     @State private var line1Count: Int = 0
     @State private var line2Count: Int = 0
     @State private var typingLine: Int = 1
@@ -438,7 +636,13 @@ struct EmptyStateView: View {
 
     private let violet = Color(hex: "#3ECFFF")
     private let cyan   = Color(hex: "#7C6FFF")
-    private let letsPrefix = 6
+    private var letsPrefix: Int {
+        switch vm.appLanguage {
+        case .arabic: return 0 // Start typing immediately
+        case .spanish: return 6 // 'Vamos ' is 6
+        default: return 6 // 'Let's ' is 6
+        }
+    }
 
     private var revealedLine1: String { String(line1.prefix(line1Count)) }
     private var revealedLine2: String { String(line2.prefix(line2Count)) }
@@ -479,15 +683,20 @@ struct EmptyStateView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .lastTextBaseline, spacing: 0) {
-                    if line1Count <= letsPrefix {
-                        Text(revealedLine1)
+                    if vm.appLanguage == .arabic {
+                         Text(revealedLine1)
+                            .font(.system(size: 40, weight: .black, design: .serif))
+                            .foregroundColor(Theme.text0)
+                    } else if line1Count <= letsPrefix {
+                        Text(String(vm.appLanguage == .spanish ? "Vamos " : "Let's "))
                             .font(.system(size: 40, weight: .black, design: .serif))
                             .foregroundColor(Theme.text0)
                     } else {
-                        Text("Let's ")
+                        Text(String(vm.appLanguage == .spanish ? "Vamos " : "Let's "))
                             .font(.system(size: 35, weight: .black, design: .serif))
                             .foregroundColor(Theme.text0)
-                        Text(String("get".prefix(line1Count - letsPrefix)))
+                        let base = vm.appLanguage == .spanish ? "a" : "get"
+                        Text(String(base.prefix(line1Count - letsPrefix)))
                             .font(.system(size: 35, weight: .black, design: .serif).italic())
                             .foregroundColor(Theme.text0)
                     }
@@ -512,15 +721,15 @@ struct EmptyStateView: View {
                                      startPoint: .leading, endPoint: .trailing))
                 .frame(height: 1).padding(.top, 10).padding(.bottom, 10).opacity(subtitleOpacity)
 
-            Text("Build momentum, one habit at a time.")
+            Text(vm.localized("Build momentum, one habit at a time."))
                 .font(.system(size: 14, weight: .medium)).italic()
                 .foregroundColor(Theme.text0).tracking(0.2)
                 .opacity(subtitleOpacity).offset(y: subtitleOffset)
 
             HStack(spacing: 10) {
-                statPill(icon: "checkmark.circle", label: "Track tasks",   color: violet)
-                statPill(icon: "flame",            label: "Build streaks", color: cyan)
-                statPill(icon: "chart.bar",        label: "See progress",  color: violet)
+                statPill(icon: "checkmark.circle", label: vm.localized("Track tasks"),   color: violet)
+                statPill(icon: "flame",            label: vm.localized("Build streaks"), color: cyan)
+                statPill(icon: "chart.bar",        label: vm.localized("See progress"),  color: violet)
             }
             .padding(.top, 12).opacity(pillsOpacity).offset(y: pillsOffset)
 
@@ -531,10 +740,11 @@ struct EmptyStateView: View {
                         Image(systemName: "plus").font(.system(size: 13, weight: .black))
                             .foregroundColor(Color(hex: "#0C0D16"))
                     }.padding(.trailing, 12)
-                    Text("Create your first list")
+                    Text(vm.localized("Create your first list"))
                         .font(.system(size: 15, weight: .bold)).foregroundColor(Color(hex: "#0C0D16"))
                     Spacer()
                     Image(systemName: "arrow.right")
+                        .flipsForRightToLeftLayoutDirection(true)
                         .font(.system(size: 13, weight: .bold))
                         .foregroundColor(Color(hex: "#0C0D16").opacity(0.55)).padding(.trailing, 2)
                 }
@@ -629,15 +839,15 @@ struct ListSwitcherSheet: View {
                         .padding(.top, 12).padding(.bottom, Theme.s20)
 
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Switch List").font(.system(size: 22, weight: .black)).foregroundColor(Theme.text0)
-                        Text("Showing on Today tab").font(.system(size: 13)).foregroundColor(Theme.text2)
+                        Text(vm.appLanguage == .arabic ? "تبديل القائمة" : (vm.appLanguage == .spanish ? "Cambiar lista" : "Switch List")).font(.system(size: 22, weight: .black)).foregroundColor(Theme.text0)
+                        Text(vm.appLanguage == .arabic ? "تظهر في علامة تبويب اليوم" : (vm.appLanguage == .spanish ? "Mostrando en la pestaña Hoy" : "Showing on Today tab")).font(.system(size: 13)).foregroundColor(Theme.text2)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, Theme.s20).padding(.bottom, Theme.s20)
 
                     let liveLists = vm.lists.filter { !$0.isArchived }
                     if liveLists.isEmpty {
-                        EmptyDark(icon: "📋", title: "No lists", subtitle: "Create a list first.")
+                        EmptyDark(icon: "📋", title: vm.localized("No lists"), subtitle: vm.localized("Create a list first."))
                     } else {
                         ScrollView {
                             VStack(spacing: 10) {
@@ -652,7 +862,7 @@ struct ListSwitcherSheet: View {
                                             }
                                             VStack(alignment: .leading, spacing: 3) {
                                                 Text(list.name).font(.system(size: 15, weight: .semibold)).foregroundColor(Theme.text0)
-                                                Text("\(list.tasks.count) tasks · \(list.completionPercentage)% today")
+                                                Text("\(list.tasks.count) \(String(localized: "tasks", locale: vm.appLanguage.locale)) · \(list.completionPercentage)% \(String(localized: "today", locale: vm.appLanguage.locale))")
                                                     .font(.system(size: 12)).foregroundColor(Theme.text1)
                                             }
                                             Spacer()
@@ -709,10 +919,10 @@ struct SettingsSheet: View {
                     Button(action: { showClearConfirm = true }) {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Clear completion history")
+                                Text(vm.appLanguage == .arabic ? "مسح سجل الإنجاز" : (vm.appLanguage == .spanish ? "Borrar historial de completado" : "Clear completion history"))
                                     .font(.system(size: 15, weight: .medium))
                                     .foregroundColor(Theme.danger)
-                                Text("Deletes all snapshots and streaks. Tasks are kept.")
+                                Text(vm.appLanguage == .arabic ? "يحذف جميع اللقطات والنشاطات. يتم الاحتفاظ بالمهام." : (vm.appLanguage == .spanish ? "Borra todas las capturas y rachas. Las tareas se mantienen." : "Deletes all snapshots and streaks. Tasks are kept."))
                                     .font(.system(size: 12))
                                     .foregroundColor(Theme.text2)
                             }
@@ -739,24 +949,24 @@ struct SettingsSheet: View {
                 }
                 .padding(Theme.s16).padding(.top, 8)
             }
-            .navigationTitle("Settings").navigationBarTitleDisplayMode(.inline)
+            .navigationTitle(vm.appLanguage == .arabic ? "الإعدادات" : (vm.appLanguage == .spanish ? "Ajustes" : "Settings")).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") { dismiss() }.foregroundColor(Theme.accent).fontWeight(.semibold)
+                    Button(String(localized: "Done")) { dismiss() }.foregroundColor(Theme.accent).fontWeight(.semibold)
                 }
             }
             .confirmationDialog(
-                "Clear all history?",
+                String(localized: "Clear all history?"),
                 isPresented: $showClearConfirm,
                 titleVisibility: .visible
             ) {
-                Button("Clear History", role: .destructive) {
+                Button(String(localized: "Clear History"), role: .destructive) {
                     vm.clearAllSnapshots()
                     dismiss()
                 }
-                Button("Cancel", role: .cancel) {}
+                Button(String(localized: "Cancel"), role: .cancel) {}
             } message: {
-                Text("This permanently deletes all completion snapshots and streaks. Your lists and tasks are not affected.")
+                Text(vm.appLanguage == .arabic ? "سيؤدي هذا إلى حذف جميع لقطات الإكمال والنشاطات بشكل دائم. لن تتأثر قوائمك ومهامك." : (vm.appLanguage == .spanish ? "Esto borra permanentemente todas las capturas y rachas. Tus listas y tareas no se verán afectadas." : "This permanently deletes all completion snapshots and streaks. Your lists and tasks are not affected."))
             }
         }
     }
@@ -767,6 +977,7 @@ struct SettingsSheet: View {
 // ══════════════════════════════════════════════
 
 struct PlaceholderCalendarView: View {
+    @EnvironmentObject var vm: AppViewModel
     private let dayLetters = ["S","M","T","W","T","F","S"]
     private let today = Date()
     private let colGap: CGFloat = 0
@@ -799,7 +1010,7 @@ struct PlaceholderCalendarView: View {
                     Text(currentMonth).font(.system(size: 11, weight: .semibold)).foregroundColor(Theme.text1)
                     Spacer()
                     HStack(spacing: 3) {
-                        Text("Low")
+                        Text(vm.appLanguage == .arabic ? "منخفض" : (vm.appLanguage == .spanish ? "Bajo" : "Low"))
                             .font(.system(size: 7, weight: .medium))
                             .foregroundColor(Theme.text2)
                         HStack(spacing: 1) {
@@ -809,7 +1020,7 @@ struct PlaceholderCalendarView: View {
                                     .frame(width: 7, height: 7)
                             }
                         }
-                        Text("Best")
+                        Text(vm.appLanguage == .arabic ? "الأفضل" : (vm.appLanguage == .spanish ? "Mejor" : "Best"))
                             .font(.system(size: 7, weight: .medium))
                             .foregroundColor(Theme.text2)
                     }

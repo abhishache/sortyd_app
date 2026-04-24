@@ -83,6 +83,7 @@ struct SmallHealthBar: View {
     let target: Double
     let current: Double
     var height: CGFloat = 44
+    var tankWidth: CGFloat = 36
 
     @State private var filled: Double = 0
     @State private var waveAmplitude: CGFloat = 0
@@ -94,7 +95,6 @@ struct SmallHealthBar: View {
     }
 
     private var arcColor: Color { Color(hex: taskType.accentColor) }
-    private let tankWidth: CGFloat = 36
 
     var body: some View {
         ZStack {
@@ -133,13 +133,13 @@ struct SmallHealthBar: View {
 
             // Icon — dim unfilled layer
             Image(systemName: taskType.icon)
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: tankWidth * 0.55, weight: .bold))
                 .foregroundColor(Theme.text0.opacity(0.22))
                 .frame(width: tankWidth, height: height)
 
             // Icon — bright filled portion via bottom mask
             Image(systemName: taskType.icon)
-                .font(.system(size: 20, weight: .bold))
+                .font(.system(size: tankWidth * 0.55, weight: .bold))
                 .foregroundColor(.white.opacity(0.92))
                 .shadow(color: arcColor.opacity(0.6), radius: 4, x: 0, y: 0)
                 .mask(
@@ -221,6 +221,7 @@ struct WaterWave: Shape {
 // ══════════════════════════════════════════════
 
 struct HealthTargetBanner: View {
+    @EnvironmentObject var vm: AppViewModel
     let taskType: HealthTaskType
     @Binding var targetText: String
     let onRequestPermission: () -> Void
@@ -242,10 +243,10 @@ struct HealthTargetBanner: View {
                         .foregroundColor(arcColor)
                 }
                 VStack(alignment: .leading, spacing: 1) {
-                    Text("Health Goal Detected")
+                    Text(vm.appLanguage == .arabic ? "تم اكتشاف هدف صحي" : (vm.appLanguage == .spanish ? "Meta de salud detectada" : "Health Goal Detected"))
                         .font(.system(size: 12, weight: .bold))
                         .foregroundColor(arcColor)
-                    Text("Set a target to track progress with a live donut")
+                    Text(vm.appLanguage == .arabic ? "حدد هدفًا لتتبع التقدم باستخدام دونات مباشر" : (vm.appLanguage == .spanish ? "Establece un objetivo para seguir el progreso con un gráfico circular" : "Set a target to track progress with a live donut"))
                         .font(.system(size: 11))
                         .foregroundColor(Theme.text2)
                 }
@@ -255,7 +256,7 @@ struct HealthTargetBanner: View {
                         HStack(spacing: 4) {
                             Image(systemName: "heart.fill")
                                 .font(.system(size: 9, weight: .bold))
-                            Text("Connect")
+                            Text(vm.appLanguage == .arabic ? "اتصال" : (vm.appLanguage == .spanish ? "Conectar" : "Connect"))
                                 .font(.system(size: 10, weight: .bold))
                         }
                         .foregroundColor(.white)
@@ -312,6 +313,7 @@ struct HealthTargetBanner: View {
 // ══════════════════════════════════════════════
 
 struct HealthPermissionSheet: View {
+    @EnvironmentObject var vm: AppViewModel
     let taskType: HealthTaskType
     let onGrant: () -> Void
     let onSkip:  () -> Void
@@ -341,12 +343,12 @@ struct HealthPermissionSheet: View {
                 }
                 .padding(.bottom, 16)
 
-                Text("Connect Apple Health")
+                Text(vm.appLanguage == .arabic ? "اتصل بـ Apple Health" : (vm.appLanguage == .spanish ? "Conectar con Apple Health" : "Connect Apple Health"))
                     .font(.system(size: 22, weight: .black))
                     .foregroundColor(Theme.text0)
                     .padding(.bottom, 8)
 
-                Text("Sortyd detected a **\(taskType.label.lowercased())** goal in your task. Connect Health to see a live progress donut and count it toward your overall completion.")
+                Text(vm.appLanguage == .arabic ? "اكتشف Sortyd هدف **\(taskType.label.lowercased())** في مهمتك. اتصل بـ Health لرؤية دونات تقدم مباشر واحتسابه ضمن إكمالك العام." : (vm.appLanguage == .spanish ? "Sortyd detectó un objetivo de **\(taskType.label.lowercased())** en tu tarea. Conecta Health para ver un gráfico de progreso en vivo y sumarlo a tu completado general." : "Sortyd detected a **\(taskType.label.lowercased())** goal in your task. Connect Health to see a live progress donut and count it toward your overall completion."))
                     .font(.system(size: 14))
                     .foregroundColor(Theme.text1)
                     .multilineTextAlignment(.center)
@@ -354,9 +356,15 @@ struct HealthPermissionSheet: View {
                     .padding(.bottom, 24)
 
                 VStack(spacing: 10) {
-                    pill(icon: "chart.bar.fill",    title: "Live donut indicator",  sub: "Real-time arc progress on every task row")
-                    pill(icon: "percent",           title: "Counts toward list %",  sub: "Your health goal drives overall completion")
-                    pill(icon: "lock.shield.fill",  title: "Read-only access",      sub: "Sortyd never writes to Apple Health")
+                    pill(icon: "chart.bar.fill",
+                         title: vm.appLanguage == .arabic ? "مؤشر دونات مباشر" : (vm.appLanguage == .spanish ? "Indicador de gráfico vivo" : "Live donut indicator"),
+                         sub: vm.appLanguage == .arabic ? "تقدم القوس في الوقت الفعلي على كل صف مهمة" : (vm.appLanguage == .spanish ? "Progreso de arco en tiempo real en cada fila" : "Real-time arc progress on every task row"))
+                    pill(icon: "percent",
+                         title: vm.appLanguage == .arabic ? "يُحتسب ضمن نسبة القائمة" : (vm.appLanguage == .spanish ? "Cuenta para el % de la lista" : "Counts toward list %"),
+                         sub: vm.appLanguage == .arabic ? "هدفك الصحي يدفع الإكمال العام" : (vm.appLanguage == .spanish ? "Tu meta de salud impulsa el completado general" : "Your health goal drives overall completion"))
+                    pill(icon: "lock.shield.fill",
+                         title: vm.appLanguage == .arabic ? "وصول للقراءة فقط" : (vm.appLanguage == .spanish ? "Acceso de solo lectura" : "Read-only access"),
+                         sub: vm.appLanguage == .arabic ? "Sortyd لا يكتب أبدًا في Apple Health" : (vm.appLanguage == .spanish ? "Sortyd nunca escribe en Apple Health" : "Sortyd never writes to Apple Health"))
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 24)
@@ -376,7 +384,7 @@ struct HealthPermissionSheet: View {
                         } else {
                             Image(systemName: "heart.fill")
                                 .font(.system(size: 13, weight: .bold))
-                            Text("Connect Apple Health")
+                            Text(vm.appLanguage == .arabic ? "اتصل بـ Apple Health" : (vm.appLanguage == .spanish ? "Conectar con Apple Health" : "Connect Apple Health"))
                                 .font(.system(size: 15, weight: .bold))
                         }
                     }
@@ -394,7 +402,7 @@ struct HealthPermissionSheet: View {
                 .disabled(requesting)
 
                 Button(action: { dismiss(); onSkip() }) {
-                    Text("Skip for now")
+                    Text(vm.appLanguage == .arabic ? "تخطي الآن" : (vm.appLanguage == .spanish ? "Omitir por ahora" : "Skip for now"))
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(Theme.text2)
                 }
@@ -407,7 +415,7 @@ struct HealthPermissionSheet: View {
     }
 
     @ViewBuilder
-    private func pill(icon: String, title: String, sub: String) -> some View {
+    private func pill(icon: String, title: LocalizedStringKey, sub: LocalizedStringKey) -> some View {
         HStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)

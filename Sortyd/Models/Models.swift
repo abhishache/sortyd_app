@@ -73,7 +73,7 @@ struct TaskList: Identifiable, Codable, Hashable {
     var tasks: [SortydTask]
     var createdAt: Date = Date()
     var isArchived: Bool = false
-
+    
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id         = try container.decode(UUID.self,             forKey: .id)
@@ -84,25 +84,25 @@ struct TaskList: Identifiable, Codable, Hashable {
         isArchived = try container.decodeIfPresent(Bool.self,    forKey: .isArchived) ?? false
         recalculateWeights()
     }
-
+    
     init(id: UUID = UUID(), name: String, emoji: String = "📋",
          tasks: [SortydTask] = [], createdAt: Date = Date(), isArchived: Bool = false) {
         self.id = id; self.name = name; self.emoji = emoji
         self.tasks = tasks; self.createdAt = createdAt; self.isArchived = isArchived
     }
-
+    
     private enum CodingKeys: String, CodingKey {
         case id, name, emoji, tasks, createdAt, isArchived
     }
-
+    
     mutating func recalculateWeights() {
         guard !tasks.isEmpty else { return }
         let w = 1.0 / Double(tasks.count)
         for i in tasks.indices { tasks[i].weight = w }
     }
-
+    
     // MARK: Completion — HealthKit-aware
-
+    
     /// healthValues: [taskID: 0–1 progress] from HealthKitManager. Health tasks use live progress.
     func completionFraction(healthValues: [UUID: Double] = [:]) -> Double {
         guard !tasks.isEmpty else { return 0 }
@@ -126,64 +126,99 @@ struct TaskList: Identifiable, Codable, Hashable {
             return done / Double(tasks.count)
         }
     }
-
+    
     var completionFraction: Double { completionFraction(healthValues: [:]) }
     var completionPercentage: Int  { Int((completionFraction * 100).rounded()) }
-}
-
-// MARK: - Daily Snapshot
-
-struct DailySnapshot: Identifiable, Codable {
-    var id: UUID = UUID()
-    var date: Date
-    var listID: UUID
-    var completionFraction: Double
-    var completedTaskIDs: [UUID]
-    var completionPercentage: Int { Int((completionFraction * 100).rounded()) }
-
-    // Forward-compatible decoder: new fields added in future versions decode safely.
-    init(id: UUID = UUID(), date: Date, listID: UUID, completionFraction: Double, completedTaskIDs: [UUID]) {
-        self.id = id
-        self.date = date
-        self.listID = listID
-        self.completionFraction = completionFraction
-        self.completedTaskIDs = completedTaskIDs
-    }
-
-    init(from decoder: Decoder) throws {
-        let c = try decoder.container(keyedBy: CodingKeys.self)
-        id                = try c.decodeIfPresent(UUID.self,    forKey: .id)                ?? UUID()
-        date              = try c.decode(Date.self,             forKey: .date)
-        listID            = try c.decode(UUID.self,             forKey: .listID)
-        completionFraction = try c.decode(Double.self,          forKey: .completionFraction)
-        completedTaskIDs  = try c.decodeIfPresent([UUID].self,  forKey: .completedTaskIDs)  ?? []
+    
+    /// Returns the name without any leading emojis to prevent double icons in the UI.
+    var cleanName: String {
+        var n = name.trimmingCharacters(in: .whitespaces)
+        while !n.isEmpty, n.first!.isEmoji {
+            n.removeFirst()
+            n = n.trimmingCharacters(in: .whitespaces)
+        }
+        return n
     }
 }
-
-// MARK: - App State Wrapper
-
-struct AppData: Codable {
-    var lists: [TaskList] = []
-    var activeListID: UUID?
-    var snapshots: [DailySnapshot] = []
-
-    var activeList: TaskList? {
-        let live = lists.filter { !$0.isArchived }
-        guard let id = activeListID else { return live.first }
-        return live.first(where: { $0.id == id }) ?? live.first
+    
+    // MARK: - Daily Snapshot
+    
+    struct DailySnapshot: Identifiable, Codable {
+        var id: UUID = UUID()
+        var date: Date
+        var listID: UUID
+        var completionFraction: Double
+        var completedTaskIDs: [UUID]
+        var completionPercentage: Int { Int((completionFraction * 100).rounded()) }
+        
+        // Forward-compatible decoder: new fields added in future versions decode safely.
+        init(id: UUID = UUID(), date: Date, listID: UUID, completionFraction: Double, completedTaskIDs: [UUID]) {
+            self.id = id
+            self.date = date
+            self.listID = listID
+            self.completionFraction = completionFraction
+            self.completedTaskIDs = completedTaskIDs
+        }
+        
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            id                = try c.decodeIfPresent(UUID.self,    forKey: .id)                ?? UUID()
+            date              = try c.decode(Date.self,             forKey: .date)
+            listID            = try c.decode(UUID.self,             forKey: .listID)
+            completionFraction = try c.decode(Double.self,          forKey: .completionFraction)
+            completedTaskIDs  = try c.decodeIfPresent([UUID].self,  forKey: .completedTaskIDs)  ?? []
+        }
+    }
+    
+    // MARK: - App State Wrapper
+    
+    struct AppData: Codable {
+        var lists: [TaskList] = []
+        var activeListID: UUID?
+        var snapshots: [DailySnapshot] = []
+        
+        var activeList: TaskList? {
+            let live = lists.filter { !$0.isArchived }
+            guard let id = activeListID else { return live.first }
+            return live.first(where: { $0.id == id }) ?? live.first
+        }
+        
+        // Forward-compatible decoder: keeps user data intact when new fields are added.
+        init(lists: [TaskList] = [], activeListID: UUID? = nil, snapshots: [DailySnapshot] = []) {
+            self.lists = lists
+            self.activeListID = activeListID
+            self.snapshots = snapshots
+        }
+        
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            lists        = try c.decodeIfPresent([TaskList].self, forKey: .lists)        ?? []
+            activeListID = try c.decodeIfPresent(UUID.self,       forKey: .activeListID)
+            snapshots    = try c.decodeIfPresent([DailySnapshot].self, forKey: .snapshots) ?? []
+        }
+    }
+    
+    // MARK: - App Language
+    
+    enum AppLanguage: String, CaseIterable, Codable {
+        case english = "en"
+        case spanish = "es"
+        case arabic  = "ar"
+        
+        var name: String {
+            switch self {
+            case .english: return "English"
+            case .spanish: return "Español"
+            case .arabic:  return "العربية"
+            }
+        }
+        
+        var locale: Locale {
+            Locale(identifier: self.rawValue)
+        }
+        
+        var isRTL: Bool {
+            self == .arabic
+        }
     }
 
-    // Forward-compatible decoder: keeps user data intact when new fields are added.
-    init(lists: [TaskList] = [], activeListID: UUID? = nil, snapshots: [DailySnapshot] = []) {
-        self.lists = lists
-        self.activeListID = activeListID
-        self.snapshots = snapshots
-    }
-
-    init(from decoder: Decoder) throws {
-        let c = try decoder.container(keyedBy: CodingKeys.self)
-        lists        = try c.decodeIfPresent([TaskList].self, forKey: .lists)        ?? []
-        activeListID = try c.decodeIfPresent(UUID.self,       forKey: .activeListID)
-        snapshots    = try c.decodeIfPresent([DailySnapshot].self, forKey: .snapshots) ?? []
-    }
-}

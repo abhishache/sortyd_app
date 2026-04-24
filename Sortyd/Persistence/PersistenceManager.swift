@@ -21,13 +21,9 @@ final class PersistenceManager {
     private var saveWorkItem: DispatchWorkItem?
     private let debounceInterval: TimeInterval = 0.4
 
-    // Separate debounce for Watch push — only the settled state after a drag is sent.
     private var watchWorkItem: DispatchWorkItem?
     private let watchDebounceInterval: TimeInterval = 1.5
 
-    // FIX: Separate debounce for widget reloads. Previously every saveImmediately
-    // call (toggleTask, title edits, etc.) scheduled an unguarded
-    // WidgetCenter.reloadAllTimelines() — rapid actions queued up dozens of reloads.
     private var widgetWorkItem: DispatchWorkItem?
     private let widgetDebounceInterval: TimeInterval = 1.5
 
@@ -35,23 +31,6 @@ final class PersistenceManager {
 
     // MARK: - Public API
 
-    // FIX: Debounce now dispatches to ioQueue, NOT DispatchQueue.main.
-    //
-    // Previous code:
-    //   DispatchQueue.main.asyncAfter(deadline: .now() + debounceInterval, execute: work)
-    //
-    // During a list drag onMove fires at 60fps. Each call queued a DispatchWorkItem
-    // back onto the main thread. After 0.4 s the debounce fired and ran commitToDisk
-    // (JSONEncoder + UserDefaults write) on the main RunLoop — exactly while the
-    // UIGestureRecognizer driving the drag was still active. The main thread stalled,
-    // the gesture update loop starved, and the row appeared to "stick."
-    //
-    // Fix: commit always runs on ioQueue, which is never the gesture's RunLoop.
-    //
-    // FIX: pendingData race removed. Previously pendingData was a stored var written
-    // from @MainActor and read inside ioQueue — a data race. Now the AppData value
-    // is captured by value into the DispatchWorkItem closure at call time, so no
-    // shared mutable state crosses thread boundaries.
     func save(_ data: AppData) {
         saveWorkItem?.cancel()
         let work = DispatchWorkItem { [weak self] in
@@ -61,8 +40,6 @@ final class PersistenceManager {
         ioQueue.asyncAfter(deadline: .now() + debounceInterval, execute: work)
     }
 
-    // Immediate save — cancels any pending debounced save and writes now,
-    // still on the background ioQueue so the main thread is never blocked.
     func saveImmediately(_ data: AppData, reloadWidget: Bool = true) {
         saveWorkItem?.cancel()
         saveWorkItem = nil
@@ -72,21 +49,12 @@ final class PersistenceManager {
     }
 
     func load() -> AppData {
-        #if DEBUG
-        print("🔍 load called from: \(Thread.callStackSymbols[2])")
-        #endif
         guard
             let raw     = defaults.data(forKey: dataKey),
             let decoded = try? JSONDecoder().decode(AppData.self, from: raw)
         else {
-            #if DEBUG
-            print("❌ load failed — returning empty AppData")
-            #endif
             return AppData()
         }
-        #if DEBUG
-        print("✅ load success")
-        #endif
         return decoded
     }
 
@@ -106,7 +74,6 @@ final class PersistenceManager {
 
     // MARK: - Private
 
-    // Always runs on ioQueue — never on the main thread.
     private func commitToDisk(_ data: AppData, reloadWidget: Bool = true) {
         guard let encoded = try? JSONEncoder().encode(data) else { return }
         defaults.set(encoded, forKey: dataKey)
@@ -114,36 +81,24 @@ final class PersistenceManager {
         if reloadWidget { scheduleWidgetReload(data) }
     }
 
-    // Debounce Watch pushes so only the settled state after a drag is sent.
     private func scheduleWatchPush(_ data: AppData) {
         watchWorkItem?.cancel()
         let work = DispatchWorkItem {
-            DispatchQueue.main.async {              // ← returns to main thread
-                WatchSessionManager.shared.pushToWatch(data)  // JSONEncoder().encode() on main
+            DispatchQueue.main.async {
+                WatchSessionManager.shared.pushToWatch(data)
             }
         }
         watchWorkItem = work
         ioQueue.asyncAfter(deadline: .now() + watchDebounceInterval, execute: work)
     }
 
-    // FIX: Widget snapshot + reload are now debounced together.
-    // Previously saveWidgetSnapshot called WidgetCenter.reloadAllTimelines()
-    // via an un-debounced DispatchQueue.main.asyncAfter(1.5) — every save
-    // (including each task toggle) independently scheduled a reload, so rapid
-    // interactions queued dozens of timeline reloads that kept the widget
-    // extension alive unnecessarily and caused jitter.
     private func scheduleWidgetReload(_ data: AppData) {
         widgetWorkItem?.cancel()
         let work = DispatchWorkItem { [weak self] in
-            // FIX: Fetch live HealthKit totals on MainActor (HealthKitManager is @MainActor),
-            // then write the snapshot and reload. Previously writeWidgetSnapshot never
-            // populated caloriesBurned/caloriesGoal/stepCount/stepGoal, so the widget
-            // always saw nil for all four fields and fell back to the sparkline.
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 let hk = HealthKitManager.shared
 
-                // Derive goals from the active list's health tasks.
                 let tasks = data.activeList?.tasks ?? []
                 var caloriesGoal: Double? = nil
                 var stepGoal:     Double? = nil
@@ -154,7 +109,6 @@ final class PersistenceManager {
                     if typeStr == HealthTaskType.steps.rawValue    { stepGoal     = target }
                 }
 
-                // Only include health values when a goal exists for that metric.
                 let caloriesBurned: Double? = caloriesGoal != nil ? hk.todayCalories : nil
                 let stepCount:      Double? = stepGoal     != nil ? hk.todaySteps    : nil
 
@@ -182,6 +136,7 @@ final class PersistenceManager {
     ) {
         guard let list = data.activeList else { return }
 
+        // ── Active list: streak + monthly snapshots ──────────────────────
         let snaps = data.snapshots
             .filter { $0.listID == list.id }
             .sorted { $0.date < $1.date }
@@ -199,8 +154,18 @@ final class PersistenceManager {
             monthlySnapshots[df.string(from: snap.date)] = snap.completionFraction
         }
 
+        let (lastCheckedID, prevCals, prevCalGoal, prevSteps, prevStepGoal): (UUID?, Double?, Double?, Double?, Double?) = {
+            if let raw = defaults.data(forKey: widgetKey),
+               let prev = try? JSONDecoder().decode(WidgetData.self, from: raw) {
+                return (prev.lastCheckedTaskID, prev.caloriesBurned, prev.caloriesGoal, prev.stepCount, prev.stepGoal)
+            }
+            return (nil, nil, nil, nil, nil)
+        }()
+
+
+        // ── Assemble & persist ───────────────────────────────────────────
         let widgetData = WidgetData(
-            listName:             list.name,
+            listName:             list.cleanName,
             listEmoji:            list.emoji,
             completionFraction:   list.completionFraction,
             completionPercentage: list.completionPercentage,
@@ -212,10 +177,34 @@ final class PersistenceManager {
             },
             streakDays:       best,
             monthlySnapshots: monthlySnapshots,
-            caloriesBurned:   caloriesBurned,
-            caloriesGoal:     caloriesGoal,
-            stepCount:        stepCount,
-            stepGoal:         stepGoal
+            caloriesBurned:   caloriesBurned ?? prevCals,
+            caloriesGoal:     caloriesGoal   ?? prevCalGoal,
+            stepCount:        stepCount      ?? prevSteps,
+            stepGoal:         stepGoal       ?? prevStepGoal,
+            lastCheckedTaskID: lastCheckedID,
+            allLists: data.lists.filter { !$0.isArchived }.map { l in
+                let listSnaps = data.snapshots.filter { $0.listID == l.id }
+                let avg = listSnaps.isEmpty ? 0 : Int((listSnaps.map(\.completionFraction).reduce(0,+) / Double(listSnaps.count) * 100).rounded())
+                let grade: String = {
+                    switch avg {
+                    case 90...100: return "A"
+                    case 80..<90:  return "A-"
+                    case 75..<80:  return "B+"
+                    case 70..<75:  return "B"
+                    case 65..<70:  return "B-"
+                    case 60..<65:  return "C+"
+                    case 50..<60:  return "C"
+                    default:       return "D"
+                    }
+                }()
+                return WidgetData.MultiListEntry(
+                    id: l.id,
+                    name: l.cleanName,
+                    emoji: l.emoji,
+                    completionFraction: l.completionFraction,
+                    grade: grade
+                )
+            }
         )
 
         if let encoded = try? JSONEncoder().encode(widgetData) {

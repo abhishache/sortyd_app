@@ -1,19 +1,3 @@
-// MARK: - ListManagementView.swift
-// Sortyd v5 — List Management
-//
-// Changes vs v4:
-// • "DEFAULT" badge → "ACTIVE"
-// • Sort button → smooth gear icon (no container, gradient glow)
-// • Gear toggles editMode directly; swaps to checkmark.circle when active
-// • AI + "+" nav buttons use identical pill/circle style — consistent
-// • Swipe trailing only: Archive (grey) first, Delete (red) second
-// • Active list always sorted to top; first shuffle makes that list active
-// • Empty state: animated concentric rings + sparkle particles
-// • Empty state buttons: redesigned creative stacked layout
-// • AI nav pill: blue glow added
-// • Toolbar buttons: no solid background on scroll
-// • AddListSheet: no auto-keyboard on appear
-
 import SwiftUI
 import UserNotifications
 import FirebaseAnalytics
@@ -43,7 +27,14 @@ struct ListManagementView: View {
     @State private var emptyRotate      = false
 
     private var activeLists: [TaskList] {
-        vm.lists.filter { !$0.isArchived }
+        let active = vm.lists.filter { !$0.isArchived }
+        guard let activeID = vm.activeListID,
+              let activeList = active.first(where: { $0.id == activeID }) else {
+            return active
+        }
+        var sorted = [activeList]
+        sorted.append(contentsOf: active.filter { $0.id != activeID })
+        return sorted
     }
     private var archivedLists: [TaskList] { vm.lists.filter { $0.isArchived } }
     private var isEmpty: Bool { activeLists.isEmpty && archivedLists.isEmpty }
@@ -104,7 +95,7 @@ struct ListManagementView: View {
                 }
                 Button("Cancel", role: .cancel) { confirmDeleteList = nil }
             } message: {
-                Text("Permanently delete \"\(confirmDeleteList?.name ?? "")\" and all its tasks?")
+                Text("Permanently delete \"\(confirmDeleteList?.cleanName ?? "")\" and all its tasks?")
             }
         }
         .onAppear {
@@ -129,9 +120,9 @@ struct ListManagementView: View {
                 .foregroundStyle(Color.white.opacity(0.9))
         }
 
-        // Leading — gear (no container, gradient glow). Only when >1 list.
-        ToolbarItem(placement: .navigationBarLeading) {
-            if !isEmpty && activeLists.count > 1 {
+        // Leading — gear (no container, gradient glow). Only when >0 lists.
+        if !activeLists.isEmpty {
+            ToolbarItem(placement: .navigationBarLeading) {
                 Button {
                     withAnimation(.spring(response: 0.28, dampingFraction: 0.65)) {
                         editMode = editMode == .active ? .inactive : .active
@@ -162,12 +153,9 @@ struct ListManagementView: View {
                             .animation(.spring(response: 0.25, dampingFraction: 0.60), value: editMode == .active)
                     }
                     .frame(width: 38, height: 38)
-                    // FIX: ensure no system background bleeds in
                     .background(Color.clear)
                 }
                 .buttonStyle(.plain)
-                .tint(.clear)
-                .background(Color.clear)
             }
         }
 
@@ -182,7 +170,7 @@ struct ListManagementView: View {
                         Image(systemName: "sparkles")
                             .font(.system(size: 10, weight: .black))
                             .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#060710") : .white)
-                        Text("AI")
+                        Text(vm.appLanguage == .arabic ? "ذكاء اصطناعي" : "AI")
                             .font(.system(size: 12, weight: .black))
                             .tracking(0.6)
                             .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#060710") : .white)
@@ -281,14 +269,21 @@ struct ListManagementView: View {
                         .offset(y: headerAppeared ? 0 : 12)
                         .animation(.spring(response: 0.55, dampingFraction: 0.78).delay(0.05), value: headerAppeared)
 
+                    Text("Active list would be default across widgets and the analysis.")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(Theme.text2)
+                        .opacity(headerAppeared ? 0.8 : 0)
+                        .padding(.top, -2)
+                        .animation(.spring(response: 0.55, dampingFraction: 0.78).delay(0.1), value: headerAppeared)
+
                     if !activeLists.isEmpty {
                         let total   = activeLists.reduce(0) { $0 + $1.tasks.count }
                         let done    = activeLists.reduce(0) { $0 + $1.tasks.filter { $0.isCompleted }.count }
                         let pending = total - done
                         HStack(spacing: 6) {
-                            if done > 0    { statPill(value: done,    label: "done",  color: Theme.success) }
-                            if pending > 0 { statPill(value: pending, label: "left",  color: Theme.accent)  }
-                            if total == 0  { statPill(value: 0,       label: "no tasks", color: Theme.text2) }
+                            if done > 0    { statPill(value: done,    label: vm.appLanguage == .arabic ? "تم" : (vm.appLanguage == .spanish ? "hecho" : "done"),  color: Theme.success) }
+                            if pending > 0 { statPill(value: pending, label: vm.appLanguage == .arabic ? "متبقي" : (vm.appLanguage == .spanish ? "restantes" : "left"),  color: Theme.accent)  }
+                            if total == 0  { statPill(value: 0,       label: vm.appLanguage == .arabic ? "لا مهام" : (vm.appLanguage == .spanish ? "sin tareas" : "no tasks"), color: Theme.text2) }
                         }
                         .opacity(headerAppeared ? 1 : 0)
                         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.14), value: headerAppeared)
@@ -343,7 +338,7 @@ struct ListManagementView: View {
                     startPoint: .top, endPoint: .bottom
                 ))
                 .contentTransition(.numericText())
-            Text(activeLists.count == 1 ? "list" : "lists")
+            Text(activeLists.count == 1 ? String(localized: "list") : String(localized: "lists"))
                 .font(.system(size: 10, weight: .semibold))
                 .tracking(0.5)
                 .foregroundColor(Theme.text2)
@@ -484,11 +479,11 @@ struct ListManagementView: View {
             .padding(.bottom, 24)
 
             VStack(spacing: 8) {
-                Text("Your canvas is empty")
+                Text(vm.appLanguage == .arabic ? "لوحتك فارغة" : (vm.appLanguage == .spanish ? "Tu lienzo está vacío" : "Your canvas is empty"))
                     .font(.system(size: 24, weight: .heavy, design: .rounded))
                     .foregroundColor(Theme.text0)
                     .multilineTextAlignment(.center)
-                Text("Let AI build your first list,\nor create one yourself.")
+                Text(vm.appLanguage == .arabic ? "دع الذكاء الاصطناعي يبني قائمتك الأولى،\nأو أنشئ واحدة بنفسك." : (vm.appLanguage == .spanish ? "Deja que la IA cree tu primera lista,\no crea una tú mismo." : "Let AI build your first list,\nor create one yourself."))
                     .font(.system(size: 14))
                     .foregroundColor(Theme.text2)
                     .multilineTextAlignment(.center)
@@ -510,15 +505,16 @@ struct ListManagementView: View {
                                 .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#060710") : .white)
                         }
                         VStack(alignment: .leading, spacing: 1) {
-                            Text("Generate with AI")
+                            Text(vm.appLanguage == .arabic ? "أنشئ بواسطة الذكاء الاصطناعي" : (vm.appLanguage == .spanish ? "Generar con IA" : "Generate with AI"))
                                 .font(.system(size: 15, weight: .bold))
                                 .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#060710") : .white)
-                            Text("Describe your goal, AI builds it")
+                            Text(vm.appLanguage == .arabic ? "صف هدفك، والذكاء الاصطناعي يبنيه" : (vm.appLanguage == .spanish ? "Describe tu objetivo, la IA lo crea" : "Describe your goal, AI builds it"))
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor((ThemeManager.shared.isDark ? Color(hex: "#060710") : Color.white).opacity(0.60))
                         }
                         Spacer()
                         Image(systemName: "arrow.right")
+                            .flipsForRightToLeftLayoutDirection(true)
                             .font(.system(size: 12, weight: .bold))
                             .foregroundColor((ThemeManager.shared.isDark ? Color(hex: "#060710") : Color.white).opacity(0.70))
                     }
@@ -552,7 +548,7 @@ struct ListManagementView: View {
                         Image(systemName: "pencil")
                             .font(.system(size: 14, weight: .bold))
                             .foregroundColor(Theme.text1)
-                        Text("Create manually")
+                        Text(vm.appLanguage == .arabic ? "أنشئ يدويًا" : (vm.appLanguage == .spanish ? "Crear manualmente" : "Create manually"))
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(Theme.text1)
                     }
@@ -611,7 +607,9 @@ private struct ObsidianListCard: View {
     let onArchive: () -> Void
     let onDelete: () -> Void
 
+    @EnvironmentObject var vm: AppViewModel
     @State private var progressAppeared = false
+    @State private var showRename = false
 
     private var completedCount: Int { list.tasks.filter(\.isCompleted).count }
     private var totalCount: Int      { list.tasks.count }
@@ -674,12 +672,12 @@ private struct ObsidianListCard: View {
 
                     VStack(alignment: .leading, spacing: 5) {
                         HStack(spacing: 6) {
-                            Text(list.name)
+                            Text(list.cleanName)
                                 .font(.system(size: 15.5, weight: .bold, design: .rounded))
                                 .foregroundColor(Theme.text0)
                                 .lineLimit(1)
                             if isActive {
-                                Text("ACTIVE")
+                                Text(vm.appLanguage == .arabic ? "نشط" : (vm.appLanguage == .spanish ? "ACTIVO" : "ACTIVE"))
                                     .font(.system(size: 7, weight: .black))
                                     .tracking(1.5)
                                     .foregroundColor(Theme.accent)
@@ -697,12 +695,12 @@ private struct ObsidianListCard: View {
 
                         Group {
                             if totalCount == 0 {
-                                Text("No tasks yet").font(.system(size: 11, weight: .medium)).foregroundColor(Theme.text2)
+                                Text(vm.appLanguage == .arabic ? "لا توجد مهام بعد" : (vm.appLanguage == .spanish ? "Sin tareas aún" : "No tasks yet")).font(.system(size: 11, weight: .medium)).foregroundColor(Theme.text2)
                             } else if completedCount == totalCount {
-                                Text("All \(totalCount) done 🎉").font(.system(size: 11, weight: .semibold)).foregroundColor(Theme.success)
+                                Text(vm.appLanguage == .arabic ? "كل الـ \(totalCount) تمت 🎉" : (vm.appLanguage == .spanish ? "¡Las \(totalCount) completadas! 🎉" : "All \(totalCount) done 🎉")).font(.system(size: 11, weight: .semibold)).foregroundColor(Theme.success)
                                     .transition(.scale.combined(with: .opacity))
                             } else {
-                                Text("\(completedCount) of \(totalCount) done").font(.system(size: 11, weight: .medium)).foregroundColor(Theme.text2)
+                                Text(vm.appLanguage == .arabic ? "\(completedCount) من \(totalCount) تمت" : (vm.appLanguage == .spanish ? "\(completedCount) de \(totalCount) hechas" : "\(completedCount) of \(totalCount) done")).font(.system(size: 11, weight: .medium)).foregroundColor(Theme.text2)
                             }
                         }
                         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: completedCount)
@@ -711,10 +709,12 @@ private struct ObsidianListCard: View {
                     Spacer(minLength: 0)
 
                     Menu {
+                        Button { showRename = true } label: { Label("Rename", systemImage: "pencil") }
+                            .accessibilityLabel("Rename \(list.name)")
                         Button(action: onArchive) { Label("Archive", systemImage: "archivebox") }
-                            .accessibilityLabel("Archive \(list.name)")  // ← add here
+                            .accessibilityLabel("Archive \(list.name)")
                         Button(role: .destructive, action: onDelete) { Label("Delete List", systemImage: "trash") }
-                            .accessibilityLabel("Delete \(list.name)")   // ← add here
+                            .accessibilityLabel("Delete \(list.name)")
                     } label: {
                         Image(systemName: "ellipsis")
                             .font(.system(size: 13, weight: .semibold))
@@ -743,8 +743,14 @@ private struct ObsidianListCard: View {
                 .tint(Color(hex: "#EF4444"))
         }
         .contextMenu {
+            Button { showRename = true } label: { Label("Rename", systemImage: "pencil") }
             Button(action: onArchive) { Label("Archive", systemImage: "archivebox") }
             Button(role: .destructive, action: onDelete) { Label("Delete", systemImage: "trash") }
+        }
+        .sheet(isPresented: $showRename) {
+            RenameListSheet(list: list) { newName, newEmoji in
+                vm.renameList(list, name: newName, emoji: newEmoji)
+            }
         }
     }
 
@@ -791,7 +797,7 @@ private struct ArchivedCard: View {
                     .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.border, lineWidth: 0.5)))
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(list.name).font(.system(size: 13, weight: .semibold)).foregroundColor(Theme.text1).lineLimit(1)
+                Text(list.cleanName).font(.system(size: 13, weight: .semibold)).foregroundColor(Theme.text1).lineLimit(1)
                 Text("\(list.tasks.count) task\(list.tasks.count == 1 ? "" : "s")").font(.system(size: 11)).foregroundColor(Theme.text2)
             }
             Spacer()
@@ -832,6 +838,7 @@ private struct ListScaleStyle: ButtonStyle {
 struct ListDetailView: View {
     let listID: UUID
     @EnvironmentObject var vm: AppViewModel
+    @Environment(\.undoManager) var undoManager
 
     @State private var showAdd      = false
     @State private var showSmartAdd = false
@@ -846,11 +853,30 @@ struct ListDetailView: View {
                 if list.tasks.isEmpty { emptyState } else { taskList(list: list) }
             }
         }
-        .navigationTitle(list.map { "\($0.emoji) \($0.name)" } ?? "")
+        .navigationTitle(list.map { "\($0.emoji) \($0.cleanName)" } ?? "")
         .navigationBarTitleDisplayMode(.large)
         .toolbarBackground(Theme.bg0, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbar {
+            ToolbarItemGroup(placement: .navigationBarLeading) {
+                Button {
+                    undoManager?.undo()
+                } label: {
+                    Image(systemName: "arrow.uturn.backward")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(undoManager?.canUndo == true ? Theme.accent : Theme.text2.opacity(0.35))
+                }
+                .disabled(undoManager?.canUndo != true)
+
+                Button {
+                    undoManager?.redo()
+                } label: {
+                    Image(systemName: "arrow.uturn.forward")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(undoManager?.canRedo == true ? Theme.accent : Theme.text2.opacity(0.35))
+                }
+                .disabled(undoManager?.canRedo != true)
+            }
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 if let list, !list.tasks.isEmpty {
                     EditButton().foregroundColor(Theme.accent).fontWeight(.semibold)
@@ -915,7 +941,7 @@ struct ListDetailView: View {
     private func taskList(list: TaskList) -> some View {
         List {
             ForEach(list.tasks) { task in
-                TaskDetailRow(task: task, onDelete: { vm.deleteTask(task, from: listID) })
+                TaskDetailRow(task: task, onDelete: { vm.deleteTask(task, from: listID, undoManager: undoManager) })
                     .contentShape(Rectangle())
                     .onTapGesture { editing = task }
                     .listRowInsets(EdgeInsets(top: 5, leading: 16, bottom: 5, trailing: 16))
@@ -928,9 +954,9 @@ struct ListDetailView: View {
                     .listRowSeparator(.hidden)
             }
             .onDelete { offsets in
-                for idx in offsets.sorted().reversed() { vm.deleteTask(list.tasks[idx], from: listID) }
+                for idx in offsets.sorted().reversed() { vm.deleteTask(list.tasks[idx], from: listID, undoManager: undoManager) }
             }
-            .onMove { vm.moveTasks(in: listID, from: $0, to: $1) }
+            .onMove { vm.moveTasks(in: listID, from: $0, to: $1, undoManager: undoManager) }
         }
         .listRowSpacing(8)
         .listStyle(.insetGrouped)
@@ -943,6 +969,7 @@ struct ListDetailView: View {
 private struct TaskDetailRow: View {
     let task: SortydTask
     var onDelete: (() -> Void)? = nil
+    @StateObject private var hk = HealthKitManager.shared
 
     var body: some View {
         HStack(spacing: 12) {
@@ -953,35 +980,47 @@ private struct TaskDetailRow: View {
                         Image(systemName: ht.icon).font(.system(size: 9.5, weight: .semibold))
                             .foregroundColor(Color(hex: ht.accentColor))
                             .padding(.horizontal, 5).padding(.vertical, 2)
-                            .background(Capsule().fill(Color(hex: ht.accentColor).opacity(0.10)))
+                            .background(Capsule().fill(Color(hex: ht.accentColor).opacity(0.12)))
                     }
                 }
-                Group {
+                HStack(spacing: 8) {
                     if let t = task.reminderTime {
-                        HStack(spacing: 4) {
-                            Image(systemName: "bell.fill").font(.system(size: 9.5)).foregroundColor(Theme.accent)
+                        HStack(spacing: 3) {
+                            Image(systemName: "bell.fill").font(.system(size: 7))
+                                .foregroundColor(Color(hex: "#00E5FF"))
                             Text(task.reminderIsOneTime ? kOneTimeDateFormatter.string(from: t) : kTimeFormatter.string(from: t))
-                                .font(.system(size: 11)).foregroundColor(Theme.text2)
+                                .font(.system(size: 9, weight: .bold)).foregroundColor(Color(hex: "#00E5FF"))
                         }
-                    } else if task.isHealthTask, let target = task.healthTarget,
+                    }
+                    
+                    if task.isHealthTask, let target = task.healthTarget,
                               let htStr = task.healthType, let ht = HealthTaskType(rawValue: htStr) {
-                        Text("Goal: \(Int(target)) \(ht.label.lowercased())").font(.system(size: 11)).foregroundColor(Color(hex: ht.accentColor))
-                    } else {
-                        Text("No reminder").font(.system(size: 11)).foregroundColor(Theme.text2)
+                        Text("\(ht == .distance ? String(format: "%.1f", hk.currentValue(for: ht)) : String(format: "%.0f", hk.currentValue(for: ht))) / \(Int(target)) \(ht.label.lowercased())")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(Color(hex: ht.accentColor))
+                    } else if task.reminderTime == nil {
+                        Text("No reminder").font(.system(size: 9, weight: .bold)).foregroundColor(Theme.text2)
                     }
                 }
                 .animation(.spring(response: 0.3, dampingFraction: 0.7), value: task.reminderTime)
             }
+            
             Spacer()
+            
+            Image(systemName: "pencil")
+                .font(.system(size: 14))
+                .foregroundColor(Theme.text2.opacity(0.4)) // Lighter color
+            
             if let del = onDelete {
                 Button(action: del) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 17))
-                        .foregroundColor(Theme.text2.opacity(0.55))
+                    Image(systemName: "xmark")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(Theme.text2.opacity(0.6))
+                        .frame(width: 22, height: 22)
+                        .background(Circle().fill(Theme.bg3.opacity(0.5)))
                 }
                 .buttonStyle(.plain)
             }
-            Image(systemName: "pencil").font(.system(size: 14)).foregroundColor(Theme.text2.opacity(0.90))
         }
         .padding(.vertical, 10)
     }
@@ -1011,11 +1050,22 @@ struct AddListSheet: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: Theme.s20) {
                         sheetLabel("LIST NAME")
-                        TextField("e.g. Morning Routine", text: $name)
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(Theme.text0)
-                            .padding(Theme.s16)
-                            .background(fieldBG(Theme.r12))
+                        HStack(spacing: 12) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .fill(Theme.bg2)
+                                    .frame(width: 44, height: 44)
+                                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                        .strokeBorder(Theme.border, lineWidth: 0.5))
+                                Text(emoji).font(.system(size: 20))
+                            }
+                            
+                            TextField("e.g. Morning Routine", text: $name)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(Theme.text0)
+                        }
+                        .padding(Theme.s12)
+                        .background(fieldBG(Theme.r12))
                             // FIX: user must tap to open keyboard — no auto-focus
 
                         sheetLabel("ICON")
@@ -1091,6 +1141,109 @@ struct AddListSheet: View {
 }
 
 // ══════════════════════════════════════════════
+// MARK: RenameListSheet
+// ══════════════════════════════════════════════
+
+struct RenameListSheet: View {
+    let list: TaskList
+    let onSave: (String, String) -> Void
+    @Environment(\.dismiss) var dismiss
+
+    @State private var name: String
+    @State private var emoji: String
+
+    private let emojis = ["📋","💪","🧠","🎯","📚","💼","🌿","🎨","🏃","🍎",
+                          "💤","🧘","✈️","🎵","💡","🔥","⚡","🏋️","📖","🎤",
+                          "🧪","🌍","💰","🧹","🛒","🧴","🐾","☕","🎮","🏠",
+                          "🤝","📸","🚴","🥗","🧃","🛌","📝","🚀","🌙","⭐",
+                          "🤰​","🏄‍♂️​"]
+
+    init(list: TaskList, onSave: @escaping (String, String) -> Void) {
+        self.list   = list
+        self.onSave = onSave
+        _name  = State(initialValue: list.name)
+        _emoji = State(initialValue: list.emoji)
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: Theme.s20) {
+                        sheetLabel("LIST NAME")
+                        HStack(spacing: 12) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .fill(Theme.bg2)
+                                    .frame(width: 44, height: 44)
+                                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                        .strokeBorder(Theme.border, lineWidth: 0.5))
+                                Text(emoji).font(.system(size: 20))
+                            }
+                            
+                            TextField("List name", text: $name)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(Theme.text0)
+                        }
+                        .padding(Theme.s12)
+                        .background(fieldBG(Theme.r12))
+
+                        sheetLabel("ICON")
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 6), spacing: 8) {
+                            ForEach(emojis, id: \.self) { e in
+                                Button { emoji = e } label: {
+                                    Text(e).font(.system(size: 22))
+                                        .frame(maxWidth: .infinity).aspectRatio(1, contentMode: .fit)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                                .fill(emoji == e ? Theme.accent.opacity(0.14) : Theme.bg2)
+                                                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                                    .strokeBorder(emoji == e ? Theme.accent.opacity(0.50) : Theme.border, lineWidth: 0.5))
+                                        )
+                                        .scaleEffect(emoji == e ? 1.08 : 1.0)
+                                        .animation(.spring(response: 0.2, dampingFraction: 0.6), value: emoji == e)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, Theme.s20).padding(.top, Theme.s20).padding(.bottom, 100)
+                }
+            }
+            .background(Theme.bg0)
+            .navigationTitle("Rename List").navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Theme.bg0, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { dismiss() }.foregroundColor(Theme.text1)
+                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                Button {
+                    let n = name.trimmingCharacters(in: .whitespaces)
+                    guard !n.isEmpty else { return }
+                    onSave(n, emoji); dismiss()
+                } label: {
+                    Text("Save")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
+                        .frame(maxWidth: .infinity).padding(.vertical, 16)
+                        .background(RoundedRectangle(cornerRadius: Theme.r16, style: .continuous)
+                            .fill(name.trimmingCharacters(in: .whitespaces).isEmpty ? Theme.text2 : Theme.accent))
+                }
+                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+                .buttonStyle(ListScaleStyle())
+                .padding(.horizontal, Theme.s20).padding(.vertical, 12)
+                .background(Theme.bg0)
+            }
+        }
+        .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+        .presentationCornerRadius(Theme.r32).presentationBackground(Theme.bg0)
+    }
+}
+
+// ══════════════════════════════════════════════
 // MARK: AddTaskSheet
 // ══════════════════════════════════════════════
 
@@ -1110,6 +1263,9 @@ struct AddTaskSheet: View {
     @State private var healthTargetText    = ""
     @State private var showHealthPermSheet = false
     @State private var lastDetectedType: HealthTaskType = .none
+    @State private var conflictHealthType: HealthTaskType? = nil
+    @State private var showConflictToast   = false
+    @State private var manualTypeSet       = false
 
     private var healthTarget: Double? {
         guard detectedHealthType != .none, let v = Double(healthTargetText), v > 0 else { return nil }
@@ -1143,6 +1299,25 @@ struct AddTaskSheet: View {
                         }
                         .padding(Theme.s16).background(fieldBG(Theme.r12))
 
+                        VStack(alignment: .leading, spacing: 10) {
+                            sheetLabel("TASK TYPE")
+                            VStack(spacing: 8) {
+                                HStack(spacing: 8) {
+                                    typePill(type: .none, label: vm.localized("Regular"))
+                                    typePill(type: .steps, label: vm.localized("Steps"))
+                                }
+                                HStack(spacing: 8) {
+                                    typePill(type: .calories, label: vm.localized("Calories"))
+                                    typePill(type: .distance, label: vm.localized("Distance"))
+                                }
+                            }
+                            Text(vm.localized("Only one task from step count, calorie count or distance measure is allowed."))
+                                .font(.system(size: 9, weight: .bold)) // Standardized to 9pt bold
+                                .foregroundColor(Theme.text2)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.top, 2)
+                        }
+
                         if let t = reminderTime {
                             ReminderBanner(time: t, isOneTime: reminderIsOneTime) { reminderTime = nil; reminderIsOneTime = false }
                                 .transition(.move(edge: .top).combined(with: .opacity))
@@ -1153,6 +1328,10 @@ struct AddTaskSheet: View {
                             .sheet(isPresented: $showHealthPermSheet) {
                                 HealthPermissionSheet(taskType: detectedHealthType, onGrant: {}, onSkip: {})
                             }
+                        }
+                        if showConflictToast, let ct = conflictHealthType {
+                            HealthConflictToast(type: ct, isVisible: $showConflictToast)
+                                .transition(.move(edge: .top).combined(with: .opacity))
                         }
                         Spacer(minLength: 16)
                     }
@@ -1195,6 +1374,7 @@ struct AddTaskSheet: View {
     }
 
     private func detectHealth(from text: String) {
+        if manualTypeSet { return }
         let detected = HealthTaskType.detect(from: text)
         withAnimation { detectedHealthType = detected }
         if detected != .none && detected != lastDetectedType && !hk.isAuthorized {
@@ -1202,6 +1382,58 @@ struct AddTaskSheet: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { if detectedHealthType != .none { showHealthPermSheet = true } }
         }
         if detected == .none { lastDetectedType = .none }
+    }
+
+    @ViewBuilder
+    private func typePill(type: HealthTaskType, label: String) -> some View {
+        let isSelected = detectedHealthType == type
+        let isBlocked  = type != .none && vm.duplicateHealthType(type.rawValue, in: listID) != nil
+        let accent: Color = {
+            switch type {
+            case .none:     return Color(hex: "#FFC107")
+            case .steps:    return Color(hex: "#4FC3F7")
+            case .calories: return Color(hex: "#FF7043")
+            case .distance: return Color(hex: "#2E7D32")
+            }
+        }()
+
+        Button {
+            if isBlocked {
+                conflictHealthType = type
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                    showConflictToast = true
+                }
+                return
+            }
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                detectedHealthType = type
+                manualTypeSet = true
+            }
+        } label: {
+            HStack(spacing: 6) {
+                if type != .none {
+                    Image(systemName: type.icon)
+                        .font(.system(size: 11, weight: .bold))
+                }
+                Text(label)
+                    .font(.system(size: 12, weight: .bold))
+            }
+            .frame(maxWidth: .infinity)
+            .foregroundColor(isSelected ? .white : (isBlocked ? Theme.text2.opacity(0.25) : Theme.text1))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(
+                Capsule()
+                    .fill(isSelected ? accent : (isBlocked ? Theme.bg2.opacity(0.3) : Theme.bg2))
+                    .overlay(
+                        Capsule()
+                            .strokeBorder(isSelected ? Color.white.opacity(0.2) : (isBlocked ? Color.clear : Theme.border), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(isBlocked || isSaving)
+        .opacity(isBlocked ? 0.5 : 1.0)
     }
 
     private var reminderDefault: Date {
@@ -1214,6 +1446,18 @@ struct AddTaskSheet: View {
     private func confirmAdd() {
         let t = title.trimmingCharacters(in: .whitespaces); guard !t.isEmpty else { return }
         let htString = detectedHealthType != .none ? detectedHealthType.rawValue : nil
+
+        // Block if a health task of the same type already exists in this list
+        if let conflict = vm.duplicateHealthType(htString, in: listID) {
+            conflictHealthType = conflict
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                showConflictToast = true
+            }
+            let gen = UINotificationFeedbackGenerator()
+            gen.notificationOccurred(.warning)
+            return
+        }
+
         if let time = reminderTime {
             isSaving = true
             Task {
@@ -1246,6 +1490,7 @@ struct EditTaskSheet: View {
     @State private var title: String
     @State private var reminderTime: Date?
     @State private var reminderIsOneTime: Bool
+    @State private var healthTargetText: String
     @State private var showTimePicker  = false
     @State private var showDeniedAlert = false
     @State private var isSaving        = false
@@ -1255,6 +1500,7 @@ struct EditTaskSheet: View {
         _title             = State(initialValue: task.title)
         _reminderTime      = State(initialValue: task.reminderTime)
         _reminderIsOneTime = State(initialValue: task.reminderIsOneTime)
+        _healthTargetText  = State(initialValue: task.healthTarget.map { String(Int($0)) } ?? "")
     }
 
     var body: some View {
@@ -1285,16 +1531,22 @@ struct EditTaskSheet: View {
                             .transition(.move(edge: .top).combined(with: .opacity))
                     }
                     if task.isHealthTask, let htStr = task.healthType, let ht = HealthTaskType(rawValue: htStr) {
-                        HStack(spacing: 7) {
-                            Image(systemName: ht.icon).font(.system(size: 11)).foregroundColor(Color(hex: ht.accentColor))
-                            Text(task.healthTarget.map { "Goal: \(Int($0)) \(ht.label.lowercased())" } ?? "Health goal")
-                                .font(.system(size: 12)).foregroundColor(Color(hex: ht.accentColor))
+                        VStack(alignment: .leading, spacing: 6) {
+                            sheetLabel("HEALTH GOAL")
+                            HStack(spacing: 8) {
+                                Image(systemName: ht.icon).font(.system(size: 13)).foregroundColor(Color(hex: ht.accentColor))
+                                TextField(ht.placeholder, text: $healthTargetText)
+                                    .keyboardType(.numberPad)
+                                    .font(.system(size: 15, weight: .medium)).foregroundColor(Theme.text0)
+                                Text(ht.label.lowercased())
+                                    .font(.system(size: 13)).foregroundColor(Theme.text2)
+                            }
+                            .padding(11)
+                            .background(RoundedRectangle(cornerRadius: Theme.r12, style: .continuous)
+                                .fill(Color(hex: ht.accentColor).opacity(0.07))
+                                .overlay(RoundedRectangle(cornerRadius: Theme.r12, style: .continuous)
+                                    .strokeBorder(Color(hex: ht.accentColor).opacity(0.25), lineWidth: 0.5)))
                         }
-                        .padding(11)
-                        .background(RoundedRectangle(cornerRadius: Theme.r12, style: .continuous)
-                            .fill(Color(hex: ht.accentColor).opacity(0.07))
-                            .overlay(RoundedRectangle(cornerRadius: Theme.r12, style: .continuous)
-                                .strokeBorder(Color(hex: ht.accentColor).opacity(0.18), lineWidth: 0.5)))
                     }
                     Spacer()
                 }
@@ -1338,6 +1590,10 @@ struct EditTaskSheet: View {
     private func confirmSave() {
         let t = title.trimmingCharacters(in: .whitespaces); guard !t.isEmpty else { return }
         vm.updateTaskTitle(task, in: listID, newTitle: t)
+        if task.isHealthTask {
+            let newTarget = Double(healthTargetText.trimmingCharacters(in: .whitespaces))
+            vm.updateHealthTarget(task, in: listID, target: newTarget)
+        }
         if let time = reminderTime {
             isSaving = true
             Task {
@@ -1505,7 +1761,10 @@ private struct ReminderBanner: View {
 
     var body: some View {
         HStack(spacing: 7) {
-            Image(systemName: "bell.fill").foregroundColor(Theme.accent).font(.system(size: 11))
+            Image(systemName: "bell.fill")
+                .foregroundColor(Color(hex: "#2196F3"))
+                .font(.system(size: 11))
+                .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
             Text(label).font(.system(size: 12)).foregroundColor(Theme.text1)
             Spacer()
             Button(action: onClear) { Image(systemName: "xmark.circle.fill").font(.system(size: 14)).foregroundColor(Theme.text2) }

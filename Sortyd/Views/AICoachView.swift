@@ -6,6 +6,7 @@
 
 import SwiftUI
 import Firebase
+import FirebaseAnalytics
 // MARK: ── Root View ─────────────────────────────────────────────────────────
 
 struct AICoachView: View {
@@ -91,11 +92,11 @@ struct AICoachView: View {
     private var header: some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("AI COACH")
+                Text(vm.appLanguage == .arabic ? "مدرب الذكاء الاصطناعي" : (vm.appLanguage == .spanish ? "ENTRENADOR IA" : "AI COACH"))
                     .font(.system(size: 9, weight: .black))
                     .tracking(2.5)
                     .foregroundColor(Theme.accent)
-                Text("Habit Analysis")
+                Text(vm.appLanguage == .arabic ? "تحليل العادات" : (vm.appLanguage == .spanish ? "Análisis de hábitos" : "Habit Analysis"))
                     .font(.system(size: 24, weight: .heavy, design: .rounded))
                     .foregroundColor(Theme.text0)
             }
@@ -194,7 +195,7 @@ struct AICoachView: View {
                     }) {
                         HStack(spacing: 5) {
                             Text(list.emoji).font(.system(size: 12))
-                            Text(list.name)
+                            Text(list.cleanName)
                                 .font(.system(size: 12, weight: isSelected ? .bold : .medium))
                                 .foregroundColor(isSelected ? Theme.accent : Theme.text1)
                         }
@@ -227,10 +228,10 @@ struct AICoachView: View {
             Text("🧠")
                 .font(.system(size: 36))
             VStack(spacing: 5) {
-                Text("No lists yet")
+                Text(vm.appLanguage == .arabic ? "لا توجد قوائم بعد" : (vm.appLanguage == .spanish ? "No hay listas aún" : "No lists yet"))
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(Theme.text0)
-                Text("Add tasks to unlock analysis.")
+                Text(vm.appLanguage == .arabic ? "أضف مهام لفتح التحليل." : (vm.appLanguage == .spanish ? "Añade tareas para desbloquear el análisis." : "Add tasks to unlock analysis."))
                     .font(.system(size: 13))
                     .foregroundColor(Theme.text2)
             }
@@ -243,43 +244,42 @@ struct AICoachView: View {
     
     private var failedView: some View {
         let message = AICoach.shared.errorMessage
-        let isRateLimit = message?.contains("wait") == true
-        let isOffline   = message?.contains("internet") == true
-        
+        let isQuotaHit = message?.contains("limit") == true || message?.contains("Resets") == true
+        let isOffline  = message?.contains("internet") == true
+
         return VStack(spacing: 16) {
             ZStack {
                 Circle()
                     .fill((isOffline ? Theme.danger : Theme.accent).opacity(0.08))
                     .frame(width: 60, height: 60)
-                Image(systemName: isOffline ? "wifi.slash" : isRateLimit ? "clock.badge.exclamationmark" : "exclamationmark.triangle")
+                Image(systemName: isOffline ? "wifi.slash" : isQuotaHit ? "clock.badge.exclamationmark" : "exclamationmark.triangle")
                     .font(.system(size: 22, weight: .medium))
                     .foregroundColor(isOffline ? Theme.danger : Theme.accent)
             }
-            
+
             VStack(spacing: 4) {
-                Text(isRateLimit ? "Slow down" : isOffline ? "No connection" : "Analysis failed")
+                Text(isQuotaHit ? vm.localized("Daily limit reached") : isOffline ? vm.localized("No connection") : vm.localized("Analysis failed"))
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(Theme.text0)
-                Text(message ?? "Something went wrong. Try again.")
+                Text(message ?? vm.localized("Something went wrong. Tap retry to try again."))
                     .font(.system(size: 13))
                     .foregroundColor(Theme.text2)
                     .multilineTextAlignment(.center)
             }
-            
-            if !isRateLimit {
-                Button(action: {
-                    guard let list = selectedList else { return }
-                    Task { await runAnalysis(for: list) }
-                }) {
-                    Text("Retry")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundColor(Theme.bg0)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 10)
-                        .background(Capsule().fill(Theme.accent))
-                }
-                .buttonStyle(CoachScaleStyle())
+
+            Button(action: {
+                guard let list = selectedList else { return }
+                Task { await runAnalysis(for: list) }
+            }) {
+                Text(vm.appLanguage == .arabic ? "إعادة المحاولة" : (vm.appLanguage == .spanish ? "Reintentar" : "Retry"))
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(Theme.bg0)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 10)
+                    .background(Capsule().fill(isQuotaHit ? Theme.text2 : Theme.accent))
             }
+            .buttonStyle(CoachScaleStyle())
+            // Always allow retry — transient issues or user desire to check again
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 40)
@@ -348,10 +348,10 @@ struct AICoachView: View {
         let total       = analysis.pillars.count
         
         return HStack(spacing: 8) {
-            pillStat(value: "\(strongCount)", label: "Strong",    color: Theme.success)
-            pillStat(value: "\(weakCount)",   label: weakCount == 0 ? "All good" : "Need work",
+            pillStat(value: "\(strongCount)", label: vm.appLanguage == .arabic ? "قوي" : (vm.appLanguage == .spanish ? "Fuerte" : "Strong"),    color: Theme.success)
+            pillStat(value: "\(weakCount)",   label: weakCount == 0 ? (vm.appLanguage == .arabic ? "الكل بخير" : (vm.appLanguage == .spanish ? "Todo bien" : "All good")) : (vm.appLanguage == .arabic ? "يحتاج عمل" : (vm.appLanguage == .spanish ? "Necesita trabajo" : "Need work")),
                      color: weakCount == 0 ? Theme.success : Theme.warning)
-            pillStat(value: "\(total)",       label: "Pillars",   color: Theme.text1)
+            pillStat(value: "\(total)",       label: vm.appLanguage == .arabic ? "أركان" : (vm.appLanguage == .spanish ? "Pilares" : "Pillars"),   color: Theme.text1)
         }
     }
     
@@ -360,7 +360,7 @@ struct AICoachView: View {
             Text(value)
                 .font(.system(size: 20, weight: .heavy, design: .rounded))
                 .foregroundColor(color)
-            Text(label)
+            Text(vm.localized(label))
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundColor(Theme.text2)
         }
@@ -427,6 +427,7 @@ struct AICoachView: View {
 // MARK: ── Weekly Grade Banner ────────────────────────────────────────────────
 
 struct WeeklyGradeBanner: View {
+    @EnvironmentObject var vm: AppViewModel
     let recap: WeeklyRecap
     @State private var showNudge = false
 
@@ -445,7 +446,7 @@ struct WeeklyGradeBanner: View {
                 Text(recap.grade)
                     .font(.system(size: 30, weight: .black, design: .rounded))
                     .foregroundColor(gradeColor)
-                Text("WEEK")
+                Text(vm.appLanguage == .arabic ? "أسبوع" : (vm.appLanguage == .spanish ? "SEMANA" : "WEEK"))
                     .font(.system(size: 7, weight: .black))
                     .tracking(1.8)
                     .foregroundColor(gradeColor.opacity(0.45))
@@ -508,6 +509,7 @@ struct WeeklyGradeBanner: View {
 // MARK: ── Bracket Card ───────────────────────────────────────────────────────
 
 struct BracketCard: View {
+    @EnvironmentObject var vm: AppViewModel
     let pillar: BehaviouralPillar
     let rank: Int
     let totalCount: Int
@@ -563,7 +565,7 @@ struct BracketCard: View {
                                     .font(.system(size: 14, weight: .bold))
                                     .foregroundColor(Theme.text0)
                                 if isCritical {
-                                    Text("FOCUS")
+                                    Text(vm.appLanguage == .arabic ? "تركيز" : (vm.appLanguage == .spanish ? "ENFOQUE" : "FOCUS"))
                                         .font(.system(size: 7, weight: .black))
                                         .tracking(0.8)
                                         .foregroundColor(Theme.warning)
@@ -623,7 +625,7 @@ struct BracketCard: View {
                         DrillSection(
                             icon: "eye.fill",
                             iconColor: scoreColor,
-                            title: "What's happening",
+                            title: vm.appLanguage == .arabic ? "ماذا يحدث" : (vm.appLanguage == .spanish ? "Qué está pasando" : "What's happening"),
                             bullets: insightBullets
                         )
 
@@ -634,7 +636,7 @@ struct BracketCard: View {
                         DrillSection(
                             icon: "arrow.right.circle.fill",
                             iconColor: Theme.accent,
-                            title: "Next steps",
+                            title: vm.appLanguage == .arabic ? "الخطوات التالية" : (vm.appLanguage == .spanish ? "Próximos pasos" : "Next steps"),
                             bullets: adviceBullets,
                             bulletStyle: .fix
                         )
@@ -720,34 +722,75 @@ struct DrillSection: View {
 
             VStack(alignment: .leading, spacing: 7) {
                 ForEach(Array(bullets.enumerated()), id: \.offset) { _, bullet in
-                    HStack(alignment: .top, spacing: 8) {
-                        Image(systemName: bulletStyle == .fix ? "arrow.right" : "minus")
-                            .font(.system(size: 8, weight: .bold))
-                            .foregroundColor(iconColor.opacity(0.6))
-                            .frame(width: 14)
-                            .padding(.top, 2.5)
-
-                        Text(bullet)
-                            .font(.system(size: 12.5))
-                            .foregroundColor(Theme.text1)
-                            .lineSpacing(2.5)
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
+                    ExpandableBulletRow(
+                        bullet: bullet,
+                        bulletStyle: bulletStyle,
+                        iconColor: iconColor
+                    )
                 }
             }
         }
     }
 }
 
+// MARK: ── Expandable Bullet Row ───────────────────────────────────────────────
+
+private struct ExpandableBulletRow: View {
+    let bullet: String
+    let bulletStyle: BulletStyle
+    let iconColor: Color
+
+    @State private var isExpanded = false
+
+    private var isTruncatable: Bool { bullet.count > 60 }
+
+    var body: some View {
+        Button(action: {
+            guard isTruncatable else { return }
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                isExpanded.toggle()
+            }
+        }) {
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: bulletStyle == .fix ? "arrow.right" : "minus")
+                    .flipsForRightToLeftLayoutDirection(true)
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundColor(iconColor.opacity(0.6))
+                    .frame(width: 14)
+                    .padding(.top, 2.5)
+
+                Text(bullet)
+                    .font(.system(size: 12.5))
+                    .foregroundColor(Theme.text1)
+                    .lineSpacing(2.5)
+                    .lineLimit(isExpanded ? nil : 2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isExpanded)
+
+                Spacer(minLength: 0)
+
+                if isTruncatable {
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundColor(Theme.text2.opacity(0.5))
+                        .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                        .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isExpanded)
+                        .padding(.top, 3)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
 // MARK: ── Overall Insight Banner ─────────────────────────────────────────────
 
 struct OverallInsightBanner: View {
+    @EnvironmentObject var vm: AppViewModel
     let text: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("OVERALL PATTERN")
+            Text(vm.appLanguage == .arabic ? "النمط العام" : (vm.appLanguage == .spanish ? "PATRÓN GENERAL" : "OVERALL PATTERN"))
                 .font(.system(size: 8.5, weight: .bold))
                 .tracking(1.4)
                 .foregroundColor(Theme.text2)
@@ -774,6 +817,7 @@ struct OverallInsightBanner: View {
 // MARK: ── Skipped Tasks Section ──────────────────────────────────────────────
 
 struct SkippedTasksSection: View {
+    @EnvironmentObject var vm: AppViewModel
     let flags: [ProcrastinationFlag]
     let onDismiss: (ProcrastinationFlag) -> Void
     @State private var isExpanded = false
@@ -788,7 +832,7 @@ struct SkippedTasksSection: View {
                         Image(systemName: "exclamationmark")
                             .font(.system(size: 10, weight: .black))
                             .foregroundColor(Theme.warning)
-                        Text("SKIPPED")
+                        Text(vm.appLanguage == .arabic ? "متخطى" : (vm.appLanguage == .spanish ? "SALTADO" : "SKIPPED"))
                             .font(.system(size: 10, weight: .bold))
                             .tracking(1.4)
                             .foregroundColor(Theme.text1)
@@ -939,7 +983,111 @@ private struct CoachScaleStyle: ButtonStyle {
 
 private struct AboutPrivacySheet: View {
     @Environment(\.dismiss) var dismiss
-    private let privacyURL = URL(string: "https://www.sortyd.com/privacy")!
+    @EnvironmentObject var vm: AppViewModel
+    private var privacyURL: URL {
+        switch currentLanguage {
+        case .spanish: return URL(string: "https://www.sortyd.com/es/privacy")!
+        case .arabic:  return URL(string: "https://www.sortyd.com/ar/privacy")!
+        default:       return URL(string: "https://www.sortyd.com/privacy")!
+        }
+    }
+
+
+    @State private var localLanguage: AppLanguage?
+
+    private var currentLanguage: AppLanguage {
+        localLanguage ?? vm.appLanguage
+    }
+
+    private var languageToggles: some View {
+        HStack(spacing: 12) {
+            ForEach(AppLanguage.allCases, id: \.self) { lang in
+                let isSelected = currentLanguage == lang
+                Button(action: {
+                    withAnimation {
+                        localLanguage = lang
+                    }
+                }) {
+                    Text(lang.rawValue.uppercased())
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(isSelected ? Theme.bg0 : Theme.text1)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(
+                            Capsule()
+                                .fill(isSelected ? Theme.accent : Theme.bg1)
+                        )
+                        .overlay(
+                            Capsule().strokeBorder(Theme.border, lineWidth: isSelected ? 0 : 0.5)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+    }
+
+    private func localizedText(_ key: String) -> String {
+        let strings: [String: [AppLanguage: String]] = [
+            "AI Coaching": [
+                .english: "AI Coaching",
+                .spanish: "Coaching por IA",
+                .arabic: "توجيه الذكاء الاصطناعي"
+            ],
+            "AI_Coaching_Desc": [
+                .english: "AI-powered analysis of your habit data. Task titles and completion rates are sent to generate insights.",
+                .spanish: "Análisis impulsado por IA de tus datos de hábitos. Se envían los títulos de las tareas y las tasas de finalización para generar información.",
+                .arabic: "تحليل مدعوم بالذكاء الاصطناعي لبيانات عاداتك. يتم إرسال عناوين المهام ومعدلات الإنجاز لتوليد رؤى."
+            ],
+            "Privacy": [
+                .english: "Privacy",
+                .spanish: "Privacidad",
+                .arabic: "الخصوصية"
+            ],
+            "Privacy_Desc": [
+                .english: "Your data is never sold or shared for advertising. Health data stays on your device.",
+                .spanish: "Tus datos nunca se venden ni se comparten para publicidad. Los datos de salud permanecen en tu dispositivo.",
+                .arabic: "لا يتم بيع بياناتك أو مشاركتها للإعلانات. تبقى بيانات الصحة على جهازك."
+            ],
+            "Apple Health": [
+                .english: "Apple Health",
+                .spanish: "Apple Health",
+                .arabic: "Apple Health"
+            ],
+            "Apple_Health_Desc": [
+                .english: "Reads step count and active calories only. Sortyd never writes to Health.",
+                .spanish: "Lee solo el recuento de pasos y las calorías activas. Sortyd nunca escribe en Salud.",
+                .arabic: "يقرأ عدد الخطوات والسعرات الحرارية النشطة فقط. لا يكتب تطبيق Sortyd أبدًا إلى تطبيق الصحة."
+            ],
+            "Notifications": [
+                .english: "Notifications",
+                .spanish: "Notificaciones",
+                .arabic: "الإشعارات"
+            ],
+            "Notifications_Desc": [
+                .english: "Reminders are scheduled locally. Permission requested on first reminder only.",
+                .spanish: "Los recordatorios se programan localmente. El permiso se solicita solo en el primer recordatorio.",
+                .arabic: "تتم جدولة التذكيرات محليًا. يُطلب الإذن عند أول تذكير فقط."
+            ],
+            "Privacy Policy": [
+                .english: "Privacy Policy",
+                .spanish: "Política de privacidad",
+                .arabic: "سياسة الخصوصية"
+            ],
+            "About & Privacy": [
+                .english: "About & Privacy",
+                .spanish: "Acerca de y Privacidad",
+                .arabic: "حول والخصوصية"
+            ],
+            "Done": [
+                .english: "Done",
+                .spanish: "Hecho",
+                .arabic: "تم"
+            ]
+        ]
+        return strings[key]?[currentLanguage] ?? key
+    }
 
     var body: some View {
         NavigationStack {
@@ -947,21 +1095,25 @@ private struct AboutPrivacySheet: View {
                 Theme.bg0.ignoresSafeArea()
                 ScrollView {
                     VStack(alignment: .leading, spacing: 10) {
-                        infoSection(icon: "brain.head.profile", title: "AI Coaching",
-                                    text: "Groq-powered analysis of your habit data. Task titles and completion rates are sent to generate insights.")
-                        infoSection(icon: "lock.shield.fill", title: "Privacy",
-                                    text: "Your data is never sold or shared for advertising. Health data stays on your device.")
-                        infoSection(icon: "heart.fill", title: "Apple Health",
-                                    text: "Reads step count and active calories only. Sortyd never writes to Health.")
-                        infoSection(icon: "bell.fill", title: "Notifications",
-                                    text: "Reminders are scheduled locally. Permission requested on first reminder only.")
+                        languageToggles
+
+                        infoSection(icon: "brain.head.profile", title: localizedText("AI Coaching"),
+                                    text: localizedText("AI_Coaching_Desc"))
+                        infoSection(icon: "lock.shield.fill", title: localizedText("Privacy"),
+                                    text: localizedText("Privacy_Desc"))
+                        infoSection(icon: "heart.fill", title: localizedText("Apple Health"),
+                                    text: localizedText("Apple_Health_Desc"))
+                        infoSection(icon: "bell.fill", title: localizedText("Notifications"),
+                                    text: localizedText("Notifications_Desc"))
 
                         Button(action: { UIApplication.shared.open(privacyURL) }) {
                             HStack(spacing: 8) {
                                 Image(systemName: "doc.text").font(.system(size: 13, weight: .semibold))
-                                Text("Privacy Policy").font(.system(size: 13, weight: .bold))
+                                Text(localizedText("Privacy Policy")).font(.system(size: 13, weight: .bold))
                                 Spacer()
-                                Image(systemName: "arrow.up.right").font(.system(size: 10, weight: .bold))
+                                Image(systemName: "arrow.up.right")
+                                    .flipsForRightToLeftLayoutDirection(true)
+                                    .font(.system(size: 10, weight: .bold))
                             }
                             .foregroundColor(Theme.accent)
                             .padding(14)
@@ -982,18 +1134,21 @@ private struct AboutPrivacySheet: View {
                     .padding(20)
                 }
             }
-            .navigationTitle("About & Privacy")
+            .navigationTitle(Text(localizedText("About & Privacy")))
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Theme.bg0, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") { dismiss() }
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundColor(Theme.accent)
+                    Button(action: { dismiss() }) {
+                        Text(localizedText("Done"))
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(Theme.accent)
+                    }
                 }
             }
         }
+        .environment(\.layoutDirection, currentLanguage == .arabic ? .rightToLeft : .leftToRight)
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(32)
@@ -1015,14 +1170,18 @@ private struct AboutPrivacySheet: View {
                 Text(title)
                     .font(.system(size: 13, weight: .bold))
                     .foregroundColor(Theme.text0)
+                    .multilineTextAlignment(currentLanguage == .arabic ? .trailing : .leading)
                 Text(text)
                     .font(.system(size: 12))
                     .foregroundColor(Theme.text1)
                     .lineSpacing(2)
+                    .multilineTextAlignment(currentLanguage == .arabic ? .trailing : .leading)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            Spacer(minLength: 0)
         }
         .padding(12)
+        .frame(maxWidth: .infinity, alignment: currentLanguage == .arabic ? .trailing : .leading)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Theme.bg1)
