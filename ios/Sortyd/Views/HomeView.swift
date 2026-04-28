@@ -10,8 +10,11 @@ struct HomeView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var hk = HealthKitManager.shared
     @State private var showSwitcher = false
+    @State private var showAddTodoTask = false
+    @State private var showTodoEdit = false
 
     private var list: TaskList? { vm.activeList }
+    private var isTodoActive: Bool { list?.isTodo == true }
 
     /// Live health-aware completion % for the active list
     private var liveCompletionPct: Int {
@@ -53,6 +56,18 @@ struct HomeView: View {
             .sheet(isPresented: $showSwitcher) {
                 ListSwitcherSheet().environmentObject(vm)
             }
+            .sheet(isPresented: $showAddTodoTask) {
+                if let id = vm.todoList?.id {
+                    AddTaskSheet(listID: id).environmentObject(vm)
+                }
+            }
+            .sheet(isPresented: $showTodoEdit) {
+                if let id = vm.todoList?.id {
+                    NavigationStack {
+                        ListDetailView(listID: id).environmentObject(vm)
+                    }
+                }
+            }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
                 hk.fetchToday()
             }
@@ -68,15 +83,21 @@ struct HomeView: View {
 
     private var headerSection: some View {
         HStack(alignment: .center, spacing: 0) {
+            // Theme Toggle (Left)
+            ThemeToggleButton()
+                .environmentObject(themeManager)
+                .frame(width: 58, alignment: .leading)
+                .padding(.leading, 6)
+
             // Scrollable Lists
             ScrollViewReader { proxy in
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
-                        let activeLists = vm.lists.filter { !$0.isArchived }
+                        let activeLists = vm.lists.filter { !$0.isArchived && !$0.isTodo }
                         ForEach(activeLists) { l in
                             let hv = hk.healthValues(for: l.tasks)
                             let fraction = l.completionFraction(healthValues: hv)
-                            
+
                             OrbitalDonutPill(
                                 list: l,
                                 isActive: vm.activeListID == l.id,
@@ -90,8 +111,8 @@ struct HomeView: View {
                             .id(l.id)
                         }
                     }
-                    .padding(.leading, 16)
-                    .padding(.trailing, 8)
+                    .padding(.leading, 8)
+                    .padding(.trailing, 16)
                     .padding(.vertical, 24) // Extra room for glow & shadow falloff
                 }
                 .onChange(of: vm.activeListID) { _, newID in
@@ -115,11 +136,25 @@ struct HomeView: View {
                 )
             )
 
-            // Theme Toggle (Right)
-            ThemeToggleButton()
-                .environmentObject(themeManager)
-                .frame(width: 58, alignment: .trailing)
-                .padding(.trailing, 6)
+            // TO DO Pill (fixed, right side)
+            if let todo = vm.todoList {
+                Text("|")
+                    .font(.system(size: 20, weight: .ultraLight))
+                    .foregroundColor(Theme.text2.opacity(0.35))
+                    .padding(.horizontal, 6)
+
+                TodoPill(
+                    isActive: vm.activeListID == todo.id,
+                    fraction: todo.completionFraction,
+                    onTap: {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
+                            vm.setActiveList(todo)
+                        }
+                    },
+                    onDoubleTap: { showTodoEdit = true }
+                )
+                .padding(.trailing, 16)
+            }
         }
         .background(
             Capsule()
@@ -217,7 +252,21 @@ struct HomeView: View {
                     .kerning(1.6)
                     .foregroundColor(Theme.text2)
                 Spacer()
-                if let list = list {
+                if isTodoActive {
+                    Button { showAddTodoTask = true } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 10, weight: .bold))
+                            Text("Add Task")
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        .foregroundColor(Color(hex: "#4CAF50"))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(Capsule().fill(Color(hex: "#4CAF50").opacity(0.12)))
+                    }
+                    .buttonStyle(.plain)
+                } else if let list = list {
                     let done = list.tasks.filter(\.isCompleted).count
                     let left = list.tasks.count - done
                     Text("\(done) \(String(localized: "done", locale: vm.appLanguage.locale)) · \(left) \(String(localized: "left", locale: vm.appLanguage.locale))")
@@ -232,11 +281,25 @@ struct HomeView: View {
                         TaskRowView(task: task, hk: hk) { vm.toggleTask(task) }
                     }
                 }
+            } else if isTodoActive {
+                TodoEmptyView { showAddTodoTask = true }
+                    .padding(.top, 1)
             } else {
                 EmptyStateView(onAddList: {
                     vm.selectedTab = 1
                 })
                 .padding(.top, 1)
+            }
+
+            if isTodoActive {
+                HStack(spacing: 5) {
+                    Image(systemName: "clock.arrow.2.circlepath")
+                        .font(.system(size: 9))
+                    Text("Resets at 4 AM daily")
+                        .font(.system(size: 10))
+                }
+                .foregroundColor(Theme.text2.opacity(0.6))
+                .padding(.top, 4)
             }
         }
     }
@@ -393,6 +456,75 @@ struct OrbitalDonutPill: View {
 }
 
 // ══════════════════════════════════════════════
+// MARK: TodoPill
+// ══════════════════════════════════════════════
+
+struct TodoPill: View {
+    let isActive: Bool
+    let fraction: Double
+    let onTap: () -> Void
+    var onDoubleTap: (() -> Void)? = nil
+
+    @State private var pulse = false
+    private let green = Color(hex: "#4CAF50")
+
+    var body: some View {
+        pillContent
+            .onTapGesture(count: 2) { onDoubleTap?() }
+            .onTapGesture(count: 1) { onTap() }
+            .onAppear { if isActive { startPulse() } }
+            .onChange(of: isActive) { _, v in if v { startPulse() } else { pulse = false } }
+    }
+
+    private var pillContent: some View {
+        VStack(spacing: 3) {
+            ZStack {
+                if isActive {
+                    Circle()
+                        .fill(green.opacity(0.18))
+                        .frame(width: 34, height: 34)
+                        .blur(radius: 6)
+                        .scaleEffect(pulse ? 1.1 : 0.9)
+                }
+                Circle()
+                    .stroke(Theme.bg3.opacity(0.5), lineWidth: 3.2)
+                    .frame(width: 26, height: 26)
+                Circle()
+                    .trim(from: 0, to: max(0.001, fraction))
+                    .stroke(green, style: StrokeStyle(lineWidth: 3.2, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .frame(width: 26, height: 26)
+                Image(systemName: "checklist")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(isActive ? green : Theme.text1)
+            }
+            .frame(width: 34, height: 34)
+
+            Text("To-Do List")
+                .font(.system(size: 7, weight: .bold))
+                .tracking(0.4)
+                .foregroundColor(isActive ? green : Theme.text2)
+        }
+        .padding(.horizontal, 7)
+        .padding(.vertical, 5)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(isActive ? Theme.bg1 : Theme.bg2.opacity(0.4))
+                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(isActive ? green.opacity(0.5) : Theme.border, lineWidth: isActive ? 1.0 : 0.5))
+                .shadow(color: isActive ? green.opacity(0.28) : .clear, radius: 8, x: 0, y: 3)
+        )
+        .scaleEffect(isActive ? 1.05 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isActive)
+        .contentShape(Rectangle())
+    }
+
+    private func startPulse() {
+        withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) { pulse = true }
+    }
+}
+
+// ══════════════════════════════════════════════
 // MARK: TaskRowView — with optional SmallHealthDonut
 // ══════════════════════════════════════════════
 
@@ -404,6 +536,7 @@ struct TaskRowView: View {
     
 
     @State private var showHealthPermission = false
+    @State private var showHealthConfirm = false
 
     private var resolvedHealthType: HealthTaskType? {
         guard task.isHealthTask, let str = task.healthType else { return nil }
@@ -537,7 +670,11 @@ struct TaskRowView: View {
                     Button(action: {
                         let gen = UIImpactFeedbackGenerator(style: .medium)
                         gen.prepare(); gen.impactOccurred()
-                        onToggle()
+                        if shouldConfirmHealthToggle {
+                            showHealthConfirm = true
+                        } else {
+                            onToggle()
+                        }
                     }) {
                         ZStack {
                             Circle()
@@ -565,6 +702,12 @@ struct TaskRowView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: hk.isAuthorized)
+        .alert("Target Not Reached", isPresented: $showHealthConfirm) {
+            Button("Yes, I completed it", role: .none) { onToggle() }
+            Button("No", role: .cancel) {}
+        } message: {
+            Text(healthConfirmMessage + "\n\nWe recommend using a tracking device or keeping your phone on you so Sortyd auto-detects and never doubts.")
+        }
         .sheet(isPresented: $showHealthPermission) {
             if let ht = resolvedHealthType {
                 HealthPermissionSheet(
@@ -577,6 +720,30 @@ struct TaskRowView: View {
                 .presentationCornerRadius(Theme.r32)
                 .presentationBackground(Theme.bg0)
             }
+        }
+    }
+
+    private var shouldConfirmHealthToggle: Bool {
+        guard !task.isCompleted,
+              let ht = resolvedHealthType,
+              let target = task.healthTarget,
+              hk.isAuthorized
+        else { return false }
+        return hk.currentValue(for: ht) < target
+    }
+
+    private var healthConfirmMessage: String {
+        guard let ht = resolvedHealthType, let target = task.healthTarget else { return "" }
+        let current = hk.currentValue(for: ht)
+        switch ht {
+        case .steps:
+            return "You've logged \(Int(current)) steps, but your target is \(Int(target)) steps. Are you sure you completed this?"
+        case .calories:
+            return "You've burned \(Int(current)) kcal, but your target is \(Int(target)) kcal. Are you sure you completed this?"
+        case .distance:
+            return String(format: "You've covered %.1f km, but your target is %.1f km. Are you sure you completed this?", current, target)
+        case .none:
+            return ""
         }
     }
 
@@ -608,6 +775,50 @@ struct TaskRowView: View {
 }
 
 // ══════════════════════════════════════════════
+// MARK: TodoEmptyView
+// ══════════════════════════════════════════════
+
+struct TodoEmptyView: View {
+    let onAdd: () -> Void
+
+    var body: some View {
+        VStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(Color(hex: "#4CAF50").opacity(0.10))
+                    .frame(width: 64, height: 64)
+                Image(systemName: "checklist")
+                    .font(.system(size: 26, weight: .semibold))
+                    .foregroundColor(Color(hex: "#4CAF50").opacity(0.7))
+            }
+            VStack(spacing: 6) {
+                Text("Nothing here yet")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(Theme.text1)
+                Text("Add today's tasks — they reset at 4 AM for a fresh start.")
+                    .font(.system(size: 12))
+                    .foregroundColor(Theme.text2)
+                    .multilineTextAlignment(.center)
+            }
+            Button(action: onAdd) {
+                HStack(spacing: 6) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 12, weight: .bold))
+                    Text("Add Task")
+                        .font(.system(size: 13, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .background(Capsule().fill(Color(hex: "#4CAF50")))
+            }
+            .buttonStyle(.plain)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 24)
+    }
+}
+
 // MARK: EmptyStateView
 // ══════════════════════════════════════════════
 

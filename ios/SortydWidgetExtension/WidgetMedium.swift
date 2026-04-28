@@ -23,6 +23,7 @@ struct TaskListWidget: Codable {
     var tasks:     [TaskWidget]
     var createdAt: Date
     var isArchived: Bool = false
+    var isTodo:     Bool = false
 }
 
 struct TaskWidget: Codable {
@@ -90,8 +91,9 @@ struct ToggleTaskIntent: AppIntent {
         defaults.set(encoded, forKey: "sortyd_app_data_v3")
         defaults.synchronize()
 
-        let activeList = appData.lists.first(where: { $0.id == appData.activeListID })
-                      ?? appData.lists.first
+        let regularLists = appData.lists.filter { !$0.isArchived && !$0.isTodo }
+        let activeList = regularLists.first(where: { $0.id == appData.activeListID })
+                      ?? regularLists.first
 
         if let list = activeList {
             let df = DateFormatter()

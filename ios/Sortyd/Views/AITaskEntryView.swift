@@ -1131,15 +1131,15 @@ struct StarterListSheet: View {
                         .replacingOccurrences(of: "<", with: "")
                         .replacingOccurrences(of: ">", with: "")
                     
-                    editableListName = result.listName.trimmingCharacters(in: .whitespaces)
+                    editableListName = stripBannedListNameSuffixes(result.listName.trimmingCharacters(in: .whitespaces))
                     while !editableListName.isEmpty, editableListName.first!.isEmoji {
                         editableListName.removeFirst()
                         editableListName = editableListName.trimmingCharacters(in: .whitespaces)
                     }
-                    
+
                     starterList = StarterList(
                         emoji: cleanEmoji,
-                        listName: result.listName,
+                        listName: editableListName,
                         tasks: result.tasks
                     )
 
@@ -1445,4 +1445,24 @@ struct MarqueeRow: UIViewRepresentable {
             displayLink?.invalidate()
         }
     }
+}
+
+// Strips common AI-appended filler words from generated list names across all supported languages.
+private func stripBannedListNameSuffixes(_ name: String) -> String {
+    let banned: Set<String> = [
+        // English
+        "system", "routine", "builder", "program", "habit", "habits",
+        "plan", "journey", "challenge", "framework", "guide", "protocol",
+        "method", "practice", "tracker", "log", "regimen", "schedule",
+        // Spanish
+        "rutina", "sistema", "programa", "habitos", "hábitos", "viaje", "desafio", "desafío",
+        // Arabic
+        "نظام", "روتين", "برنامج", "خطة"
+    ]
+    var words = name.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
+    while let last = words.last,
+          banned.contains(last.lowercased().folding(options: .diacriticInsensitive, locale: .current)) {
+        words.removeLast()
+    }
+    return words.joined(separator: " ").trimmingCharacters(in: .whitespaces)
 }

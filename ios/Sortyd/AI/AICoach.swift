@@ -474,10 +474,19 @@ final class AICoach: ObservableObject {
         - Example Distance task: "Run 5km", "Daily 3km run", "5km jog".
         - For non-health goals, DO NOT include these special tracking tasks.
 
-        Respond ONLY with valid JSON (no markdown, no backticks). IMPORTANT: the listName must NOT contain any emojis and MUST be concise. Do NOT add redundant words like "Builder", "Habit", "Routine", or "Program" unless they are part of the core goal. Stick to the essence of the goal.
+        CRITICAL — listName rules (violations will break the UI):
+        - Return ONLY the core 1–3 word name. No emojis.
+        - NEVER append filler words. Banned suffixes: System, Routine, Builder, Program, Habit, Habits, Plan, Journey, Challenge, Framework, Guide, Protocol, Method, Practice, Tracker, Log, Regimen, Schedule, Rutina, Sistema, Programa, Hábitos, Viaje, Desafío, نظام, روتين, برنامج, خطة
+        - Examples of WRONG vs RIGHT:
+          "get fit"        → WRONG: "Fitness System"    RIGHT: "Get Fit"
+          "read more"      → WRONG: "Reading Habit"     RIGHT: "Read More"
+          "wake up early"  → WRONG: "Early Riser Routine" RIGHT: "Wake Up Early"
+          "learn Spanish"  → WRONG: "Spanish Builder"   RIGHT: "Learn Spanish"
+
+        Respond ONLY with valid JSON (no markdown, no backticks):
         {
           "emoji": "single relevant emoji",
-          "listName": "max 2-3 words, the core goal name in \(langName)",
+          "listName": "1–3 words, core goal only, in \(langName), NO filler suffixes",
           "tasks": ["Task 1 in \(langName)", "Task 2", "Task 3", "Task 4", "Task 5"]
         }
         """

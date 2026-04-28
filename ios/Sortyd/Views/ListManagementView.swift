@@ -27,7 +27,7 @@ struct ListManagementView: View {
     @State private var emptyRotate      = false
 
     private var activeLists: [TaskList] {
-        let active = vm.lists.filter { !$0.isArchived }
+        let active = vm.lists.filter { !$0.isArchived && !$0.isTodo }
         guard let activeID = vm.activeListID,
               let activeList = active.first(where: { $0.id == activeID }) else {
             return active
@@ -1266,6 +1266,8 @@ struct AddTaskSheet: View {
     @State private var conflictHealthType: HealthTaskType? = nil
     @State private var showConflictToast   = false
     @State private var manualTypeSet       = false
+    @State private var reminderConflict: AppViewModel.ReminderConflictInfo? = nil
+    @State private var showReminderConflictToast = false
 
     private var healthTarget: Double? {
         guard detectedHealthType != .none, let v = Double(healthTargetText), v > 0 else { return nil }
@@ -1333,11 +1335,16 @@ struct AddTaskSheet: View {
                             HealthConflictToast(type: ct, isVisible: $showConflictToast)
                                 .transition(.move(edge: .top).combined(with: .opacity))
                         }
+                        if showReminderConflictToast, let rc = reminderConflict {
+                            ReminderConflictToast(conflict: rc, isVisible: $showReminderConflictToast)
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                        }
                         Spacer(minLength: 16)
                     }
                     .padding(Theme.s20)
                     .animation(.spring(response: 0.3, dampingFraction: 0.75), value: reminderTime != nil)
                     .animation(.spring(response: 0.3, dampingFraction: 0.75), value: detectedHealthType)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.75), value: showReminderConflictToast)
                 }
             }
             .navigationTitle("New Task").navigationBarTitleDisplayMode(.inline)
@@ -1459,6 +1466,15 @@ struct AddTaskSheet: View {
         }
 
         if let time = reminderTime {
+            let cal = Calendar.current
+            if let conflict = vm.findReminderConflict(hour: cal.component(.hour, from: time),
+                                                       minute: cal.component(.minute, from: time),
+                                                       in: listID) {
+                reminderConflict = conflict
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { showReminderConflictToast = true }
+                UINotificationFeedbackGenerator().notificationOccurred(.warning)
+                return
+            }
             isSaving = true
             Task {
                 let granted = await NotificationManager.shared.requestPermissionIfNeeded()
@@ -1494,6 +1510,8 @@ struct EditTaskSheet: View {
     @State private var showTimePicker  = false
     @State private var showDeniedAlert = false
     @State private var isSaving        = false
+    @State private var reminderConflict: AppViewModel.ReminderConflictInfo? = nil
+    @State private var showReminderConflictToast = false
 
     init(task: SortydTask, listID: UUID) {
         self.task = task; self.listID = listID
@@ -1530,6 +1548,10 @@ struct EditTaskSheet: View {
                         ReminderBanner(time: t, isOneTime: reminderIsOneTime) { reminderTime = nil; reminderIsOneTime = false }
                             .transition(.move(edge: .top).combined(with: .opacity))
                     }
+                    if showReminderConflictToast, let rc = reminderConflict {
+                        ReminderConflictToast(conflict: rc, isVisible: $showReminderConflictToast)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
                     if task.isHealthTask, let htStr = task.healthType, let ht = HealthTaskType(rawValue: htStr) {
                         VStack(alignment: .leading, spacing: 6) {
                             sheetLabel("HEALTH GOAL")
@@ -1552,6 +1574,7 @@ struct EditTaskSheet: View {
                 }
                 .padding(Theme.s20)
                 .animation(.spring(response: 0.3, dampingFraction: 0.75), value: reminderTime != nil)
+                .animation(.spring(response: 0.3, dampingFraction: 0.75), value: showReminderConflictToast)
             }
             .navigationTitle("Edit Task").navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Theme.bg0, for: .navigationBar).toolbarColorScheme(.dark, for: .navigationBar)
@@ -1567,7 +1590,7 @@ struct EditTaskSheet: View {
                 }
             }
         }
-        .presentationDetents([.height(task.isHealthTask ? 350 : 300)]).presentationDragIndicator(.visible)
+        .presentationDetents(showReminderConflictToast ? [.medium] : [.height(task.isHealthTask ? 350 : 300)]).presentationDragIndicator(.visible)
         .presentationCornerRadius(Theme.r32).presentationBackground(Theme.bg0)
         .sheet(isPresented: $showTimePicker) {
             ReminderPickerSheet(selectedTime: reminderDefault, isOneTime: reminderIsOneTime) { time, oneTime in
@@ -1595,6 +1618,15 @@ struct EditTaskSheet: View {
             vm.updateHealthTarget(task, in: listID, target: newTarget)
         }
         if let time = reminderTime {
+            let cal = Calendar.current
+            if let conflict = vm.findReminderConflict(hour: cal.component(.hour, from: time),
+                                                       minute: cal.component(.minute, from: time),
+                                                       in: listID, excludingTaskID: task.id) {
+                reminderConflict = conflict
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { showReminderConflictToast = true }
+                UINotificationFeedbackGenerator().notificationOccurred(.warning)
+                return
+            }
             isSaving = true
             Task {
                 let granted = await vm.setTaskReminder(task, in: listID, time: time, isOneTime: reminderIsOneTime)
@@ -1775,6 +1807,76 @@ private struct ReminderBanner: View {
             .fill(Theme.accent.opacity(0.05))
             .overlay(RoundedRectangle(cornerRadius: Theme.r12, style: .continuous)
                 .strokeBorder(Theme.accent.opacity(0.16), lineWidth: 0.5)))
+    }
+}
+
+private struct ReminderConflictToast: View {
+    let conflict: AppViewModel.ReminderConflictInfo
+    @Binding var isVisible: Bool
+    @State private var shakeOffset: CGFloat = 0
+
+    private var message: String {
+        let f = DateFormatter()
+        f.dateFormat = "h:mm a"
+        let timeStr = f.string(from: conflict.time)
+        if let listName = conflict.listName {
+            return "\"\(conflict.taskTitle)\" on \(listName) already has a notification for \(timeStr) — pick a different time to avoid conflicts."
+        } else {
+            return "\"\(conflict.taskTitle)\" already has a notification for \(timeStr) — pick a different time."
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "clock.badge.exclamationmark")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(.orange)
+                .frame(width: 28, height: 28)
+                .background(Circle().fill(Color.orange.opacity(0.15)))
+            Text(message)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(Theme.text0)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) { isVisible = false }
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(Theme.text2)
+                    .frame(width: 20, height: 20)
+                    .background(Circle().fill(Theme.bg3))
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Theme.bg1)
+                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(Color.orange.opacity(0.35), lineWidth: 1))
+                .shadow(color: Color.orange.opacity(0.18), radius: 10, x: 0, y: 4)
+        )
+        .offset(x: shakeOffset)
+        .onAppear { triggerShake() }
+        .transition(.move(edge: .top).combined(with: .opacity))
+    }
+
+    private func triggerShake() {
+        let shakes: [(CGFloat, Double)] = [
+            ( 6, 0.00), (-6, 0.07), ( 5, 0.14), (-5, 0.21),
+            ( 3, 0.28), (-3, 0.35), ( 0, 0.42)
+        ]
+        for (offset, delay) in shakes {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                withAnimation(.interactiveSpring(response: 0.12, dampingFraction: 0.5)) { shakeOffset = offset }
+            }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
+            withAnimation(.easeInOut(duration: 0.25)) { isVisible = false }
+        }
     }
 }
 
