@@ -10,7 +10,12 @@ struct AnalyticsView: View {
     @State private var heroAppeared = false
     @State private var selectedListID: UUID? = nil
 
-    private var resolvedListID: UUID { selectedListID ?? vm.activeListID ?? UUID() }
+    private var resolvedListID: UUID {
+        selectedListID
+            ?? vm.lists.first(where: { $0.id == vm.activeListID && !$0.isTodo })?.id
+            ?? vm.lists.first(where: { !$0.isArchived && !$0.isTodo })?.id
+            ?? UUID()
+    }
 
     enum Period: String, CaseIterable {
         case week  = "7D"
@@ -245,7 +250,10 @@ struct AnalyticsView: View {
             .navigationBarHidden(true)
         }
         .onAppear {
-            if selectedListID == nil { selectedListID = vm.activeListID }
+            if selectedListID == nil {
+                selectedListID = vm.lists.first(where: { $0.id == vm.activeListID && !$0.isTodo })?.id
+                             ?? vm.lists.first(where: { !$0.isArchived && !$0.isTodo })?.id
+            }
             Analytics.logEvent(AnalyticsEventScreenView, parameters: [
                 AnalyticsParameterScreenName: "analytics",
                 AnalyticsParameterScreenClass: "AnalyticsView"
@@ -1154,7 +1162,7 @@ struct AnalyticsListPickerSheet: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 20).padding(.bottom, 20)
 
-                    let liveLists = vm.lists.filter { !$0.isArchived }
+                    let liveLists = vm.lists.filter { !$0.isArchived && !$0.isTodo }
                     ScrollView {
                         VStack(spacing: 10) {
                             ForEach(liveLists) { list in

@@ -99,7 +99,7 @@ final class PersistenceManager {
                 guard let self else { return }
                 let hk = HealthKitManager.shared
 
-                let tasks = data.activeList?.tasks ?? []
+                let tasks = data.activeRegularList?.tasks ?? []
                 var caloriesGoal: Double? = nil
                 var stepGoal:     Double? = nil
                 for task in tasks where task.isHealthTask {
@@ -134,7 +134,7 @@ final class PersistenceManager {
         stepCount:      Double? = nil,
         stepGoal:       Double? = nil
     ) {
-        guard let list = data.activeList else { return }
+        guard let list = data.activeRegularList else { return }
 
         // ── Active list: streak + monthly snapshots ──────────────────────
         let snaps = data.snapshots
@@ -182,7 +182,7 @@ final class PersistenceManager {
             stepCount:        stepCount      ?? prevSteps,
             stepGoal:         stepGoal       ?? prevStepGoal,
             lastCheckedTaskID: lastCheckedID,
-            allLists: data.lists.filter { !$0.isArchived }.map { l in
+            allLists: data.lists.filter { !$0.isArchived && !$0.isTodo }.map { l in
                 let listSnaps = data.snapshots.filter { $0.listID == l.id }
                 let avg = listSnaps.isEmpty ? 0 : Int((listSnaps.map(\.completionFraction).reduce(0,+) / Double(listSnaps.count) * 100).rounded())
                 let grade: String = {

@@ -73,7 +73,8 @@ struct TaskList: Identifiable, Codable, Hashable {
     var tasks: [SortydTask]
     var createdAt: Date = Date()
     var isArchived: Bool = false
-    
+    var isTodo: Bool = false
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id         = try container.decode(UUID.self,             forKey: .id)
@@ -82,17 +83,19 @@ struct TaskList: Identifiable, Codable, Hashable {
         tasks      = try container.decode([SortydTask].self,     forKey: .tasks)
         createdAt  = try container.decodeIfPresent(Date.self,    forKey: .createdAt) ?? Date()
         isArchived = try container.decodeIfPresent(Bool.self,    forKey: .isArchived) ?? false
+        isTodo     = try container.decodeIfPresent(Bool.self,    forKey: .isTodo) ?? false
         recalculateWeights()
     }
-    
+
     init(id: UUID = UUID(), name: String, emoji: String = "📋",
-         tasks: [SortydTask] = [], createdAt: Date = Date(), isArchived: Bool = false) {
+         tasks: [SortydTask] = [], createdAt: Date = Date(), isArchived: Bool = false, isTodo: Bool = false) {
         self.id = id; self.name = name; self.emoji = emoji
         self.tasks = tasks; self.createdAt = createdAt; self.isArchived = isArchived
+        self.isTodo = isTodo
     }
-    
+
     private enum CodingKeys: String, CodingKey {
-        case id, name, emoji, tasks, createdAt, isArchived
+        case id, name, emoji, tasks, createdAt, isArchived, isTodo
     }
     
     mutating func recalculateWeights() {
@@ -181,6 +184,13 @@ struct TaskList: Identifiable, Codable, Hashable {
             let live = lists.filter { !$0.isArchived }
             guard let id = activeListID else { return live.first }
             return live.first(where: { $0.id == id }) ?? live.first
+        }
+
+        /// Like activeList but never returns the TO DO list — used by widgets and analytics.
+        var activeRegularList: TaskList? {
+            let live = lists.filter { !$0.isArchived && !$0.isTodo }
+            if let id = activeListID, let match = live.first(where: { $0.id == id }) { return match }
+            return live.first
         }
         
         // Forward-compatible decoder: keeps user data intact when new fields are added.

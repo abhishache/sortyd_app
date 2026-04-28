@@ -421,7 +421,7 @@ struct ThemeToggleButton: View {
                     .fill(Theme.bg2)
                     .overlay(Circle().strokeBorder(Theme.border, lineWidth: 0.5))
                     .frame(width: 34, height: 34)
-                Image(systemName: ThemeManager.shared.isDark ? "moon.fill" : "sun.max.fill")
+                Image(systemName: ThemeManager.shared.isDark ? "sun.max.fill" : "moon.fill")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(Theme.accent)
             }
@@ -437,7 +437,7 @@ struct ThemeToggleRow: View {
 
     var body: some View {
         HStack {
-            Image(systemName: themeManager.isDark ? "moon.fill" : "sun.max.fill")
+            Image(systemName: themeManager.isDark ? "sun.max.fill" : "moon.fill")
                 .foregroundColor(Theme.accent)
                 .frame(width: 24)
             Text("Appearance")

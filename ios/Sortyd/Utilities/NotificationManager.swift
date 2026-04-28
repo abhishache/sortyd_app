@@ -283,4 +283,19 @@ final class NotificationManager {
         let ids = taskIDs.map { idPrefix + $0.uuidString }
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
     }
+
+    func scheduleTodoResetNotification() async {
+        let center = UNUserNotificationCenter.current()
+        let id = "sortyd.todo.daily.reset"
+        center.removePendingNotificationRequests(withIdentifiers: [id])
+        guard (try? await center.requestAuthorization(options: [.alert, .sound])) == true else { return }
+        let content = UNMutableNotificationContent()
+        content.title = "✅ TO DO"
+        content.body  = "Your TO DO list has been refreshed — fresh canvas for today."
+        content.sound = .default
+        var dc = DateComponents()
+        dc.hour = 4; dc.minute = 0; dc.second = 0
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dc, repeats: true)
+        try? await center.add(UNNotificationRequest(identifier: id, content: content, trigger: trigger))
+    }
 }

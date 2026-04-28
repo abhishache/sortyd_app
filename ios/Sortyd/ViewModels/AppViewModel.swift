@@ -104,11 +104,14 @@ final class AppViewModel: ObservableObject {
             self.appLanguage = lang
         }
 
+        ensureTodoListExists()
         snapshotTodayIfNeeded()
         cachedBestStreak = computeBestStreak()
     }
 
     // MARK: - Computed
+
+    var todoList: TaskList? { appData.lists.first(where: { $0.isTodo }) }
 
     var activeList: TaskList? {
         appData.activeList
@@ -177,6 +180,15 @@ final class AppViewModel: ObservableObject {
     
     
     // MARK: - List Management
+
+    private func ensureTodoListExists() {
+        guard !appData.lists.contains(where: { $0.isTodo }) else { return }
+        let todo = TaskList(name: "TO DO", emoji: "✅", isTodo: true)
+        appData.lists.insert(todo, at: 0)
+        syncPublished()
+        PersistenceManager.shared.saveImmediately(appData)
+        Task { await NotificationManager.shared.scheduleTodoResetNotification() }
+    }
 
     func addList(name: String, emoji: String) {
         var updated = appData
@@ -389,6 +401,30 @@ final class AppViewModel: ObservableObject {
         return alreadyExists ? ht : nil
     }
 
+    struct ReminderConflictInfo {
+        let taskTitle: String
+        let listName: String?
+        let time: Date
+    }
+
+    func findReminderConflict(hour: Int, minute: Int, in listID: UUID, excludingTaskID: UUID? = nil) -> ReminderConflictInfo? {
+        let cal = Calendar.current
+        for list in appData.lists {
+            for task in list.tasks {
+                guard let rt = task.reminderTime else { continue }
+                if let excludeID = excludingTaskID, task.id == excludeID { continue }
+                if cal.component(.hour, from: rt) == hour && cal.component(.minute, from: rt) == minute {
+                    return ReminderConflictInfo(
+                        taskTitle: task.title,
+                        listName: list.id == listID ? nil : list.name,
+                        time: rt
+                    )
+                }
+            }
+        }
+        return nil
+    }
+
     func addTask(to listID: UUID, title: String, reminderTime: Date? = nil,
                  reminderIsOneTime: Bool = false,
                  healthType: String? = nil, healthTarget: Double? = nil) {
@@ -551,8 +587,13 @@ final class AppViewModel: ObservableObject {
         }
 
         for listIdx in appData.lists.indices {
-            for taskIdx in appData.lists[listIdx].tasks.indices {
-                appData.lists[listIdx].tasks[taskIdx].isCompleted = false
+            if appData.lists[listIdx].isTodo {
+                // TO DO list: wipe tasks for fresh canvas each day
+                appData.lists[listIdx].tasks = []
+            } else {
+                for taskIdx in appData.lists[listIdx].tasks.indices {
+                    appData.lists[listIdx].tasks[taskIdx].isCompleted = false
+                }
             }
         }
         
