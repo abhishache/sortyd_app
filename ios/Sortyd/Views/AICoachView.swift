@@ -63,6 +63,11 @@ struct AICoachView: View {
                     Spacer(minLength: 110)
                 }
             }
+            .refreshable {
+                if let list = selectedList {
+                    await runAnalysis(for: list)
+                }
+            }
         }
         .onAppear {
             Analytics.logEvent(AnalyticsEventScreenView, parameters: [

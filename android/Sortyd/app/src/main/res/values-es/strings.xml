@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sortyd</string>
+    <string name="today">Hoy</string>
+    <string name="lists">Listas</string>
+    <string name="analytics">Análisis</string>
+    <string name="ai_coach">Coach IA</string>
+    <string name="settings">Ajustes</string>
+    <string name="add_task">Agregar tarea</string>
+    <string name="add_list">Agregar lista</string>
+    <string name="done">Hecho</string>
+    <string name="cancel">Cancelar</string>
+    <string name="delete">Eliminar</string>
+    <string name="archive">Archivar</string>
+    <string name="restore">Restaurar</string>
+    <string name="create">Crear</string>
+    <string name="generate">Generar</string>
+    <string name="get_started">Empezar</string>
+    <string name="continue_str">Continuar</string>
+    <string name="resets_4am">Se reinicia a las 4 AM diariamente</string>
+    <string name="ai_disclaimer">La IA solo usa títulos de objetivos — procesados de forma segura</string>
+    <string name="health_connect_title">Usa Health Connect</string>
+    <string name="health_connect_desc">Lee pasos y calorías para rastrear hábitos de fitness</string>
+</resources>

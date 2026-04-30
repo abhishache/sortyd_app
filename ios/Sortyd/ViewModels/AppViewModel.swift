@@ -30,6 +30,8 @@ final class AppViewModel: ObservableObject {
     @Published private(set) var snapshots: [DailySnapshot] = []
     @Published private(set) var cachedBestStreak: Int = 0
     @Published var selectedTab: Int = 0
+    @Published var showReviewPrompt = false
+    private var reviewPromptCheckedThisLaunch = false
     private let sharedDefaults = UserDefaults(suiteName: "group.com.sortyd.sortyd") ?? UserDefaults.standard
 
     @Published var appLanguage: AppLanguage = .english {
@@ -88,6 +90,24 @@ final class AppViewModel: ObservableObject {
     }
 
     // MARK: Init
+
+    /// Pull-to-Refresh logic: reloads from disk and refreshes HealthKit.
+    func refresh() async {
+        // 1. Refresh HealthKit
+        HealthKitManager.shared.fetchToday()
+        
+        // 2. Delay for visual feedback
+        try? await Task.sleep(nanoseconds: 600_000_000)
+        
+        // 3. Reload from persistence
+        let loaded = PersistenceManager.shared.load()
+        
+        // 4. Update UI
+        self.appData = loaded
+        syncPublished()
+        cachedBestStreak = computeBestStreak()
+        Analytics.logEvent("manual_refresh", parameters: nil)
+    }
 
     init() {
         var data = PersistenceManager.shared.load()
@@ -252,6 +272,7 @@ final class AppViewModel: ObservableObject {
                 try? await Task.sleep(nanoseconds: 600_000_000) // 0.6s
                 let granted = await NotificationManager.shared.requestPermissionIfNeeded()
                 guard granted else { return }
+                await NotificationManager.shared.scheduleTodoResetNotification()
                 for task in tasksNeedingReminders {
                     await NotificationManager.shared.scheduleReminder(for: task, in: listCopy)
                 }
@@ -529,6 +550,7 @@ final class AppViewModel: ObservableObject {
     func setTaskReminder(_ task: SortydTask, in listID: UUID, time: Date, isOneTime: Bool = false) async -> Bool {
         let granted = await NotificationManager.shared.requestPermissionIfNeeded()
         guard granted else { return false }
+        await NotificationManager.shared.scheduleTodoResetNotification()
 
         // Re-lookup indices after the await in case data shifted
         guard let listIdx = appData.lists.firstIndex(where: { $0.id == listID }),
@@ -757,5 +779,32 @@ final class AppViewModel: ObservableObject {
     // Call on background — flushes debounced saves before iOS suspends.
     func flushToDisk() {
         PersistenceManager.shared.saveImmediately(appData)
+    }
+
+    // MARK: - Review Prompt
+
+    /// Call once per foreground activation. Shows the prompt after a short delay
+    /// if the schedule says it's time. Guards against showing twice in one session.
+    func checkReviewPrompt() {
+        guard !reviewPromptCheckedThisLaunch else { return }
+        reviewPromptCheckedThisLaunch = true
+        guard ReviewPromptManager.shared.shouldShowPrompt() else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { [weak self] in
+            guard let self else { return }
+            ReviewPromptManager.shared.recordShown()
+            showReviewPrompt = true
+        }
+    }
+
+    func handleReviewNow() {
+        showReviewPrompt = false
+        ReviewPromptManager.shared.recordReviewed()
+        if let url = ReviewPromptManager.reviewURL {
+            UIApplication.shared.open(url)
+        }
+    }
+
+    func handleReviewRemindLater() {
+        showReviewPrompt = false
     }
 }

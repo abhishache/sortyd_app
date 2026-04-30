@@ -25,6 +25,11 @@ struct ListManagementView: View {
     @State private var headerAppeared   = false
     @State private var emptyPulse       = false
     @State private var emptyRotate      = false
+    
+    // Onboarding states
+    @State private var onboardingStep: Int = -1 // -1: inactive, 0: manual, 1: ai
+    @State private var isManualPressing = false
+    @State private var isAIPressing = false
 
     private var activeLists: [TaskList] {
         let active = vm.lists.filter { !$0.isArchived && !$0.isTodo }
@@ -254,6 +259,7 @@ struct ListManagementView: View {
         .listRowSpacing(0)
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+        .refreshable { await vm.refresh() }
     }
 
     // MARK: - Section Header
@@ -396,7 +402,9 @@ struct ListManagementView: View {
     // FIX: Animations triggered locally so they always run when empty state is visible
 
     private var emptyState: some View {
-        VStack(spacing: 0) {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 0) {
+                Spacer(minLength: 40)
             Spacer()
 
             // Animated ring cluster with floating sparkles
@@ -527,20 +535,38 @@ struct ListManagementView: View {
                     )
                 }
                 .buttonStyle(ListScaleStyle())
+                .scaleEffect(isAIPressing ? 0.96 : 1.0)
+                .rotation3DEffect(.degrees(isAIPressing ? -5 : 0), axis: (x: 1, y: 0, z: 0))
+                .overlay(alignment: .top) {
+                    if onboardingStep == 1 {
+                        OnboardingTooltip(text: vm.localized("Let AI create a list of tasks for a goal in your mind"))
+                            .offset(y: -55)
+                            .transition(.asymmetric(insertion: .scale.combined(with: .opacity), removal: .opacity))
+                    }
+                }
+                .overlay(alignment: .center) {
+                    if onboardingStep == 1 {
+                        FingerTapView(isPressing: $isAIPressing)
+                            .offset(x: 110, y: 22)
+                            .allowsHitTesting(false)
+                    }
+                }
 
                 // Divider row
-                HStack(spacing: 10) {
+                HStack(spacing: 15) {
                     Rectangle()
-                        .fill(Theme.border)
-                        .frame(height: 0.5)
-                    Text("or")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(Theme.text2)
+                        .fill(Theme.borderAccent)
+                        .frame(height: 1)
+                    Text(vm.appLanguage == .arabic ? "أو" : "OR")
+                        .font(.system(size: 13, weight: .black))
+                        .foregroundColor(Theme.accent)
+                        .tracking(1.0)
                     Rectangle()
-                        .fill(Theme.border)
-                        .frame(height: 0.5)
+                        .fill(Theme.borderAccent)
+                        .frame(height: 1)
                 }
-                .padding(.horizontal, 8)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 4)
 
                 // Secondary — Manual (ghost, smaller, understated)
                 Button { showAdd = true } label: {
@@ -564,12 +590,25 @@ struct ListManagementView: View {
                     )
                 }
                 .buttonStyle(ListScaleStyle())
+                .scaleEffect(isManualPressing ? 0.96 : 1.0)
+                .rotation3DEffect(.degrees(isManualPressing ? -6 : 0), axis: (x: 1, y: 0, z: 0))
+                .overlay {
+                    if onboardingStep == 0 {
+                        LEDChasingBorder(cornerRadius: 16, color: Theme.accent)
+                    }
+                }
+                .overlay(alignment: .center) {
+                    if onboardingStep == 0 {
+                        FingerTapView(isPressing: $isManualPressing)
+                            .offset(x: 110, y: 22)
+                            .allowsHitTesting(false)
+                    }
+                }
             }
             .padding(.horizontal, 28)
 
-            Spacer()
-            Spacer()
         }
+        .refreshable { await vm.refresh() }
         // FIX: restart animations every time empty state appears
         // The NavigationStack .onAppear only fires once at launch — animations die if
         // the user adds a list then deletes it. This fires whenever emptyState becomes visible.
@@ -579,6 +618,31 @@ struct ListManagementView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 withAnimation(.easeInOut(duration: 2.6).repeatForever(autoreverses: true)) { emptyPulse = true }
                 withAnimation(.linear(duration: 18).repeatForever(autoreverses: false)) { emptyRotate = true }
+            }
+            
+            // Trigger onboarding
+            runListOnboarding()
+        }
+    }
+}
+
+    private func runListOnboarding() {
+        // DEBUG: Force onboarding
+        UserDefaults.standard.set(false, forKey: "has_seen_list_management_onboarding")
+        
+        let key = "has_seen_list_management_onboarding"
+        if UserDefaults.standard.bool(forKey: key) { return }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            withAnimation(.spring()) { onboardingStep = 0 } // Step 0: Manual
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                withAnimation(.spring()) { onboardingStep = 1 } // Step 1: AI
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
+                    withAnimation(.easeOut) { onboardingStep = -1 }
+                    UserDefaults.standard.set(true, forKey: key)
+                }
             }
         }
     }
@@ -1892,8 +1956,32 @@ private func fieldBG(_ radius: CGFloat) -> some View {
 
 // MARK: - Preview
 
-#Preview {
-    ListManagementView()
-        .environmentObject(AppViewModel())
-        .environmentObject(ThemeManager.shared)
+#Preview { HomeView().environmentObject(AppViewModel()).environmentObject(ThemeManager.shared) }
+
+// ══════════════════════════════════════════════
+// MARK: - OnboardingTooltip
+// ══════════════════════════════════════════════
+
+private struct OnboardingTooltip: View {
+    let text: String
+    var body: some View {
+        Text(text)
+            .font(.system(size: 12, weight: .bold))
+            .foregroundColor(.white)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Theme.accent)
+                    .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+            )
+            .overlay(alignment: .bottom) {
+                Image(systemName: "arrowtriangle.down.fill")
+                    .foregroundColor(Theme.accent)
+                    .font(.system(size: 14))
+                    .offset(y: 9)
+            }
+            .frame(width: 220)
+    }
 }

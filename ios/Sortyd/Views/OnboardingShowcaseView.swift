@@ -126,11 +126,11 @@ struct OnboardingShowcaseView: View {
                        sub: "نظم عاداتك في قوائم يومية. ركز على ما يهم، قائمة تلو الأخرى.",
                        accentHex: "#A78BFF"),
                 OBPage(tag: 2,
-                       headline: "رؤى الذكاء الاصطناعي",
+                       headline: "تحليلات الذكاء الاصطناعي",
                        sub: "احصل على تحليل دقيق لسلوكك. يجد الذكاء الاصطناعي الأنماط التي تفوتك.",
                        accentHex: "#FF7EB3"),
                 OBPage(tag: 3,
-                       headline: "تكامل HealthKit",
+                       headline: "توصيل بـHealthKit",
                        sub: "زامِن خطواتك وسعراتك تلقائياً. شاهد تقدمك في الوقت الفعلي.",
                        accentHex: "#4FD1C5")
             ]

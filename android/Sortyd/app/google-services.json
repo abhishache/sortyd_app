@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "477045892749",
+    "project_id": "sortyd-android",
+    "storage_bucket": "sortyd-android.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:477045892749:android:sortyd",
+        "android_client_info": {
+          "package_name": "com.sortyd.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "REPLACE_WITH_ANDROID_API_KEY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
