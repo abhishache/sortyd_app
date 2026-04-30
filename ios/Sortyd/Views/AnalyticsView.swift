@@ -246,6 +246,7 @@ struct AnalyticsView: View {
                         Spacer(minLength: 80)
                     }
                 }
+                .refreshable { await vm.refresh() }
             }
             .navigationBarHidden(true)
         }
@@ -280,19 +281,23 @@ struct AnalyticsView: View {
     // MARK: - Header
 
     private var headerRow: some View {
-        HStack(alignment: .center, spacing: 8) {
-            VStack(alignment: .leading, spacing: 1) {
+        HStack(alignment: .bottom, spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
                 Text(vm.localized("ANALYTICS"))
-                    .font(.system(size: 9, weight: .bold))
-                    .kerning(2.5)
-                    .foregroundColor(Theme.text2)
+                    .font(.system(size: 8, weight: .bold))
+                    .kerning(1.8)
+                    .foregroundColor(Theme.text2.opacity(0.7))
                 Text(vm.localized("Report"))
-                    .font(.system(size: 26, weight: .black))
+                    .font(.system(size: 28, weight: .black))
                     .foregroundColor(Theme.text0)
             }
-            Spacer()
-            periodSelector
-            listPickerButton
+            
+            Spacer(minLength: 8)
+            
+            HStack(spacing: 8) {
+                periodSelector
+                listPickerButton
+            }
         }
     }
 
@@ -380,9 +385,9 @@ struct AnalyticsView: View {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) { period = p }
                 }) {
                     Text(p.rawValue)
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 7)
+                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 6)
                         .foregroundColor(period == p ? Theme.bg0 : Theme.text2)
                         .background(
                             Group {
@@ -432,15 +437,15 @@ struct AnalyticsView: View {
                     .font(.system(size: 9, weight: .bold))
                     .foregroundColor(Theme.text2)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .frame(minWidth: 110, maxWidth: 150)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .frame(minWidth: 100, maxWidth: 140)
             .background(
-                Capsule(style: .continuous)
-                    .fill(Theme.bg2)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Theme.bg1)
                     .overlay(
-                        Capsule(style: .continuous)
-                            .strokeBorder(Theme.border, lineWidth: 0.5)
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .strokeBorder(Theme.border, lineWidth: 0.75)
                     )
             )
             .cardShadow()

@@ -49,6 +49,7 @@
       "size" : "60x60"
     },
     {
+      "filename" : "icon_light_20_2x.png",
       "idiom" : "ipad",
       "scale" : "2x",
       "size" : "20x20"
@@ -190,6 +191,18 @@
       "idiom" : "iphone",
       "scale" : "3x",
       "size" : "60x60"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "filename" : "icon_dark_20_2x.png",
+      "idiom" : "ipad",
+      "scale" : "2x",
+      "size" : "20x20"
     },
     {
       "appearances" : [

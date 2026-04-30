@@ -1530,3 +1530,109 @@ private struct CheatParticle: Identifiable {
         }
     }
 }
+
+// ══════════════════════════════════════════════
+// MARK: FingerTapView — Onboarding helper
+// ══════════════════════════════════════════════
+
+struct FingerTapView: View {
+    @Binding var isPressing: Bool
+    
+    @State private var offset: CGFloat = 250 // Start from middle right
+    @State private var tap = false
+    @State private var pulse = false
+    
+    private let handColor = Color(hex: "#8D6E63") // Natural brownish
+    
+    var body: some View {
+        ZStack {
+            // Pulsing ring appearing on tap
+            Circle()
+                .stroke(handColor.opacity(0.4), lineWidth: 2)
+                .frame(width: 40, height: 40)
+                .scaleEffect(pulse ? 1.6 : 0.8)
+                .opacity(pulse ? 0 : 0.7)
+            
+            Text("👆🏽")
+                .font(.system(size: 40))
+                .scaleEffect(tap ? 0.85 : 1.1)
+                .offset(x: 0, y: tap ? 10 : 0) // Moves down on tap
+                .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+        }
+        .offset(x: offset)
+        .onAppear {
+            // Entrance animation: Slide in from right
+            withAnimation(.spring(response: 1.0, dampingFraction: 0.8)) {
+                offset = 0
+            }
+            
+            // Start the tap sequence after sliding in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                startTapSequence()
+            }
+        }
+    }
+    
+    private func startTapSequence() {
+        // PRESS
+        withAnimation(.easeInOut(duration: 0.35)) {
+            tap = true
+            isPressing = true
+        }
+        
+        // RELEASE
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                tap = false
+                isPressing = false
+                pulse = true
+            }
+            
+            // Repeat loop after a pause
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
+                pulse = false
+                startTapSequence()
+            }
+        }
+    }
+}
+
+// ══════════════════════════════════════════════
+// MARK: LEDChasingBorder
+// ══════════════════════════════════════════════
+
+struct LEDChasingBorder: View {
+    @State private var rotation: Double = 0
+    
+    var cornerRadius: CGFloat = 16
+    var color: Color = Theme.accent
+    
+    var body: some View {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            .stroke(
+                AngularGradient(
+                    colors: [color, .clear, .clear, color.opacity(0.5), .clear, color],
+                    center: .center,
+                    angle: .degrees(rotation)
+                ),
+                lineWidth: 2.5
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(
+                        AngularGradient(
+                            colors: [color.opacity(0.4), .clear, .clear, .clear, .clear, color.opacity(0.4)],
+                            center: .center,
+                            angle: .degrees(rotation)
+                        ),
+                        lineWidth: 4
+                    )
+                    .blur(radius: 5)
+            )
+            .onAppear {
+                withAnimation(.linear(duration: 2.0).repeatForever(autoreverses: false)) {
+                    rotation = 360
+                }
+            }
+    }
+}

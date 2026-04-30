@@ -49,9 +49,21 @@ struct SortydApp: App {
                     if newPhase == .active {
                         vm.reloadFromDisk()      // re-sync widget/intent writes before reset
                         vm.resetTasksIfNewDay()
+                        vm.checkReviewPrompt()
                     }
                     if newPhase == .background {
                         vm.flushToDisk()         // force write before iOS suspends
+                    }
+                }
+                .overlay {
+                    if vm.showReviewPrompt {
+                        ReviewPromptView(
+                            onReview:      { vm.handleReviewNow() },
+                            onRemindLater: { vm.handleReviewRemindLater() }
+                        )
+                        .environmentObject(ThemeManager.shared)
+                        .transition(.opacity)
+                        .zIndex(999)
                     }
                 }
                 // Watch toggled a task — reload AppViewModel so views refresh immediately

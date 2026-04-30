@@ -288,7 +288,8 @@ final class NotificationManager {
         let center = UNUserNotificationCenter.current()
         let id = "sortyd.todo.daily.reset"
         center.removePendingNotificationRequests(withIdentifiers: [id])
-        guard (try? await center.requestAuthorization(options: [.alert, .sound])) == true else { return }
+        let status = await currentStatus()
+        guard status == .authorized || status == .provisional || status == .ephemeral else { return }
         let content = UNMutableNotificationContent()
         content.title = "✅ TO DO"
         content.body  = "Your TO DO list has been refreshed — fresh canvas for today."

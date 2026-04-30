@@ -1,0 +1,3 @@
+  warning: could not transcribe Sortyd/rise.wav: Video transcription requires faster-whisper. Run: pip install 'graphifyy[video]'
+  warning: could not transcribe Sortyd/gong.wav: Video transcription requires faster-whisper. Run: pip install 'graphifyy[video]'
+[]

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sortyd</string>
+    <string name="today">Today</string>
+    <string name="lists">Lists</string>
+    <string name="analytics">Analytics</string>
+    <string name="ai_coach">AI Coach</string>
+    <string name="settings">Settings</string>
+    <string name="add_task">Add Task</string>
+    <string name="add_list">Add List</string>
+    <string name="done">Done</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="archive">Archive</string>
+    <string name="restore">Restore</string>
+    <string name="create">Create</string>
+    <string name="generate">Generate</string>
+    <string name="get_started">Get Started</string>
+    <string name="continue_str">Continue</string>
+    <string name="resets_4am">Resets at 4 AM daily</string>
+    <string name="ai_disclaimer">AI analytics use goal titles only — processed securely</string>
+    <string name="health_connect_title">Uses Health Connect</string>
+    <string name="health_connect_desc">Reads steps &amp; calories for fitness task tracking</string>
+    <string name="notification_channel_reminders">Task Reminders</string>
+    <string name="notification_channel_daily">Daily Summary</string>
+    <string name="notification_channel_reset">List Reset</string>
+    <string name="todo_reset_title">Fresh start 🌅</string>
+    <string name="todo_reset_body">Your To-Do list has been reset. New day, new goals.</string>
+</resources>

@@ -15,6 +15,10 @@ struct HomeView: View {
 
     private var list: TaskList? { vm.activeList }
     private var isTodoActive: Bool { list?.isTodo == true }
+    /// True when the user has at least one non-todo, non-archived list
+    private var hasRealLists: Bool {
+        vm.lists.contains(where: { !$0.isTodo && !$0.isArchived })
+    }
 
     /// Live health-aware completion % for the active list
     private var liveCompletionPct: Int {
@@ -51,6 +55,7 @@ struct HomeView: View {
                         Spacer(minLength: 60)
                     }
                 }
+                .refreshable { await vm.refresh() }
             }
             .navigationBarHidden(true)
             .sheet(isPresented: $showSwitcher) {
@@ -71,7 +76,7 @@ struct HomeView: View {
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
                 hk.fetchToday()
             }
-            .onAppear {                                          // ← add this
+            .onAppear {
                 Analytics.logEvent(AnalyticsEventScreenView, parameters: [
                     AnalyticsParameterScreenName: "home",
                     AnalyticsParameterScreenClass: "HomeView"
@@ -136,12 +141,12 @@ struct HomeView: View {
                 )
             )
 
-            // TO DO Pill (fixed, right side)
-            if let todo = vm.todoList {
-                Text("|")
-                    .font(.system(size: 20, weight: .ultraLight))
-                    .foregroundColor(Theme.text2.opacity(0.35))
-                    .padding(.horizontal, 6)
+            // TO DO Pill (fixed, right side) — only show when user has real lists
+            if let todo = vm.todoList, hasRealLists {
+                Rectangle()
+                    .fill(Theme.text2.opacity(0.22))
+                    .frame(width: 1, height: 18)
+                    .padding(.horizontal, 5)
 
                 TodoPill(
                     isActive: vm.activeListID == todo.id,
@@ -169,7 +174,7 @@ struct HomeView: View {
     private var heroSection: some View {
         HStack(alignment: .bottom, spacing: 0) {
             VStack(alignment: .leading, spacing: 0) {
-                Text(list?.cleanName.uppercased() ?? vm.localized("NO LIST"))
+                Text((!hasRealLists && isTodoActive) ? "" : (list?.cleanName.uppercased() ?? vm.localized("NO LIST")))
                     .font(Theme.font(size: 12, weight: .bold))
                     .kerning(1.8)
                     .foregroundColor(Theme.accent)
@@ -219,7 +224,7 @@ struct HomeView: View {
 
     private var heatmapSection: some View {
         VStack(spacing: 0) {
-            if let id = list?.id {
+            if let id = list?.id, !(!hasRealLists && isTodoActive) {
                 HeatmapCalendarView(listID: id)
                     .environmentObject(vm)
                     .frame(height: 124)
@@ -252,7 +257,7 @@ struct HomeView: View {
                     .kerning(1.6)
                     .foregroundColor(Theme.text2)
                 Spacer()
-                if isTodoActive {
+                if isTodoActive && hasRealLists {
                     Button { showAddTodoTask = true } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "plus")
@@ -266,7 +271,7 @@ struct HomeView: View {
                         .background(Capsule().fill(Color(hex: "#4CAF50").opacity(0.12)))
                     }
                     .buttonStyle(.plain)
-                } else if let list = list {
+                } else if let list = list, !list.isTodo {
                     let done = list.tasks.filter(\.isCompleted).count
                     let left = list.tasks.count - done
                     Text("\(done) \(String(localized: "done", locale: vm.appLanguage.locale)) · \(left) \(String(localized: "left", locale: vm.appLanguage.locale))")
@@ -275,7 +280,13 @@ struct HomeView: View {
                 }
             }
 
-            if let list = list, !list.tasks.isEmpty {
+            if !hasRealLists && (list == nil || isTodoActive) {
+                // No real lists yet — show onboarding empty state
+                EmptyStateView(onAddList: {
+                    vm.selectedTab = 1
+                })
+                .padding(.top, 1)
+            } else if let list = list, !list.tasks.isEmpty {
                 VStack(spacing: 8) {
                     ForEach(list.tasks) { task in
                         TaskRowView(task: task, hk: hk) { vm.toggleTask(task) }
@@ -291,7 +302,7 @@ struct HomeView: View {
                 .padding(.top, 1)
             }
 
-            if isTodoActive {
+            if isTodoActive && hasRealLists {
                 HStack(spacing: 5) {
                     Image(systemName: "clock.arrow.2.circlepath")
                         .font(.system(size: 9))
@@ -661,10 +672,6 @@ struct TaskRowView: View {
                                 tankWidth: 32
                             )
                         }
-                    } else if let t = timeLabel, !task.isCompleted {
-                        Text(t)
-                            .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                            .foregroundColor(Theme.text1)
                     }
 
                     Button(action: {
@@ -856,6 +863,8 @@ struct EmptyStateView: View {
     @State private var pillsOffset: CGFloat   = 10
     @State private var btnOpacity: Double     = 0
     @State private var btnScale: CGFloat      = 0.94
+    @State private var showFingerTap: Bool    = false
+    @State private var isHandPressing: Bool   = false
 
     private let violet = Color(hex: "#3ECFFF")
     private let cyan   = Color(hex: "#7C6FFF")
@@ -956,7 +965,11 @@ struct EmptyStateView: View {
             }
             .padding(.top, 12).opacity(pillsOpacity).offset(y: pillsOffset)
 
-            Button(action: onAddList) {
+            Button(action: {
+                UserDefaults.standard.set(true, forKey: "has_seen_create_list_onboarding")
+                withAnimation { showFingerTap = false }
+                onAddList()
+            }) {
                 HStack(spacing: 0) {
                     ZStack {
                         Circle().fill(Color(hex: "#0C0D16").opacity(0.25)).frame(width: 32, height: 32)
@@ -986,9 +999,22 @@ struct EmptyStateView: View {
                 .shadow(color: cyan.opacity(glowPulse ? 0.35 : 0.18), radius: glowPulse ? 14 : 8, x: 0, y: 3)
             }
             .buttonStyle(.plain).padding(.top, 20)
-            .scaleEffect(btnScale).opacity(btnOpacity)
+            .scaleEffect(isHandPressing ? 0.96 : btnScale)
+            .rotation3DEffect(.degrees(isHandPressing ? -6 : 0), axis: (x: 1, y: 0, z: 0))
+            .opacity(btnOpacity)
+            .overlay(alignment: .center) {
+                if showFingerTap {
+                    FingerTapView(isPressing: $isHandPressing)
+                        .offset(x: 110, y: 22)
+                        .allowsHitTesting(false)
+                }
+            }
         }
-        .onAppear { runEntrance() }
+        .onAppear { 
+            // DEBUG: Force onboarding to show every time
+            UserDefaults.standard.set(false, forKey: "has_seen_create_list_onboarding")
+            runEntrance() 
+        }
     }
 
     @ViewBuilder
@@ -1042,6 +1068,19 @@ struct EmptyStateView: View {
         withAnimation(.easeOut(duration: 0.45)) { subtitleOpacity = 1; subtitleOffset = 0 }
         withAnimation(.easeOut(duration: 0.45).delay(0.15)) { pillsOpacity = 1; pillsOffset = 0 }
         withAnimation(.spring(response: 0.5, dampingFraction: 0.72).delay(0.3)) { btnOpacity = 1; btnScale = 1.0 }
+        
+        // Show onboarding finger tap if first time
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            // DEBUG: Force onboarding
+            UserDefaults.standard.set(false, forKey: "has_seen_create_list_onboarding")
+            
+            let key = "has_seen_create_list_onboarding"
+            if !UserDefaults.standard.bool(forKey: key) {
+                withAnimation(.spring()) {
+                    showFingerTap = true
+                }
+            }
+        }
     }
 }
 
