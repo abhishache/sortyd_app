@@ -6,7 +6,7 @@
 **Keywords:** habit tracker, habit tracking apps, streamline habits, goal consistency, Sortyd app
 
 **Content:**
-In the journey toward self-improvement, the biggest hurdle isn't the difficulty of the task—it's the maintenance of consistency. This is where a professional **habit tracker** becomes indispensable. 
+In the journey toward self-improvement, the biggest hurdle isn't the difficulty of the task: it's the maintenance of consistency. This is where a professional **habit tracker** becomes indispensable. 
 
 Research shows that "habit stacking" and visual progress tracking are key to rewiring the brain. By using **habit tracking apps** like **Sortyd**, you transform abstract goals into manageable daily actions. 
 

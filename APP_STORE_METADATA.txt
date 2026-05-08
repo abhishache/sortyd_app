@@ -10,7 +10,7 @@ DATE: 2026-05-08
 --- 🇬🇧 ENGLISH ---
 
 [PROMOTIONAL TEXT]
-"Master your routine with Sortyd—the habit tracker that uses AI and HealthKit to help you achieve 10x more. Streamline your life today!"
+"Master your routine with Sortyd: the habit tracker that uses AI and HealthKit to help you achieve 10x more. Streamline your life today!"
 
 [WHAT'S NEW]
 🚀 INTERACTIVE WIDGETS: Stay on top of your goals without even opening the app. Tapping a widget now takes you directly to the right list.
