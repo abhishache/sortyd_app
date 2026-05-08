@@ -207,7 +207,6 @@ final class AppViewModel: ObservableObject {
         appData.lists.insert(todo, at: 0)
         syncPublished()
         PersistenceManager.shared.saveImmediately(appData)
-        Task { await NotificationManager.shared.scheduleTodoResetNotification() }
     }
 
     func addList(name: String, emoji: String) {
@@ -272,7 +271,6 @@ final class AppViewModel: ObservableObject {
                 try? await Task.sleep(nanoseconds: 600_000_000) // 0.6s
                 let granted = await NotificationManager.shared.requestPermissionIfNeeded()
                 guard granted else { return }
-                await NotificationManager.shared.scheduleTodoResetNotification()
                 for task in tasksNeedingReminders {
                     await NotificationManager.shared.scheduleReminder(for: task, in: listCopy)
                 }
@@ -550,7 +548,6 @@ final class AppViewModel: ObservableObject {
     func setTaskReminder(_ task: SortydTask, in listID: UUID, time: Date, isOneTime: Bool = false) async -> Bool {
         let granted = await NotificationManager.shared.requestPermissionIfNeeded()
         guard granted else { return false }
-        await NotificationManager.shared.scheduleTodoResetNotification()
 
         // Re-lookup indices after the await in case data shifted
         guard let listIdx = appData.lists.firstIndex(where: { $0.id == listID }),
@@ -587,16 +584,31 @@ final class AppViewModel: ObservableObject {
         PersistenceManager.shared.saveImmediately(appData)
     }
 
+    // MARK: - Legacy Cleanup
+
+    func cancelLegacyNotifications() {
+        NotificationManager.shared.cancelLegacyTodoResetNotification()
+    }
+
     // MARK: - Daily Reset
 
     func resetTasksIfNewDay() {
         let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
+        let now = Date()
+
+        // Reset boundary is 4 AM. Before 4 AM the boundary is 4 AM the previous day,
+        // so tasks remain visible until the true rollover time rather than wiping at midnight.
+        var dc = calendar.dateComponents([.year, .month, .day], from: now)
+        dc.hour = 4; dc.minute = 0; dc.second = 0
+        guard let fourAMToday = calendar.date(from: dc) else { return }
+        let resetBoundary = now < fourAMToday
+            ? calendar.date(byAdding: .day, value: -1, to: fourAMToday)!
+            : fourAMToday
+
         let lastReset = PersistenceManager.shared.loadLastResetDate()
+        guard lastReset < resetBoundary else { return }
 
-        guard !calendar.isDate(lastReset, inSameDayAs: today) else { return }
-
-        let yesterday = calendar.date(byAdding: .day, value: -1, to: today) ?? today
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: calendar.startOfDay(for: now)) ?? calendar.startOfDay(for: now)
         for list in appData.lists {
             let snap = DailySnapshot(
                 id: UUID(),
@@ -610,7 +622,9 @@ final class AppViewModel: ObservableObject {
 
         for listIdx in appData.lists.indices {
             if appData.lists[listIdx].isTodo {
-                // TO DO list: wipe tasks for fresh canvas each day
+                // Cancel all pending reminders before wiping so no stale alerts fire
+                let taskIDs = appData.lists[listIdx].tasks.map(\.id)
+                NotificationManager.shared.cancelReminders(for: taskIDs)
                 appData.lists[listIdx].tasks = []
             } else {
                 for taskIdx in appData.lists[listIdx].tasks.indices {
@@ -618,14 +632,14 @@ final class AppViewModel: ObservableObject {
                 }
             }
         }
-        
+
         // Safe unwrap: subtracting 730 days from a valid date is always possible,
         // but guard against any edge cases (e.g. extreme DST transitions).
-        if let cutoff = calendar.date(byAdding: .day, value: -730, to: today) {
+        if let cutoff = calendar.date(byAdding: .day, value: -730, to: calendar.startOfDay(for: now)) {
             appData.snapshots = appData.snapshots.filter { $0.date >= cutoff }
         }
 
-        PersistenceManager.shared.saveLastResetDate(today)
+        PersistenceManager.shared.saveLastResetDate(now)
         PersistenceManager.shared.saveImmediately(appData)
         cachedBestStreak = computeBestStreak()
     }

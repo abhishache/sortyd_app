@@ -439,7 +439,7 @@ struct AnalyticsView: View {
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 7)
-            .frame(minWidth: 100, maxWidth: 140)
+            .frame(minWidth: 140, maxWidth: 200)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .fill(Theme.bg1)
@@ -1168,38 +1168,24 @@ struct AnalyticsListPickerSheet: View {
                     .padding(.horizontal, 20).padding(.bottom, 20)
 
                     let liveLists = vm.lists.filter { !$0.isArchived && !$0.isTodo }
+                    let todoList  = vm.lists.first(where: { $0.isTodo })
                     ScrollView {
                         VStack(spacing: 10) {
                             ForEach(liveLists) { list in
-                                Button(action: { selectedListID = list.id; dismiss() }) {
-                                    HStack(spacing: 14) {
-                                        ZStack {
-                                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                                .fill(selectedListID == list.id ? Theme.accent.opacity(0.15) : Theme.bg2)
-                                                .frame(width: 46, height: 46)
-                                            Text(list.emoji).font(.title3)
-                                        }
-                                        VStack(alignment: .leading, spacing: 3) {
-                                            Text(list.cleanName).font(.system(size: 15, weight: .semibold)).foregroundColor(Theme.text0)
-                                            Text("\(list.tasks.count) tasks").font(.system(size: 12)).foregroundColor(Theme.text1)
-                                        }
-                                        Spacer()
-                                        if selectedListID == list.id {
-                                            Image(systemName: "checkmark.circle.fill")
-                                                .font(.system(size: 20)).foregroundColor(Theme.accent)
-                                        }
-                                    }
-                                    .padding(16)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                            .fill(selectedListID == list.id ? Theme.accent.opacity(0.07) : Theme.bg1)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                                    .strokeBorder(selectedListID == list.id ? Theme.accent.opacity(0.3) : Theme.border, lineWidth: 0.5)
-                                            )
-                                    )
-                                }
-                                .buttonStyle(.plain)
+                                analyticsListRow(list, selectedListID: $selectedListID)
+                            }
+                            if let todo = todoList {
+                                Rectangle()
+                                    .fill(Theme.border)
+                                    .frame(height: 0.5)
+                                    .padding(.vertical, 4)
+                                Text("ADHOC TO DO")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .kerning(1.5)
+                                    .foregroundColor(Theme.text2)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, 4)
+                                analyticsListRow(todo, selectedListID: $selectedListID)
                             }
                         }
                         .padding(.horizontal, 16)
@@ -1211,6 +1197,39 @@ struct AnalyticsListPickerSheet: View {
         .presentationDragIndicator(.hidden)
         .presentationCornerRadius(32)
         .presentationBackground(Theme.bg0)
+    }
+
+    @ViewBuilder
+    private func analyticsListRow(_ list: TaskList, selectedListID: Binding<UUID?>) -> some View {
+        Button(action: { selectedListID.wrappedValue = list.id; dismiss() }) {
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(selectedListID.wrappedValue == list.id ? Theme.accent.opacity(0.15) : Theme.bg2)
+                        .frame(width: 46, height: 46)
+                    Text(list.emoji).font(.title3)
+                }
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(list.cleanName).font(.system(size: 15, weight: .semibold)).foregroundColor(Theme.text0)
+                    Text("\(list.tasks.count) tasks").font(.system(size: 12)).foregroundColor(Theme.text1)
+                }
+                Spacer()
+                if selectedListID.wrappedValue == list.id {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 20)).foregroundColor(Theme.accent)
+                }
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(selectedListID.wrappedValue == list.id ? Theme.accent.opacity(0.07) : Theme.bg1)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .strokeBorder(selectedListID.wrappedValue == list.id ? Theme.accent.opacity(0.3) : Theme.border, lineWidth: 0.5)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
     }
 }
 
