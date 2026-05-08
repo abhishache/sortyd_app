@@ -1,0 +1,53 @@
+# SORTYD APP STORE METADATA
+
+This file tracks ASO-optimized metadata for App Store Connect releases.
+
+================================================================================
+VERSION: 4.0
+DATE: 2026-05-08
+================================================================================
+
+--- 🇬🇧 ENGLISH ---
+
+[PROMOTIONAL TEXT]
+"Master your routine with Sortyd—the habit tracker that uses AI and HealthKit to help you achieve 10x more. Streamline your life today!"
+
+[WHAT'S NEW]
+🚀 INTERACTIVE WIDGETS: Stay on top of your goals without even opening the app. Tapping a widget now takes you directly to the right list.
+⚡️ PEAK PERFORMANCE: We've optimized the engine. Dragging tasks and switching tabs is now faster and smoother than ever.
+🔄 RELIABLE DAILY RESET: No more double-resets! Your progress is accurately captured and reset precisely at 4 AM every day.
+🏃‍♂️ HEALTHKIT INTELLIGENCE: Automatically sync steps and calories. Improved detection makes tracking your fitness goals effortless.
+⭐ YOUR VOICE MATTERS: Share your feedback with our new, non-intrusive App Store review system.
+🛠️ STABILITY BOOST: Fixed persistence bugs and improved data integrity across all your devices.
+
+--------------------------------------------------------------------------------
+
+--- 🇸🇦 ARABIC (العربية) ---
+
+[نص ترويجي - PROMOTIONAL TEXT]
+"أتقن روتينك مع Sortyd - متتبع العادات الذي يستخدم الذكاء الاصطناعي وHealthKit لمساعدتك على إنجاز أكثر بـ 10 مرات. نظم حياتك اليوم!"
+
+[ما الجديد - WHAT'S NEW]
+🚀 أدوات تفاعلية: ابقَ على اطلاع بأهدافك دون حتى فتح التطبيق. الضغط على الأداة (Widget) يأخذك الآن مباشرة إلى القائمة الصحيحة.
+⚡️ أداء فائق: قمنا بتحسين محرك التطبيق. سحب المهام والتنقل بين التبويبات أصبح الآن أسرع وأكثر سلاسة من أي وقت مضى.
+🔄 إعادة تعيين يومية موثوقة: لا مزيد من إعادة التعيين المزدوجة! يتم تسجيل تقدمك وإعادة تعيينه بدقة في الساعة 4 صباحاً كل يوم.
+🏃‍♂️ ذكاء HealthKit: مزامنة الخطوات والسعرات الحرارية تلقائياً. الكشف المحسن يجعل تتبع أهدافك البدنية سهلاً للغاية.
+⭐ صوتك يهمنا: شاركنا رأيك من خلال نظام تقييم متجر التطبيقات الجديد وغير المزعج.
+🛠️ تعزيز الاستقرار: تم إصلاح أخطاء الحفظ وتحسين سلامة البيانات عبر جميع أجهزتك.
+
+--------------------------------------------------------------------------------
+
+--- 🇪🇸 SPANISH (Español) ---
+
+[TEXTO PROMOCIONAL - PROMOTIONAL TEXT]
+"Domina tu rutina con Sortyd: el seguidor de hábitos que usa IA y HealthKit para ayudarte a lograr 10 veces más. ¡Organiza tu vida hoy mismo!"
+
+[NOVEDADES - WHAT'S NEW]
+🚀 WIDGETS INTERACTIVOS: Controla tus metas sin abrir la app. Al tocar un widget, irás directamente a la lista correcta.
+⚡️ RENDIMIENTO MÁXIMO: Hemos optimizado el motor. Arrastrar tareas y cambiar de pestañas ahora es más rápido y fluido que nunca.
+🔄 REINICIO DIARIO CONFIABLE: ¡Se acabaron los reinicios dobles! Tu progreso se registra y reinicia con precisión a las 4 AM cada día.
+🏃‍♂️ INTELIGENCIA HEALTHKIT: Sincroniza pasos y calorías automáticamente. La detección mejorada facilita el seguimiento de tus metas de fitness.
+⭐ TU OPINIÓN CUENTA: Comparte tus comentarios con nuestro nuevo sistema de reseñas del App Store, diseñado para no interrumpirte.
+🛠️ ESTABILIDAD REFORZADA: Corregidos errores de persistencia y mejorada la integridad de los datos en todos tus dispositivos.
+
+================================================================================
