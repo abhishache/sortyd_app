@@ -25,6 +25,7 @@ struct SortydApp: App {
                 .onAppear {
                     _ = WatchSessionManager.shared
                     vm.setupHealthAutoComplete()
+                    vm.cancelLegacyNotifications()
 
                     // Schedule the 5:30 PM daily performance summary.
                     // Passes live lists + snapshots so the notification body
@@ -45,7 +46,7 @@ struct SortydApp: App {
                 // That caused a double daily-reset: snapshots written twice for yesterday,
                 // and in rare cases the tasks were cleared then a stale snapshot was written
                 // on top of it. Now init() does not call reset; only this handler does.
-                .onChange(of: scenePhase) { _, newPhase in
+                .onChange(of: scenePhase) { newPhase in
                     if newPhase == .active {
                         vm.reloadFromDisk()      // re-sync widget/intent writes before reset
                         vm.resetTasksIfNewDay()
@@ -57,12 +58,22 @@ struct SortydApp: App {
                 }
                 .overlay {
                     if vm.showReviewPrompt {
-                        ReviewPromptView(
-                            onReview:      { vm.handleReviewNow() },
-                            onRemindLater: { vm.handleReviewRemindLater() }
+                        Color.black.opacity(0.3)
+                            .ignoresSafeArea()
+                            .onTapGesture { vm.handleReviewRemindLater() }
+                            .transition(.opacity.animation(.easeInOut(duration: 0.2)))
+
+                        ReviewPromptCard(
+                            onReviewTapped: { vm.handleReviewNow() },
+                            onDismissed:    { vm.handleReviewRemindLater() }
                         )
-                        .environmentObject(ThemeManager.shared)
-                        .transition(.opacity)
+                        .transition(
+                            .asymmetric(
+                                insertion: .scale(scale: 0.9).combined(with: .opacity),
+                                removal:   .scale(scale: 0.95).combined(with: .opacity)
+                            )
+                            .animation(.spring(response: 0.35, dampingFraction: 0.8))
+                        )
                         .zIndex(999)
                     }
                 }
