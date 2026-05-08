@@ -3,51 +3,48 @@
 This file tracks ASO-optimized metadata for App Store Connect releases.
 
 ================================================================================
-VERSION: 4.0
+VERSION: 1.5
 DATE: 2026-05-08
 ================================================================================
 
 --- 🇬🇧 ENGLISH ---
 
 [PROMOTIONAL TEXT]
-"Master your routine with Sortyd: the habit tracker that uses AI and HealthKit to help you achieve 10x more. Streamline your life today!"
+"Master your routine with Sortyd: the habit tracker that uses AI and HealthKit to help you achieve 10x more. Now fully optimized for iPhone and iPad!"
 
 [WHAT'S NEW]
-🚀 INTERACTIVE WIDGETS: Stay on top of your goals without even opening the app. Tapping a widget now takes you directly to the right list.
-⚡️ PEAK PERFORMANCE: We've optimized the engine. Dragging tasks and switching tabs is now faster and smoother than ever.
-🔄 RELIABLE DAILY RESET: No more double-resets! Your progress is accurately captured and reset precisely at 4 AM every day.
-🏃‍♂️ HEALTHKIT INTELLIGENCE: Automatically sync steps and calories. Improved detection makes tracking your fitness goals effortless.
-⭐ YOUR VOICE MATTERS: Share your feedback with our new, non-intrusive App Store review system.
-🛠️ STABILITY BOOST: Fixed persistence bugs and improved data integrity across all your devices.
+• FULL IPAD SUPPORT: Enjoy a native, centered layout on iPad with adaptive scaling for larger displays.
+• COMPACT REVIEW SYSTEM: Share your feedback through our new, non-intrusive review prompt.
+• IMPROVED LOCALIZATION: Enhanced translations for Spanish and Arabic users.
+• PERFORMANCE BOOST: Smoother transitions and optimized daily reset logic.
+• RELIABLE HEALTH SYNC: Faster and more accurate HealthKit data integration.
 
 --------------------------------------------------------------------------------
 
 --- 🇸🇦 ARABIC (العربية) ---
 
 [نص ترويجي - PROMOTIONAL TEXT]
-"أتقن روتينك مع Sortyd - متتبع العادات الذي يستخدم الذكاء الاصطناعي وHealthKit لمساعدتك على إنجاز أكثر بـ 10 مرات. نظم حياتك اليوم!"
+"أتقن روتينك مع Sortyd - متتبع العادات الذي يستخدم الذكاء الاصطناعي وHealthKit لمساعدتك على إنجاز أكثر بـ 10 مرات. الآن محسّن بالكامل لأجهزة iPhone وiPad!"
 
 [ما الجديد - WHAT'S NEW]
-🚀 أدوات تفاعلية: ابقَ على اطلاع بأهدافك دون حتى فتح التطبيق. الضغط على الأداة (Widget) يأخذك الآن مباشرة إلى القائمة الصحيحة.
-⚡️ أداء فائق: قمنا بتحسين محرك التطبيق. سحب المهام والتنقل بين التبويبات أصبح الآن أسرع وأكثر سلاسة من أي وقت مضى.
-🔄 إعادة تعيين يومية موثوقة: لا مزيد من إعادة التعيين المزدوجة! يتم تسجيل تقدمك وإعادة تعيينه بدقة في الساعة 4 صباحاً كل يوم.
-🏃‍♂️ ذكاء HealthKit: مزامنة الخطوات والسعرات الحرارية تلقائياً. الكشف المحسن يجعل تتبع أهدافك البدنية سهلاً للغاية.
-⭐ صوتك يهمنا: شاركنا رأيك من خلال نظام تقييم متجر التطبيقات الجديد وغير المزعج.
-🛠️ تعزيز الاستقرار: تم إصلاح أخطاء الحفظ وتحسين سلامة البيانات عبر جميع أجهزتك.
+• دعم كامل لجهاز iPad: استمتع بتنسيق أصلي ومركزي على iPad مع قياس تكيفي للشاشات الأكبر.
+• نظام تقييم مدمج: شاركنا رأيك من خلال نظام تقييم جديد وغير مزعج.
+• تحسين التوطين: تحسين الترجمات للمستخدمين باللغتين الإسبانية والعربية.
+• تعزيز الأداء: انتقالات أكثر سلاسة ومنطق مطور لإعادة التعيين اليومي.
+• مزامنة صحية موثوقة: دمج أسرع وأكثر دقة لبيانات HealthKit.
 
 --------------------------------------------------------------------------------
 
 --- 🇪🇸 SPANISH (Español) ---
 
 [TEXTO PROMOCIONAL - PROMOTIONAL TEXT]
-"Domina tu rutina con Sortyd: el seguidor de hábitos que usa IA y HealthKit para ayudarte a lograr 10 veces más. ¡Organiza tu vida hoy mismo!"
+"Domina tu rutina con Sortyd: el seguidor de hábitos que usa IA y HealthKit para ayudarte a lograr 10 veces más. ¡Ahora totalmente optimizado para iPhone e iPad!"
 
 [NOVEDADES - WHAT'S NEW]
-🚀 WIDGETS INTERACTIVOS: Controla tus metas sin abrir la app. Al tocar un widget, irás directamente a la lista correcta.
-⚡️ RENDIMIENTO MÁXIMO: Hemos optimizado el motor. Arrastrar tareas y cambiar de pestañas ahora es más rápido y fluido que nunca.
-🔄 REINICIO DIARIO CONFIABLE: ¡Se acabaron los reinicios dobles! Tu progreso se registra y reinicia con precisión a las 4 AM cada día.
-🏃‍♂️ INTELIGENCIA HEALTHKIT: Sincroniza pasos y calorías automáticamente. La detección mejorada facilita el seguimiento de tus metas de fitness.
-⭐ TU OPINIÓN CUENTA: Comparte tus comentarios con nuestro nuevo sistema de reseñas del App Store, diseñado para no interrumpirte.
-🛠️ ESTABILIDAD REFORZADA: Corregidos errores de persistencia y mejorada la integridad de los datos en todos tus dispositivos.
+• SOPORTE COMPLETO PARA IPAD: Disfruta de un diseño nativo y centrado en iPad con escalado adaptativo para pantallas grandes.
+• SISTEMA DE RESEÑAS COMPACTO: Comparte tus comentarios a través de nuestro nuevo aviso de reseña no intrusivo.
+• LOCALIZACIÓN MEJORADA: Traducciones optimizadas para usuarios de español y árabe.
+• MEJORA DE RENDIMIENTO: Transiciones más fluidas y lógica de reinicio diario optimizada.
+• SINCRONIZACIÓN DE SALUD CONFIABLE: Integración de datos de HealthKit más rápida y precisa.
 
 ================================================================================
