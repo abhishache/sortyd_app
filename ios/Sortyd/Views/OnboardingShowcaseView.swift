@@ -108,6 +108,36 @@ struct OnboardingShowcaseView: View {
             case "Get Started": return "Empezar"
             default: return vm.localized(key)
             }
+        case .chinese:
+            switch key {
+            case "YOUR HABITS": return "你的习惯"
+            case "Free forever": return "永久免费"
+            case "Morning Routine": return "晨间例程"
+            case "5 of 5": return "5/5"
+            case "complete": return "已完成"
+            case "Fitness": return "健身"
+            case "Learning": return "学习"
+            case "Mindfulness": return "正念"
+            case "TODAY": return "今天"
+            case "Morning meditation": return "晨间冥想"
+            case "Workout 30 min": return "锻炼30分钟"
+            case "Read 20 pages": return "阅读20页"
+            case "Journal entry": return "写日记"
+            case "Cold shower": return "冷水澡"
+            case "done": return "完成"
+            case "day streak": return "天连续"
+            case "AI COACH INSIGHTS": return "AI教练洞察"
+            case "Mornings beat evenings by 2×": return "早晨效率是晚上的2倍"
+            case "8am completion vs. 8pm — consistently": return "早8点完成率持续高于晚8点"
+            case "You skip Fridays 80% of the time": return "周五跳过任务的概率高达80%"
+            case "Workout streak: personal best!": return "锻炼连续天数：个人最佳！"
+            case "Grade": return "评级"
+            case "Weekly": return "每周"
+            case "Streak": return "连续"
+            case "Continue": return "继续"
+            case "Get Started": return "开始使用"
+            default: return vm.localized(key)
+            }
         default:
             return vm.localized(key)
         }
@@ -151,6 +181,25 @@ struct OnboardingShowcaseView: View {
                 OBPage(tag: 3,
                        headline: "Salud de Apple",
                        sub: "Sincroniza pasos y calorías. Mira tu progreso en tiempo real.",
+                       accentHex: "#4FD1C5")
+            ]
+        case .chinese:
+            return [
+                OBPage(tag: 0,
+                       headline: "选择\n语言",
+                       sub: "您可以稍后在 iPhone 设置中更改。",
+                       accentHex: "#3ECFFF"),
+                OBPage(tag: 1,
+                       headline: "规划\n你的一天",
+                       sub: "将习惯分组到每日清单。每次专注一个清单，做最重要的事。",
+                       accentHex: "#A78BFF"),
+                OBPage(tag: 2,
+                       headline: "AI智能\n洞察",
+                       sub: "深入分析你的行为模式。AI发现你忽视的规律。",
+                       accentHex: "#FF7EB3"),
+                OBPage(tag: 3,
+                       headline: "HealthKit\n集成",
+                       sub: "自动同步步数和卡路里，实时查看你的进度。",
                        accentHex: "#4FD1C5")
             ]
         default:
@@ -204,6 +253,8 @@ struct OnboardingShowcaseView: View {
                     .offset(y: launched ? 0 : 26)
                     .animation(.spring(response: 0.58, dampingFraction: 0.76).delay(0.15), value: launched)
             }
+            .frame(maxWidth: 600)
+            .frame(maxWidth: .infinity)
         }
         .onAppear {
             Analytics.logEvent("onboarding_started", parameters: nil)
@@ -386,7 +437,7 @@ struct OnboardingShowcaseView: View {
                       isActive: currentPage == 3, isDark: isDark, l: l).tag(3)
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
-        .frame(height: 300)
+        .frame(height: UIDevice.current.userInterfaceIdiom == .pad ? 450 : 300)
         // ── 3D floating tilt ──────────────────────────────────────────────
         // Gentle X-axis rock (forward/back lean)
         .rotation3DEffect(
@@ -475,6 +526,7 @@ struct OnboardingShowcaseView: View {
                 switch vm.appLanguage {
                 case .arabic: return "تستخدم رؤى الذكاء الاصطناعي عناوين العادات فقط - تتم معالجتها بأمان."
                 case .spanish: return "La IA solo usa títulos de hábitos — procesados de forma segura."
+                case .chinese: return "AI洞察仅使用习惯标题 — 安全处理，从不出售。"
                 default: return "AI insights use habit titles only — processed securely, never sold."
                 }
             }())
@@ -526,6 +578,7 @@ struct OnboardingShowcaseView: View {
                         switch vm.appLanguage {
                         case .arabic: return "يستخدم Apple HealthKit"
                         case .spanish: return "Usa Apple HealthKit"
+                        case .chinese: return "使用 Apple HealthKit"
                         default: return "Uses Apple HealthKit"
                         }
                     }())
@@ -535,6 +588,7 @@ struct OnboardingShowcaseView: View {
                         switch vm.appLanguage {
                         case .arabic: return "يقرأ الخطوات والسعرات لتتبع العادات اللياقة البدنية"
                         case .spanish: return "Lee pasos y calorías para rastrear hábitos de fitness"
+                        case .chinese: return "读取步数和卡路里以追踪健身习惯"
                         default: return "Reads steps & active calories to track fitness habits"
                         }
                     }())

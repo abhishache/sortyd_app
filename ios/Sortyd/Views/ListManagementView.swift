@@ -15,6 +15,7 @@ private let kOneTimeDateFormatter: DateFormatter = {
 struct ListManagementView: View {
     @EnvironmentObject var vm: AppViewModel
     @EnvironmentObject var themeManager: ThemeManager
+    @Environment(\.layoutDirection) private var layoutDirection
 
     @State private var showAdd          = false
     @State private var showStarterList  = false
@@ -25,14 +26,19 @@ struct ListManagementView: View {
     @State private var headerAppeared   = false
     @State private var emptyPulse       = false
     @State private var emptyRotate      = false
-    
-    // Onboarding states
+
+    // Onboarding states (empty-state)
     @State private var onboardingStep: Int = -1 // -1: inactive, 0: manual, 1: ai
     @State private var isManualPressing = false
     @State private var isAIPressing = false
 
+    // First-list discovery hint
+    @State private var showFirstListHint = false
+    @State private var firstListHintStep = -1
+    @State private var hintArrowPulse    = false
+
     private var activeLists: [TaskList] {
-        let active = vm.lists.filter { !$0.isArchived && !$0.isTodo }
+        let active = vm.lists.filter { !$0.isArchived && !$0.isTodo && !$0.isWeekly }
         guard let activeID = vm.activeListID,
               let activeList = active.first(where: { $0.id == activeID }) else {
             return active
@@ -66,12 +72,16 @@ struct ListManagementView: View {
                     .allowsHitTesting(false)
                 }
 
-                if isEmpty {
-                    emptyState
-                } else {
-                    scrollContent
-                        .environment(\.editMode, $editMode)
+                VStack(spacing: 0) {
+                    if isEmpty {
+                        emptyState
+                    } else {
+                        scrollContent
+                            .environment(\.editMode, $editMode)
+                    }
                 }
+                .frame(maxWidth: 800)
+                .frame(maxWidth: .infinity)
             }
             .navigationBarTitleDisplayMode(.inline)
             // FIX: keep nav bar fully invisible — no system material on scroll
@@ -88,19 +98,19 @@ struct ListManagementView: View {
                 StarterListSheet().environmentObject(vm)
             }
             .alert(
-                "Delete List?",
+                vm.localized("Delete List?"),
                 isPresented: Binding(get: { confirmDeleteList != nil }, set: { if !$0 { confirmDeleteList = nil } })
             ) {
-                Button("Delete", role: .destructive) {
+                Button(vm.localized("Delete"), role: .destructive) {
                     if let list = confirmDeleteList,
                        let idx = vm.lists.firstIndex(where: { $0.id == list.id }) {
                         vm.deleteList(at: IndexSet(integer: idx))
                     }
                     confirmDeleteList = nil
                 }
-                Button("Cancel", role: .cancel) { confirmDeleteList = nil }
+                Button(vm.localized("Cancel"), role: .cancel) { confirmDeleteList = nil }
             } message: {
-                Text("Permanently delete \"\(confirmDeleteList?.cleanName ?? "")\" and all its tasks?")
+                Text(String(format: vm.localized("Permanently delete \"%@\" and all its tasks?"), confirmDeleteList?.cleanName ?? ""))
             }
         }
         .onAppear {
@@ -109,6 +119,15 @@ struct ListManagementView: View {
                 AnalyticsParameterScreenClass: "ListManagementView"
             ])
             withAnimation(.spring(response: 0.55, dampingFraction: 0.8).delay(0.05)) { headerAppeared = true }
+            if activeLists.count >= 1 { triggerFirstListHintIfNeeded() }
+        }
+        .overlay {
+            if showFirstListHint {
+                firstListHintOverlay.transition(.opacity)
+            }
+        }
+        .onChange(of: activeLists.count) { _, newCount in
+            if newCount == 1 { triggerFirstListHintIfNeeded() }
         }
     }
 
@@ -125,42 +144,66 @@ struct ListManagementView: View {
                 .foregroundStyle(Color.white.opacity(0.9))
         }
 
-        // Leading — gear (no container, gradient glow). Only when >0 lists.
+        // Leading — gear + guide replay. Only when >0 lists.
         if !activeLists.isEmpty {
             ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    withAnimation(.spring(response: 0.28, dampingFraction: 0.65)) {
-                        editMode = editMode == .active ? .inactive : .active
-                    }
-                } label: {
-                    ZStack {
-                        // Thin ring visible only when active
-                        Circle()
-                            .strokeBorder(
-                                LinearGradient(
-                                    colors: [Theme.accent.opacity(0.55), Theme.coral.opacity(0.35)],
-                                    startPoint: .topLeading, endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1
-                            )
-                            .frame(width: 34, height: 34)
-                            .opacity(editMode == .active ? 1 : 0)
-                            .animation(.easeInOut(duration: 0.22), value: editMode == .active)
+                HStack(spacing: 2) {
+                    Button {
+                        withAnimation(.spring(response: 0.28, dampingFraction: 0.65)) {
+                            editMode = editMode == .active ? .inactive : .active
+                        }
+                    } label: {
+                        ZStack {
+                            // Thin ring visible only when active
+                            Circle()
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [Theme.accent.opacity(0.55), Theme.coral.opacity(0.35)],
+                                        startPoint: .topLeading, endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1
+                                )
+                                .frame(width: 34, height: 34)
+                                .opacity(editMode == .active ? 1 : 0)
+                                .animation(.easeInOut(duration: 0.22), value: editMode == .active)
 
-                        Image(systemName: editMode == .active ? "checkmark" : "gearshape.fill")
-                            .font(.system(size: editMode == .active ? 14 : 16, weight: .semibold))
-                            .foregroundStyle(LinearGradient(
-                                colors: [Theme.accent, Theme.coral],
-                                startPoint: .topLeading, endPoint: .bottomTrailing
-                            ))
-                            .shadow(color: Theme.accent.opacity(0.42), radius: 6)
-                            .scaleEffect(editMode == .active ? 1.08 : 1.0)
-                            .animation(.spring(response: 0.25, dampingFraction: 0.60), value: editMode == .active)
+                            Image(systemName: editMode == .active ? "checkmark" : "gearshape.fill")
+                                .font(.system(size: editMode == .active ? 14 : 16, weight: .semibold))
+                                .foregroundStyle(LinearGradient(
+                                    colors: [Theme.accent, Theme.coral],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing
+                                ))
+                                .shadow(color: Theme.accent.opacity(0.42), radius: 6)
+                                .scaleEffect(editMode == .active ? 1.08 : 1.0)
+                                .animation(.spring(response: 0.25, dampingFraction: 0.60), value: editMode == .active)
+                        }
+                        .frame(width: 38, height: 38)
+                        .background(Color.clear)
                     }
-                    .frame(width: 38, height: 38)
-                    .background(Color.clear)
+                    .buttonStyle(.plain)
+
+                    Button {
+                        startFirstListHint()
+                    } label: {
+                        Circle()
+                            .fill(Theme.cardBackground.opacity(ThemeManager.shared.isDark ? 0.72 : 0.86))
+                            .overlay(
+                                Circle()
+                                    .strokeBorder(Theme.accent.opacity(0.24), lineWidth: 1)
+                            )
+                            .frame(width: 28, height: 28)
+                            .overlay {
+                                Image(systemName: "questionmark")
+                                    .font(.system(size: 12, weight: .black))
+                                    .foregroundColor(Theme.accent)
+                            }
+                            .shadow(color: Theme.accent.opacity(0.18), radius: 7, y: 3)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text(vm.localized("Show list guide")))
+                    .accessibilityHint(Text(vm.localized("Replay the list navigation tour.")))
                 }
-                .buttonStyle(.plain)
+                .background(Color.clear)
             }
         }
 
@@ -175,7 +218,7 @@ struct ListManagementView: View {
                         Image(systemName: "sparkles")
                             .font(.system(size: 10, weight: .black))
                             .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#060710") : .white)
-                        Text(vm.appLanguage == .arabic ? "ذكاء اصطناعي" : "AI")
+                        Text(vm.appLanguage == .arabic ? "ذكاء اصطناعي" : (vm.appLanguage == .chinese ? "AI" : "AI"))
                             .font(.system(size: 12, weight: .black))
                             .tracking(0.6)
                             .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#060710") : .white)
@@ -268,14 +311,14 @@ struct ListManagementView: View {
         VStack(spacing: 0) {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("Lists")
+                    Text(vm.localized("Lists"))
                         .font(.system(size: 34, weight: .heavy, design: .rounded))
                         .foregroundColor(Theme.text0)
                         .opacity(headerAppeared ? 1 : 0)
                         .offset(y: headerAppeared ? 0 : 12)
                         .animation(.spring(response: 0.55, dampingFraction: 0.78).delay(0.05), value: headerAppeared)
 
-                    Text("Active list would be default across widgets and the analysis.")
+                    Text(vm.localized("Active list would be default across widgets and the analysis."))
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(Theme.text2)
                         .opacity(headerAppeared ? 0.8 : 0)
@@ -287,9 +330,9 @@ struct ListManagementView: View {
                         let done    = activeLists.reduce(0) { $0 + $1.tasks.filter { $0.isCompleted }.count }
                         let pending = total - done
                         HStack(spacing: 6) {
-                            if done > 0    { statPill(value: done,    label: vm.appLanguage == .arabic ? "تم" : (vm.appLanguage == .spanish ? "hecho" : "done"),  color: Theme.success) }
-                            if pending > 0 { statPill(value: pending, label: vm.appLanguage == .arabic ? "متبقي" : (vm.appLanguage == .spanish ? "restantes" : "left"),  color: Theme.accent)  }
-                            if total == 0  { statPill(value: 0,       label: vm.appLanguage == .arabic ? "لا مهام" : (vm.appLanguage == .spanish ? "sin tareas" : "no tasks"), color: Theme.text2) }
+                            if done > 0    { statPill(value: done,    label: vm.appLanguage == .arabic ? "تم" : (vm.appLanguage == .spanish ? "hecho" : (vm.appLanguage == .chinese ? "已完成" : "done")),  color: Theme.success) }
+                            if pending > 0 { statPill(value: pending, label: vm.appLanguage == .arabic ? "متبقي" : (vm.appLanguage == .spanish ? "restantes" : (vm.appLanguage == .chinese ? "待完成" : "left")),  color: Theme.accent)  }
+                            if total == 0  { statPill(value: 0,       label: vm.appLanguage == .arabic ? "لا مهام" : (vm.appLanguage == .spanish ? "sin tareas" : (vm.appLanguage == .chinese ? "暂无任务" : "no tasks")), color: Theme.text2) }
                         }
                         .opacity(headerAppeared ? 1 : 0)
                         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.14), value: headerAppeared)
@@ -344,7 +387,7 @@ struct ListManagementView: View {
                     startPoint: .top, endPoint: .bottom
                 ))
                 .contentTransition(.numericText())
-            Text(activeLists.count == 1 ? String(localized: "list") : String(localized: "lists"))
+            Text(activeLists.count == 1 ? vm.localized("list") : vm.localized("lists"))
                 .font(.system(size: 10, weight: .semibold))
                 .tracking(0.5)
                 .foregroundColor(Theme.text2)
@@ -372,16 +415,16 @@ struct ListManagementView: View {
                         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                             Button {
                                 withAnimation(.spring(response: 0.32, dampingFraction: 0.78)) { vm.restoreList(list) }
-                            } label: { Label("Restore", systemImage: "arrow.uturn.backward") }
+                            } label: { Label(vm.localized("Restore"), systemImage: "arrow.uturn.backward") }
                                 .tint(Theme.accent)
                             Button(role: .destructive) { vm.permanentlyDeleteList(list) }
-                                label: { Label("Delete", systemImage: "trash") }
+                                label: { Label(vm.localized("Delete"), systemImage: "trash") }
                         }
                 }
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "archivebox.fill").font(.system(size: 10, weight: .semibold)).foregroundColor(Theme.text2)
-                    Text("ARCHIVED").font(.system(size: 10, weight: .black)).tracking(2.5).foregroundColor(Theme.text2)
+                    Text(vm.localized("ARCHIVED")).font(.system(size: 10, weight: .black)).tracking(2.5).foregroundColor(Theme.text2)
                     Spacer()
                     Text("\(archivedLists.count)")
                         .font(.system(size: 11, weight: .bold, design: .rounded))
@@ -487,11 +530,11 @@ struct ListManagementView: View {
             .padding(.bottom, 24)
 
             VStack(spacing: 8) {
-                Text(vm.appLanguage == .arabic ? "لوحتك فارغة" : (vm.appLanguage == .spanish ? "Tu lienzo está vacío" : "Your canvas is empty"))
+                Text(vm.appLanguage == .arabic ? "لوحتك فارغة" : (vm.appLanguage == .spanish ? "Tu lienzo está vacío" : (vm.appLanguage == .chinese ? "你的画布还是空的" : "Your canvas is empty")))
                     .font(.system(size: 24, weight: .heavy, design: .rounded))
                     .foregroundColor(Theme.text0)
                     .multilineTextAlignment(.center)
-                Text(vm.appLanguage == .arabic ? "دع الذكاء الاصطناعي يبني قائمتك الأولى،\nأو أنشئ واحدة بنفسك." : (vm.appLanguage == .spanish ? "Deja que la IA cree tu primera lista,\no crea una tú mismo." : "Let AI build your first list,\nor create one yourself."))
+                Text(vm.appLanguage == .arabic ? "دع الذكاء الاصطناعي يبني قائمتك الأولى،\nأو أنشئ واحدة بنفسك." : (vm.appLanguage == .spanish ? "Deja que la IA cree tu primera lista,\no crea una tú mismo." : (vm.appLanguage == .chinese ? "让 AI 创建你的第一个列表，\n或自己创建一个。" : "Let AI build your first list,\nor create one yourself.")))
                     .font(.system(size: 14))
                     .foregroundColor(Theme.text2)
                     .multilineTextAlignment(.center)
@@ -513,10 +556,10 @@ struct ListManagementView: View {
                                 .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#060710") : .white)
                         }
                         VStack(alignment: .leading, spacing: 1) {
-                            Text(vm.appLanguage == .arabic ? "أنشئ بواسطة الذكاء الاصطناعي" : (vm.appLanguage == .spanish ? "Generar con IA" : "Generate with AI"))
+                            Text(vm.appLanguage == .arabic ? "أنشئ بواسطة الذكاء الاصطناعي" : (vm.appLanguage == .spanish ? "Generar con IA" : (vm.appLanguage == .chinese ? "用 AI 生成" : "Generate with AI")))
                                 .font(.system(size: 15, weight: .bold))
                                 .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#060710") : .white)
-                            Text(vm.appLanguage == .arabic ? "صف هدفك، والذكاء الاصطناعي يبنيه" : (vm.appLanguage == .spanish ? "Describe tu objetivo, la IA lo crea" : "Describe your goal, AI builds it"))
+                            Text(vm.appLanguage == .arabic ? "صف هدفك، والذكاء الاصطناعي يبنيه" : (vm.appLanguage == .spanish ? "Describe tu objetivo, la IA lo crea" : (vm.appLanguage == .chinese ? "描述你的目标，AI 为你构建" : "Describe your goal, AI builds it")))
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor((ThemeManager.shared.isDark ? Color(hex: "#060710") : Color.white).opacity(0.60))
                         }
@@ -557,7 +600,7 @@ struct ListManagementView: View {
                     Rectangle()
                         .fill(Theme.borderAccent)
                         .frame(height: 1)
-                    Text(vm.appLanguage == .arabic ? "أو" : "OR")
+                    Text(vm.localized("OR"))
                         .font(.system(size: 13, weight: .black))
                         .foregroundColor(Theme.accent)
                         .tracking(1.0)
@@ -574,7 +617,7 @@ struct ListManagementView: View {
                         Image(systemName: "pencil")
                             .font(.system(size: 14, weight: .bold))
                             .foregroundColor(Theme.text1)
-                        Text(vm.appLanguage == .arabic ? "أنشئ يدويًا" : (vm.appLanguage == .spanish ? "Crear manualmente" : "Create manually"))
+                        Text(vm.localized("Create manually"))
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(Theme.text1)
                     }
@@ -627,9 +670,6 @@ struct ListManagementView: View {
 }
 
     private func runListOnboarding() {
-        // DEBUG: Force onboarding
-        UserDefaults.standard.set(false, forKey: "has_seen_list_management_onboarding")
-        
         let key = "has_seen_list_management_onboarding"
         if UserDefaults.standard.bool(forKey: key) { return }
         
@@ -645,6 +685,113 @@ struct ListManagementView: View {
                 }
             }
         }
+    }
+
+    // MARK: - First-List Discovery Hint
+
+    private func startFirstListHint() {
+        guard activeLists.count >= 1 else { return }
+        withAnimation(.spring(response: 0.45, dampingFraction: 0.78)) {
+            editMode = .inactive
+            firstListHintStep = 0
+            showFirstListHint = true
+        }
+    }
+
+    private func triggerFirstListHintIfNeeded() {
+        let key = "has_seen_first_list_hint"
+        // Uncomment below for testing:
+        // UserDefaults.standard.set(false, forKey: key)
+        guard !UserDefaults.standard.bool(forKey: key), activeLists.count >= 1 else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
+            startFirstListHint()
+        }
+    }
+
+    private func advanceHint() {
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.80)) {
+            if firstListHintStep < ListDiscoveryGuide.totalSteps - 1 {
+                firstListHintStep += 1
+            } else {
+                dismissFirstListHint()
+            }
+        }
+    }
+
+    private func dismissFirstListHint() {
+        withAnimation(.easeOut(duration: 0.28)) {
+            showFirstListHint = false
+            firstListHintStep = -1
+        }
+        UserDefaults.standard.set(true, forKey: "has_seen_first_list_hint")
+    }
+
+    // MARK: - First-List Overlay
+
+    private var firstListHintOverlay: some View {
+        GeometryReader { proxy in
+            let panelWidth = min(proxy.size.width - 36, 360)
+            let guide = ListDiscoveryGuide(
+                step: firstListHintStep,
+                size: proxy.size,
+                isRTL: layoutDirection == .rightToLeft
+            )
+            let panelFrame = guide.panelFrame(width: panelWidth)
+            ZStack {
+                Color.black.opacity(0.56)
+                    .ignoresSafeArea()
+                    .onTapGesture { advanceHint() }
+
+                HintSpotlight(
+                    rect: guide.target.rect,
+                    cornerRadius: guide.target.cornerRadius,
+                    pulse: hintArrowPulse
+                )
+                .allowsHitTesting(false)
+
+                HintActionPanel(
+                    icon: guide.icon,
+                    title: vm.localized(guide.title),
+                    message: vm.localized(guide.message),
+                    action: vm.localized(guide.action),
+                    step: firstListHintStep + 1,
+                    total: ListDiscoveryGuide.totalSteps,
+                    nextLabel: vm.localized("Next"),
+                    doneLabel: vm.localized("Done"),
+                    pointerEdge: guide.pointerEdge,
+                    pointerX: guide.pointerX(in: panelFrame),
+                    onNext: advanceHint,
+                    onDismiss: dismissFirstListHint
+                )
+                .frame(width: panelWidth)
+                .position(x: panelFrame.midX, y: panelFrame.midY)
+                .transition(.asymmetric(
+                    insertion: .scale(scale: 0.94, anchor: guide.transitionAnchor).combined(with: .opacity),
+                    removal: .opacity
+                ))
+
+                VStack {
+                    Spacer()
+
+                    HStack {
+                        Spacer()
+                        Button(vm.localized("Skip tour")) { dismissFirstListHint() }
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white.opacity(0.86))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                            .background(.ultraThinMaterial, in: Capsule())
+                            .overlay(Capsule().strokeBorder(Color.white.opacity(0.18), lineWidth: 1))
+                            .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 22)
+                    .padding(.bottom, proxy.size.height < 760 ? 32 : 46)
+                }
+            }
+            .ignoresSafeArea()
+        }
+        .onAppear  { hintArrowPulse = true }
+        .onDisappear { hintArrowPulse = false }
     }
 
     // MARK: - Helpers
@@ -773,12 +920,12 @@ private struct ObsidianListCard: View {
                     Spacer(minLength: 0)
 
                     Menu {
-                        Button { showRename = true } label: { Label("Rename", systemImage: "pencil") }
-                            .accessibilityLabel("Rename \(list.name)")
-                        Button(action: onArchive) { Label("Archive", systemImage: "archivebox") }
-                            .accessibilityLabel("Archive \(list.name)")
-                        Button(role: .destructive, action: onDelete) { Label("Delete List", systemImage: "trash") }
-                            .accessibilityLabel("Delete \(list.name)")
+                        Button { showRename = true } label: { Label(vm.localized("Rename"), systemImage: "pencil") }
+                            .accessibilityLabel(String(format: vm.localized("Rename %@"), list.name))
+                        Button(action: onArchive) { Label(vm.localized("Archive"), systemImage: "archivebox") }
+                            .accessibilityLabel(String(format: vm.localized("Archive %@"), list.name))
+                        Button(role: .destructive, action: onDelete) { Label(vm.localized("Delete List"), systemImage: "trash") }
+                            .accessibilityLabel(String(format: vm.localized("Delete %@"), list.name))
                     } label: {
                         Image(systemName: "ellipsis")
                             .font(.system(size: 13, weight: .semibold))
@@ -801,15 +948,15 @@ private struct ObsidianListCard: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { progressAppeared = true }
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-            Button(action: onArchive) { Label("Archive", systemImage: "archivebox") }
+            Button(action: onArchive) { Label(vm.localized("Archive"), systemImage: "archivebox") }
                 .tint(Color(hex: "#6B7280"))
-            Button(role: .destructive, action: onDelete) { Label("Delete", systemImage: "trash") }
+            Button(role: .destructive, action: onDelete) { Label(vm.localized("Delete"), systemImage: "trash") }
                 .tint(Color(hex: "#EF4444"))
         }
         .contextMenu {
-            Button { showRename = true } label: { Label("Rename", systemImage: "pencil") }
-            Button(action: onArchive) { Label("Archive", systemImage: "archivebox") }
-            Button(role: .destructive, action: onDelete) { Label("Delete", systemImage: "trash") }
+            Button { showRename = true } label: { Label(vm.localized("Rename"), systemImage: "pencil") }
+            Button(action: onArchive) { Label(vm.localized("Archive"), systemImage: "archivebox") }
+            Button(role: .destructive, action: onDelete) { Label(vm.localized("Delete"), systemImage: "trash") }
         }
         .sheet(isPresented: $showRename) {
             RenameListSheet(list: list) { newName, newEmoji in
@@ -849,6 +996,7 @@ private struct ObsidianListCard: View {
 // MARK: - ArchivedCard
 
 private struct ArchivedCard: View {
+    @EnvironmentObject var vm: AppViewModel
     let list: TaskList
 
     var body: some View {
@@ -862,7 +1010,7 @@ private struct ArchivedCard: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(list.cleanName).font(.system(size: 13, weight: .semibold)).foregroundColor(Theme.text1).lineLimit(1)
-                Text("\(list.tasks.count) task\(list.tasks.count == 1 ? "" : "s")").font(.system(size: 11)).foregroundColor(Theme.text2)
+                Text(String(format: list.tasks.count == 1 ? vm.localized("%lld task") : vm.localized("%lld tasks"), Int64(list.tasks.count))).font(.system(size: 11)).foregroundColor(Theme.text2)
             }
             Spacer()
             Image(systemName: "archivebox").font(.system(size: 11, weight: .medium)).foregroundColor(Theme.text2.opacity(0.35))
@@ -977,14 +1125,14 @@ struct ListDetailView: View {
                 Text("✅").font(.system(size: 24))
             }
             VStack(spacing: 6) {
-                Text("No tasks yet").font(.system(size: 20, weight: .bold, design: .rounded)).foregroundColor(Theme.text0)
-                Text("Add your first task to get started.").font(.system(size: 13.5)).foregroundColor(Theme.text1)
+                Text(vm.localized("No tasks yet")).font(.system(size: 20, weight: .bold, design: .rounded)).foregroundColor(Theme.text0)
+                Text(vm.localized("Add your first task to get started.")).font(.system(size: 13.5)).foregroundColor(Theme.text1)
             }
             HStack(spacing: 10) {
                 Button { showSmartAdd = true } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "sparkles").font(.system(size: 12, weight: .black))
-                        Text("Smart Add").font(.system(size: 14, weight: .bold))
+                        Text(vm.localized("Smart Add")).font(.system(size: 14, weight: .bold))
                     }
                     .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
                     .padding(.horizontal, 22).padding(.vertical, 12)
@@ -992,7 +1140,7 @@ struct ListDetailView: View {
                 }
                 .buttonStyle(ListScaleStyle())
                 Button { showAdd = true } label: {
-                    Text("Manual").font(.system(size: 14, weight: .semibold)).foregroundColor(Theme.text1)
+                    Text(vm.localized("Manual")).font(.system(size: 14, weight: .semibold)).foregroundColor(Theme.text1)
                         .padding(.horizontal, 22).padding(.vertical, 12)
                         .background(Capsule().fill(Theme.bg2).overlay(Capsule().strokeBorder(Theme.border, lineWidth: 0.5)))
                 }
@@ -1031,6 +1179,7 @@ struct ListDetailView: View {
 // MARK: - TaskDetailRow
 
 private struct TaskDetailRow: View {
+    @EnvironmentObject var vm: AppViewModel
     let task: SortydTask
     var onDelete: (() -> Void)? = nil
     @StateObject private var hk = HealthKitManager.shared
@@ -1063,7 +1212,7 @@ private struct TaskDetailRow: View {
                             .font(.system(size: 9, weight: .bold))
                             .foregroundColor(Color(hex: ht.accentColor))
                     } else if task.reminderTime == nil {
-                        Text("No reminder").font(.system(size: 9, weight: .bold)).foregroundColor(Theme.text2)
+                        Text(vm.localized("No reminder")).font(.system(size: 9, weight: .bold)).foregroundColor(Theme.text2)
                     }
                 }
                 .animation(.spring(response: 0.3, dampingFraction: 0.7), value: task.reminderTime)
@@ -1113,7 +1262,7 @@ struct AddListSheet: View {
             VStack(spacing: 0) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: Theme.s20) {
-                        sheetLabel("LIST NAME")
+                        sheetLabel(vm.localized("LIST NAME"))
                         HStack(spacing: 12) {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -1124,7 +1273,7 @@ struct AddListSheet: View {
                                 Text(emoji).font(.system(size: 20))
                             }
                             
-                            TextField("e.g. Morning Routine", text: $name)
+                            TextField(vm.localized("e.g. Morning Routine"), text: $name)
                                 .font(.system(size: 16, weight: .medium))
                                 .foregroundColor(Theme.text0)
                         }
@@ -1132,7 +1281,7 @@ struct AddListSheet: View {
                         .background(fieldBG(Theme.r12))
                             // FIX: user must tap to open keyboard — no auto-focus
 
-                        sheetLabel("ICON")
+                        sheetLabel(vm.localized("ICON"))
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 6), spacing: 8) {
                             ForEach(emojis, id: \.self) { e in
                                 Button { emoji = e } label: {
@@ -1155,12 +1304,12 @@ struct AddListSheet: View {
                 }
             }
             .background(Theme.bg0)
-            .navigationTitle("New List").navigationBarTitleDisplayMode(.inline)
+            .navigationTitle(vm.localized("New List")).navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Theme.bg0, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }.foregroundColor(Theme.text1)
+                    Button(vm.localized("Cancel")) { dismiss() }.foregroundColor(Theme.text1)
                 }
                 if let switchToAI = onSwitchToAI {
                     ToolbarItem(placement: .navigationBarTrailing) {
@@ -1186,7 +1335,7 @@ struct AddListSheet: View {
                     guard !n.isEmpty else { return }
                     vm.addList(name: n, emoji: emoji); dismiss()
                 } label: {
-                    Text("Add List")
+                    Text(vm.localized("Add List"))
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
                         .frame(maxWidth: .infinity).padding(.vertical, 16)
@@ -1211,6 +1360,7 @@ struct AddListSheet: View {
 struct RenameListSheet: View {
     let list: TaskList
     let onSave: (String, String) -> Void
+    @EnvironmentObject var vm: AppViewModel
     @Environment(\.dismiss) var dismiss
 
     @State private var name: String
@@ -1234,7 +1384,7 @@ struct RenameListSheet: View {
             VStack(spacing: 0) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: Theme.s20) {
-                        sheetLabel("LIST NAME")
+                        sheetLabel(vm.localized("LIST NAME"))
                         HStack(spacing: 12) {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -1245,14 +1395,14 @@ struct RenameListSheet: View {
                                 Text(emoji).font(.system(size: 20))
                             }
                             
-                            TextField("List name", text: $name)
+                            TextField(vm.localized("List name"), text: $name)
                                 .font(.system(size: 16, weight: .medium))
                                 .foregroundColor(Theme.text0)
                         }
                         .padding(Theme.s12)
                         .background(fieldBG(Theme.r12))
 
-                        sheetLabel("ICON")
+                        sheetLabel(vm.localized("ICON"))
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 6), spacing: 8) {
                             ForEach(emojis, id: \.self) { e in
                                 Button { emoji = e } label: {
@@ -1275,12 +1425,12 @@ struct RenameListSheet: View {
                 }
             }
             .background(Theme.bg0)
-            .navigationTitle("Rename List").navigationBarTitleDisplayMode(.inline)
+            .navigationTitle(vm.localized("Rename List")).navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Theme.bg0, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }.foregroundColor(Theme.text1)
+                    Button(vm.localized("Cancel")) { dismiss() }.foregroundColor(Theme.text1)
                 }
             }
             .safeAreaInset(edge: .bottom) {
@@ -1289,7 +1439,7 @@ struct RenameListSheet: View {
                     guard !n.isEmpty else { return }
                     onSave(n, emoji); dismiss()
                 } label: {
-                    Text("Save")
+                    Text(vm.localized("Save"))
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
                         .frame(maxWidth: .infinity).padding(.vertical, 16)
@@ -1344,9 +1494,9 @@ struct AddTaskSheet: View {
                 Theme.bg0.ignoresSafeArea()
                 ScrollView {
                     VStack(alignment: .leading, spacing: Theme.s16) {
-                        sheetLabel("TASK NAME")
+                        sheetLabel(vm.localized("TASK NAME"))
                         HStack(spacing: 10) {
-                            TextField("What do you need to do?", text: $title)
+                            TextField(vm.localized("What do you need to do?"), text: $title)
                                 .font(.system(size: 16, weight: .medium)).foregroundColor(Theme.text0)
                                 .autocorrectionDisabled()
                                 .onChange(of: title) { _, v in detectHealth(from: v) }
@@ -1366,7 +1516,7 @@ struct AddTaskSheet: View {
                         .padding(Theme.s16).background(fieldBG(Theme.r12))
 
                         VStack(alignment: .leading, spacing: 10) {
-                            sheetLabel("TASK TYPE")
+                            sheetLabel(vm.localized("TASK TYPE"))
                             VStack(spacing: 8) {
                                 HStack(spacing: 8) {
                                     typePill(type: .none, label: vm.localized("Regular"))
@@ -1377,7 +1527,7 @@ struct AddTaskSheet: View {
                                     typePill(type: .distance, label: vm.localized("Distance"))
                                 }
                             }
-                            Text(vm.localized("Only one task from step count, calorie count or distance measure is allowed."))
+                            Text(vm.localized("Only one task from step count, calorie count, or distance measure is allowed."))
                                 .font(.system(size: 9, weight: .bold)) // Standardized to 9pt bold
                                 .foregroundColor(Theme.text2)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -1411,13 +1561,13 @@ struct AddTaskSheet: View {
                     .animation(.spring(response: 0.3, dampingFraction: 0.75), value: showReminderConflictToast)
                 }
             }
-            .navigationTitle("New Task").navigationBarTitleDisplayMode(.inline)
+            .navigationTitle(vm.localized("New Task")).navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Theme.bg0, for: .navigationBar).toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) { Button("Cancel") { dismiss() }.foregroundColor(Theme.text1) }
+                ToolbarItem(placement: .navigationBarLeading) { Button(vm.localized("Cancel")) { dismiss() }.foregroundColor(Theme.text1) }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: confirmAdd) {
-                        Text("Add").font(.system(size: 14, weight: .bold))
+                        Text(vm.localized("Add")).font(.system(size: 14, weight: .bold))
                             .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
                             .padding(.horizontal, 14).padding(.vertical, 7)
                             .background(Capsule().fill(title.isEmpty ? Theme.text2 : Theme.accent)
@@ -1438,10 +1588,10 @@ struct AddTaskSheet: View {
             HealthPermissionSheet(taskType: detectedHealthType, onGrant: { hk.fetchToday() }, onSkip: {})
                 .presentationDetents([.large]).presentationCornerRadius(Theme.r32).presentationBackground(Theme.bg0)
         }
-        .alert("Notifications Disabled", isPresented: $showDeniedAlert) {
-            Button("Open Settings") { if let u = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(u) } }
-            Button("Cancel", role: .cancel) {}
-        } message: { Text("Enable notifications for Sortyd in Settings to receive task reminders.") }
+        .alert(vm.localized("Notifications Disabled"), isPresented: $showDeniedAlert) {
+            Button(vm.localized("Open Settings")) { if let u = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(u) } }
+            Button(vm.localized("Cancel"), role: .cancel) {}
+        } message: { Text(vm.localized("Enable notifications for Sortyd in Settings to receive task reminders.")) }
     }
 
     private func detectHealth(from text: String) {
@@ -1459,14 +1609,7 @@ struct AddTaskSheet: View {
     private func typePill(type: HealthTaskType, label: String) -> some View {
         let isSelected = detectedHealthType == type
         let isBlocked  = type != .none && vm.duplicateHealthType(type.rawValue, in: listID) != nil
-        let accent: Color = {
-            switch type {
-            case .none:     return Color(hex: "#FFC107")
-            case .steps:    return Color(hex: "#4FC3F7")
-            case .calories: return Color(hex: "#FF7043")
-            case .distance: return Color(hex: "#2E7D32")
-            }
-        }()
+        let accent: Color = Color(hex: type.accentColor)
 
         Button {
             if isBlocked {
@@ -1576,6 +1719,7 @@ struct EditTaskSheet: View {
     @State private var isSaving        = false
     @State private var reminderConflict: AppViewModel.ReminderConflictInfo? = nil
     @State private var showReminderConflictToast = false
+    @StateObject private var hk = HealthKitManager.shared
 
     init(task: SortydTask, listID: UUID) {
         self.task = task; self.listID = listID
@@ -1590,9 +1734,9 @@ struct EditTaskSheet: View {
             ZStack {
                 Theme.bg0.ignoresSafeArea()
                 VStack(alignment: .leading, spacing: Theme.s16) {
-                    sheetLabel("TASK NAME")
+                    sheetLabel(vm.localized("TASK NAME"))
                     HStack(spacing: 10) {
-                        TextField("Task name", text: $title)
+                        TextField(vm.localized("Task name"), text: $title)
                             .font(.system(size: 16, weight: .medium)).foregroundColor(Theme.text0).autocorrectionDisabled()
                         Button { showTimePicker = true } label: {
                             ZStack {
@@ -1618,14 +1762,27 @@ struct EditTaskSheet: View {
                     }
                     if task.isHealthTask, let htStr = task.healthType, let ht = HealthTaskType(rawValue: htStr) {
                         VStack(alignment: .leading, spacing: 6) {
-                            sheetLabel("HEALTH GOAL")
+                            sheetLabel(vm.localized("HEALTH GOAL"))
                             HStack(spacing: 8) {
                                 Image(systemName: ht.icon).font(.system(size: 13)).foregroundColor(Color(hex: ht.accentColor))
                                 TextField(ht.placeholder, text: $healthTargetText)
                                     .keyboardType(.numberPad)
                                     .font(.system(size: 15, weight: .medium)).foregroundColor(Theme.text0)
-                                Text(ht.label.lowercased())
-                                    .font(.system(size: 13)).foregroundColor(Theme.text2)
+                                Button {
+                                    if ht == .distance {
+                                        hk.distanceUnit = (hk.distanceUnit == .kilometers ? .miles : .kilometers)
+                                    }
+                                } label: {
+                                    Text(ht.label.lowercased())
+                                        .font(.system(size: 13, weight: .bold))
+                                        .foregroundColor(Color(hex: ht.accentColor))
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color(hex: ht.accentColor).opacity(0.1))
+                                        .clipShape(Capsule())
+                                }
+                                .buttonStyle(.plain)
+                                .disabled(ht != .distance)
                             }
                             .padding(11)
                             .background(RoundedRectangle(cornerRadius: Theme.r12, style: .continuous)
@@ -1640,13 +1797,13 @@ struct EditTaskSheet: View {
                 .animation(.spring(response: 0.3, dampingFraction: 0.75), value: reminderTime != nil)
                 .animation(.spring(response: 0.3, dampingFraction: 0.75), value: showReminderConflictToast)
             }
-            .navigationTitle("Edit Task").navigationBarTitleDisplayMode(.inline)
+            .navigationTitle(vm.localized("Edit Task")).navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Theme.bg0, for: .navigationBar).toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) { Button("Cancel") { dismiss() }.foregroundColor(Theme.text1) }
+                ToolbarItem(placement: .navigationBarLeading) { Button(vm.localized("Cancel")) { dismiss() }.foregroundColor(Theme.text1) }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: confirmSave) {
-                        Text("Save").font(.system(size: 14, weight: .bold))
+                        Text(vm.localized("Save")).font(.system(size: 14, weight: .bold))
                             .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
                             .padding(.horizontal, 14).padding(.vertical, 7)
                             .background(Capsule().fill(Theme.accent).shadow(color: Theme.accent.opacity(0.35), radius: 8, x: 0, y: 2))
@@ -1661,10 +1818,10 @@ struct EditTaskSheet: View {
                 reminderTime = time; reminderIsOneTime = oneTime
             }
         }
-        .alert("Notifications Disabled", isPresented: $showDeniedAlert) {
-            Button("Open Settings") { if let u = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(u) } }
-            Button("Cancel", role: .cancel) {}
-        } message: { Text("Enable notifications for Sortyd in Settings to receive task reminders.") }
+        .alert(vm.localized("Notifications Disabled"), isPresented: $showDeniedAlert) {
+            Button(vm.localized("Open Settings")) { if let u = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(u) } }
+            Button(vm.localized("Cancel"), role: .cancel) {}
+        } message: { Text(vm.localized("Enable notifications for Sortyd in Settings to receive task reminders.")) }
     }
 
     private var reminderDefault: Date {
@@ -1714,6 +1871,7 @@ struct ReminderPickerSheet: View {
     let selectedTime: Date
     let isOneTime: Bool
     let onConfirm: (Date, Bool) -> Void
+    @EnvironmentObject var vm: AppViewModel
     @Environment(\.dismiss) var dismiss
 
     private enum ReminderMode { case daily, oneTime }
@@ -1742,8 +1900,8 @@ struct ReminderPickerSheet: View {
                 VStack(spacing: 0) {
                     // Mode toggle
                     HStack(spacing: 0) {
-                        modeTab("Daily", active: mode == .daily) { withAnimation(.spring(response: 0.22, dampingFraction: 0.7)) { mode = .daily } }
-                        modeTab("One-time", active: mode == .oneTime) { withAnimation(.spring(response: 0.22, dampingFraction: 0.7)) { mode = .oneTime } }
+                        modeTab(vm.localized("Daily"), active: mode == .daily) { withAnimation(.spring(response: 0.22, dampingFraction: 0.7)) { mode = .daily } }
+                        modeTab(vm.localized("One-time"), active: mode == .oneTime) { withAnimation(.spring(response: 0.22, dampingFraction: 0.7)) { mode = .oneTime } }
                     }
                     .padding(4)
                     .background(RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -1769,7 +1927,7 @@ struct ReminderPickerSheet: View {
                         }
                         dismiss()
                     } label: {
-                        Text("Confirm").font(.system(size: 16, weight: .bold))
+                        Text(vm.localized("Confirm")).font(.system(size: 16, weight: .bold))
                             .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
                             .frame(maxWidth: .infinity).padding(.vertical, 14)
                             .background(RoundedRectangle(cornerRadius: Theme.r20, style: .continuous)
@@ -1785,7 +1943,7 @@ struct ReminderPickerSheet: View {
             .toolbarColorScheme(ThemeManager.shared.colorScheme, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }.foregroundColor(Theme.text1)
+                    Button(vm.localized("Cancel")) { dismiss() }.foregroundColor(Theme.text1)
                 }
             }
         }
@@ -1803,8 +1961,8 @@ struct ReminderPickerSheet: View {
                     .shadow(color: Theme.accent.opacity(0.25), radius: 14, x: 0, y: 4)
                 Image(systemName: "clock.fill").font(.system(size: 22, weight: .semibold)).foregroundColor(Theme.accent)
             }.padding(.top, 20)
-            Text("Daily Reminder").font(.system(size: 17, weight: .bold)).foregroundColor(Theme.text0)
-            Text("Fires every day at this time").font(.system(size: 12.5)).foregroundColor(Theme.text2)
+            Text(vm.localized("Daily Reminder")).font(.system(size: 17, weight: .bold)).foregroundColor(Theme.text0)
+            Text(vm.localized("Fires every day at this time")).font(.system(size: 12.5)).foregroundColor(Theme.text2)
             DatePicker("", selection: $dailyTime, displayedComponents: .hourAndMinute)
                 .datePickerStyle(.wheel).labelsHidden()
                 .colorScheme(ThemeManager.shared.colorScheme)
@@ -1814,7 +1972,7 @@ struct ReminderPickerSheet: View {
     @ViewBuilder
     private var oneTimeContent: some View {
         VStack(spacing: 4) {
-            Text("Pick a date and time")
+            Text(vm.localized("Pick a date and time"))
                 .font(.system(size: 12.5)).foregroundColor(Theme.text2)
                 .padding(.top, 16)
             DatePicker("", selection: $oneTimeDate, in: Date()..., displayedComponents: [.date, .hourAndMinute])
@@ -1985,3 +2143,514 @@ private struct OnboardingTooltip: View {
             .frame(width: 220)
     }
 }
+
+// ══════════════════════════════════════════════
+// MARK: - First-List Guidance
+// ══════════════════════════════════════════════
+
+private struct ListDiscoveryGuide {
+    static let totalSteps = 4
+    private static let panelHeight: CGFloat = 178
+
+    struct Target {
+        let rect: CGRect
+        let cornerRadius: CGFloat
+
+        var mid: CGPoint { CGPoint(x: rect.midX, y: rect.midY) }
+    }
+
+    enum PointerEdge: Equatable {
+        case top
+        case bottom
+
+        var alignment: Alignment {
+            switch self {
+            case .top: return .top
+            case .bottom: return .bottom
+            }
+        }
+    }
+
+    let icon: String
+    let title: String
+    let message: String
+    let action: String
+    let target: Target
+    let panelCenterY: CGFloat
+    let pointerEdge: PointerEdge
+    let transitionAnchor: UnitPoint
+    private let screenWidth: CGFloat
+
+    init(step: Int, size: CGSize, isRTL: Bool) {
+        let w = size.width
+        let h = size.height
+        screenWidth = w
+        let compact = h < 760
+        let cardY = compact ? min(h * 0.36, 300) : min(h * 0.34, 330)
+        let leadingToolbarX: CGFloat = isRTL ? max(w - 76, 18) : 18
+        let trailingToolbarX: CGFloat = isRTL ? 18 : max(w - 132, 220)
+
+        // Coach-mark tuning lives here. To move a pointer, adjust the target rect
+        // for that step: x/y/width/height define the highlighted tap area.
+        // panelCenterY controls where the message box sits for that same step.
+        switch step {
+        case 0:
+            icon = "gearshape.fill"
+            title = "Start with settings"
+            message = "Use the top-left control when you want to reorder lists or clean up the view."
+            action = "Settings"
+            target = Target(
+                rect: CGRect(x: leadingToolbarX + 0, y: 61, width: 44, height: 44),
+                cornerRadius: 22
+            )
+            panelCenterY = compact ? 204 : 220
+            pointerEdge = .top
+            transitionAnchor = isRTL ? .topTrailing : .topLeading
+        case 1:
+            icon = "arrow.up.arrow.down.circle.fill"
+            title = "Choose what leads"
+            message = "Move a list higher to make it the active priority for widgets and analytics."
+            action = "Priority"
+            target = Target(
+                rect: CGRect(x: 18, y: cardY - 20, width: w - 36, height: 96),
+                cornerRadius: 24
+            )
+            panelCenterY = min(cardY + 174, h - 292)
+            pointerEdge = .top
+            transitionAnchor = .center
+        case 2:
+            icon = "plus.circle.fill"
+            title = "Create or draft a list"
+            message = "Use + when you know the tasks. Use AI when you only have the goal."
+            action = "Add"
+            target = Target(
+                rect: CGRect(x: trailingToolbarX, y: 54, width: 118, height: 54),
+                cornerRadius: 27
+            )
+            panelCenterY = compact ? 204 : 220
+            pointerEdge = .top
+            transitionAnchor = isRTL ? .topLeading : .topTrailing
+        default:
+            icon = "chart.line.uptrend.xyaxis.circle.fill"
+            title = "Read progress later"
+            message = "Analytics turns this active list into trends, streaks, and habit clues."
+            action = "Review"
+            let analyticsCenterX = isRTL ? w * 0.375 : w * 0.625
+            let tabHighlightWidth = min(w * 0.20, 86)
+            let tabHighlightHeight: CGFloat = compact ? 70 : 76
+            let tabBarCenterY = h + (compact ? 100 : 112)
+            target = Target(
+                rect: CGRect(
+                    x: analyticsCenterX - tabHighlightWidth / 2,
+                    y: tabBarCenterY - tabHighlightHeight / 2,
+                    width: tabHighlightWidth,
+                    height: tabHighlightHeight
+                ),
+                cornerRadius: 26
+            )
+            panelCenterY = min(
+                max(tabBarCenterY - Self.panelHeight / 2 - 84, 420),
+                h - 128
+            )
+            pointerEdge = .bottom
+            transitionAnchor = .bottom
+        }
+    }
+
+    func panelFrame(width: CGFloat) -> CGRect {
+        let inset: CGFloat = 18
+        let screenClampedMidX = min(max(target.mid.x, inset + width / 2), screenWidth - inset - width / 2)
+        return CGRect(
+            x: screenClampedMidX - width / 2,
+            y: panelCenterY - Self.panelHeight / 2,
+            width: width,
+            height: Self.panelHeight
+        )
+    }
+
+    func pointerX(in panelFrame: CGRect) -> CGFloat {
+        let maxOffset = (panelFrame.width / 2) - 36
+        return min(max(target.mid.x - panelFrame.midX, -maxOffset), maxOffset)
+    }
+}
+
+private struct HintSpotlight: View {
+    let rect: CGRect
+    let cornerRadius: CGFloat
+    let pulse: Bool
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .fill(Color.white.opacity(0.08))
+                .frame(width: rect.width, height: rect.height)
+                .overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [Theme.accent.opacity(0.88), Theme.coral.opacity(0.72)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 2.5
+                        )
+                )
+                .shadow(color: Theme.accent.opacity(0.24), radius: 18, x: 0, y: 0)
+
+            RoundedRectangle(cornerRadius: cornerRadius + 8, style: .continuous)
+                .stroke(Theme.accent.opacity(pulse ? 0.06 : 0.24), lineWidth: 7)
+                .frame(width: rect.width + (pulse ? 24 : 10), height: rect.height + (pulse ? 24 : 10))
+                .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: pulse)
+        }
+        .position(x: rect.midX, y: rect.midY)
+    }
+}
+
+private struct HintActionPanel: View {
+    let icon: String
+    let title: String
+    let message: String
+    let action: String
+    let step: Int
+    let total: Int
+    let nextLabel: String
+    let doneLabel: String
+    let pointerEdge: ListDiscoveryGuide.PointerEdge
+    let pointerX: CGFloat
+    let onNext: () -> Void
+    let onDismiss: () -> Void
+
+    private var isFinalStep: Bool { step == total }
+
+    private var iconBadge: some View {
+        ZStack {
+            Circle()
+                .fill(LinearGradient(
+                    colors: [Theme.accent.opacity(0.18), Theme.coral.opacity(0.12)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ))
+                .overlay(Circle().strokeBorder(Theme.accent.opacity(0.24), lineWidth: 1))
+
+            Image(systemName: icon)
+                .font(.system(size: 17, weight: .black))
+                .foregroundStyle(LinearGradient(
+                    colors: [Theme.accent, Theme.coral],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ))
+        }
+        .frame(width: 46, height: 46)
+    }
+
+    private var progressDots: some View {
+        HStack(spacing: 7) {
+            ForEach(1...total, id: \.self) { index in
+                Capsule()
+                    .fill(index == step ? Theme.accent : Theme.borderAccent)
+                    .frame(width: index == step ? 24 : 7, height: 7)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.78), value: step)
+            }
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .top, spacing: 12) {
+                iconBadge
+
+                VStack(alignment: .leading, spacing: 5) {
+                    HStack(spacing: 7) {
+                        Text(action.uppercased())
+                        Text("\(step)/\(total)")
+                    }
+                    .font(.system(size: 9, weight: .black))
+                    .tracking(1.1)
+                    .foregroundColor(Theme.accent)
+
+                    Text(title)
+                        .font(.system(size: 19, weight: .heavy, design: .rounded))
+                        .foregroundColor(Theme.text0)
+
+                    Text(message)
+                        .font(.system(size: 13.5, weight: .semibold))
+                        .lineSpacing(2)
+                        .foregroundColor(Theme.text1)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer(minLength: 0)
+            }
+
+            HStack(spacing: 12) {
+                progressDots
+
+                Spacer()
+
+                Button(action: isFinalStep ? onDismiss : onNext) {
+                    HStack(spacing: 7) {
+                        Text(isFinalStep ? doneLabel : nextLabel)
+                        Image(systemName: isFinalStep ? "checkmark" : "arrow.right")
+                            .font(.system(size: 12, weight: .black))
+                            .flipsForRightToLeftLayoutDirection(true)
+                    }
+                    .font(.system(size: 13, weight: .black))
+                    .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#060710") : .white)
+                    .padding(.horizontal, 15)
+                    .padding(.vertical, 10)
+                    .background(Capsule().fill(Theme.accent))
+                    .shadow(color: Theme.accent.opacity(0.24), radius: 10, x: 0, y: 6)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Theme.bg1.opacity(0.98))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .strokeBorder(Theme.accent.opacity(0.18), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(0.24), radius: 24, x: 0, y: 14)
+                .shadow(color: Theme.accent.opacity(0.12), radius: 30, x: 0, y: 12)
+        )
+        .overlay(alignment: pointerEdge.alignment) {
+            CoachMarkPointer(edge: pointerEdge)
+                .fill(Theme.bg1.opacity(0.98))
+                .frame(width: 28, height: 14)
+                .overlay(
+                    CoachMarkPointer(edge: pointerEdge)
+                        .stroke(Theme.accent.opacity(0.18), lineWidth: 1)
+                )
+                .offset(x: pointerX, y: pointerEdge == .top ? -12 : 12)
+                .shadow(color: .black.opacity(0.16), radius: 8, x: 0, y: pointerEdge == .top ? -3 : 3)
+        }
+    }
+}
+
+private struct CoachMarkPointer: Shape {
+    let edge: ListDiscoveryGuide.PointerEdge
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        switch edge {
+        case .top:
+            path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+            path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+            path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        case .bottom:
+            path.move(to: CGPoint(x: rect.midX, y: rect.maxY))
+            path.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
+            path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        }
+        path.closeSubpath()
+        return path
+    }
+}
+
+#if DEBUG
+private struct ListGuidePointerTuningPreview: View {
+    @State private var step = 0
+    @State private var isRTL = false
+    @State private var pulse = true
+
+    var body: some View {
+        GeometryReader { proxy in
+            let panelWidth = min(proxy.size.width - 36, 360)
+            let guide = ListDiscoveryGuide(step: step, size: proxy.size, isRTL: isRTL)
+            let panelFrame = guide.panelFrame(width: panelWidth)
+
+            ZStack {
+                previewListScreen(size: proxy.size)
+
+                Color.black.opacity(0.56)
+                    .ignoresSafeArea()
+
+                HintSpotlight(
+                    rect: guide.target.rect,
+                    cornerRadius: guide.target.cornerRadius,
+                    pulse: pulse
+                )
+                .allowsHitTesting(false)
+
+                HintActionPanel(
+                    icon: guide.icon,
+                    title: guide.title,
+                    message: guide.message,
+                    action: guide.action,
+                    step: step + 1,
+                    total: ListDiscoveryGuide.totalSteps,
+                    nextLabel: "Next",
+                    doneLabel: "Done",
+                    pointerEdge: guide.pointerEdge,
+                    pointerX: guide.pointerX(in: panelFrame),
+                    onNext: { step = min(step + 1, ListDiscoveryGuide.totalSteps - 1) },
+                    onDismiss: { step = 0 }
+                )
+                .frame(width: panelWidth)
+                .position(x: panelFrame.midX, y: panelFrame.midY)
+
+                tuningHUD(guide: guide)
+            }
+            .onAppear { pulse = true }
+        }
+        .background(Theme.bg0)
+    }
+
+    private func tuningHUD(guide: ListDiscoveryGuide) -> some View {
+        VStack {
+            Spacer()
+
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 6) {
+                    ForEach(0..<ListDiscoveryGuide.totalSteps, id: \.self) { index in
+                        Button("\(index + 1)") { step = index }
+                            .font(.system(size: 11, weight: .black))
+                            .foregroundColor(step == index ? .white : Theme.text1)
+                            .frame(width: 30, height: 28)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(step == index ? Theme.accent : Theme.bg2)
+                            )
+                            .buttonStyle(.plain)
+                    }
+
+                    Spacer()
+
+                    Toggle("RTL", isOn: $isRTL)
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(Theme.text1)
+                        .toggleStyle(.switch)
+                        .frame(width: 86)
+                }
+
+                Text("Edit ListDiscoveryGuide step \(step): target rect + panelCenterY")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(Theme.text1)
+
+                Text("CGRect(x: \(Int(guide.target.rect.minX)), y: \(Int(guide.target.rect.minY)), width: \(Int(guide.target.rect.width)), height: \(Int(guide.target.rect.height)))  panelY: \(Int(guide.panelCenterY))")
+                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                    .foregroundColor(Theme.text2)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.72)
+            }
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Theme.bg1.opacity(0.96))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .strokeBorder(Theme.accent.opacity(0.20), lineWidth: 1)
+                    )
+            )
+            .padding(.horizontal, 18)
+            .padding(.bottom, 92)
+        }
+    }
+
+    private func previewListScreen(size: CGSize) -> some View {
+        ZStack {
+            Theme.bg0.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                HStack {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(Theme.accent)
+                        .frame(width: 58, height: 58)
+
+                    Spacer()
+
+                    HStack(spacing: 8) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "sparkles")
+                            Text("AI")
+                        }
+                        .font(.system(size: 12, weight: .black))
+                        .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#060710") : .white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Capsule().fill(Theme.accent))
+
+                        Image(systemName: "plus")
+                            .font(.system(size: 15, weight: .black))
+                            .foregroundColor(Theme.accent)
+                            .frame(width: 34, height: 34)
+                            .overlay(Circle().strokeBorder(Theme.accent.opacity(0.45), lineWidth: 1))
+                    }
+                }
+                .padding(.top, 54)
+                .padding(.horizontal, 18)
+
+                VStack(alignment: .leading, spacing: 18) {
+                    Text("Lists")
+                        .font(.system(size: 38, weight: .black, design: .rounded))
+                        .foregroundColor(Theme.text0)
+
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .fill(Theme.bg1)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                .strokeBorder(Theme.accent.opacity(0.22), lineWidth: 1)
+                        )
+                        .frame(height: 96)
+                        .overlay(alignment: .leading) {
+                            HStack(spacing: 14) {
+                                Text("🏋️")
+                                    .font(.system(size: 28))
+                                    .frame(width: 64, height: 64)
+                                    .background(RoundedRectangle(cornerRadius: 16).fill(Theme.bg2))
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text("Workout")
+                                        .font(.system(size: 22, weight: .black, design: .rounded))
+                                        .foregroundColor(Theme.text0)
+                                    Text("4 of 6 done")
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundColor(Theme.text1)
+                                }
+                            }
+                            .padding(.leading, 18)
+                        }
+                }
+                .padding(.top, 70)
+                .padding(.horizontal, 18)
+
+                Spacer()
+            }
+
+            VStack {
+                Spacer()
+                HStack(spacing: 28) {
+                    previewTab("checkmark.circle.fill", "Today")
+                    previewTab("list.bullet.circle.fill", "Lists")
+                    previewTab("chart.line.uptrend.xyaxis.circle.fill", "Analytics")
+                    previewTab("brain.head.profile", "Coach")
+                }
+                .padding(.horizontal, 28)
+                .padding(.vertical, 14)
+                .background(Capsule().fill(Theme.bg1.opacity(0.96)))
+                .padding(.horizontal, 18)
+                .padding(.bottom, 24)
+            }
+        }
+        .frame(width: size.width, height: size.height)
+    }
+
+    private func previewTab(_ icon: String, _ title: String) -> some View {
+        VStack(spacing: 5) {
+            Image(systemName: icon)
+                .font(.system(size: 24, weight: .bold))
+            Text(title)
+                .font(.system(size: 12, weight: .bold))
+        }
+        .foregroundColor(title == "Analytics" ? Theme.accent : Theme.text0)
+        .frame(maxWidth: .infinity)
+    }
+}
+
+#Preview("List guide pointer tuning") {
+    ListGuidePointerTuningPreview()
+        .frame(width: 430, height: 932)
+}
+#endif

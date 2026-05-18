@@ -27,21 +27,13 @@ struct HealthConflictToast: View {
     }
 
     private var icon: String {
-        switch type {
-        case .steps:    return "figure.walk"
-        case .calories: return "flame.fill"
-        case .distance: return "figure.run"
-        case .none:     return "exclamationmark.circle"
-        }
+        if type == .none { return "exclamationmark.circle" }
+        return type.icon
     }
 
     private var accentColor: Color {
-        switch type {
-        case .steps:    return Color(hex: "#4FC3F7")
-        case .calories: return Color(hex: "#FF7043")
-        case .distance: return Color(hex: "#2E7D32")
-        case .none:     return .orange
-        }
+        if type == .none { return .orange }
+        return Color(hex: type.accentColor)
     }
 
     var body: some View {
@@ -233,14 +225,14 @@ struct SmartAddTaskSheet: View {
 
                     if parseError {
                         HStack(spacing: 8) {
-                            Text(String(localized: "Couldn't parse that — the task will be added as typed."))
+                            Text(vm.localized("Couldn't parse that — the task will be added as typed."))
                                 .font(.system(size: 11))
                                 .foregroundColor(.orange)
                             
                             Button {
                                 parseInput()
                             } label: {
-                                Text(String(localized: "Retry AI"))
+                                Text(vm.localized("Retry AI"))
                                     .font(.system(size: 11, weight: .bold))
                                     .foregroundColor(Theme.accent)
                                     .padding(.horizontal, 8)
@@ -318,14 +310,7 @@ struct SmartAddTaskSheet: View {
     private func typePill(type: HealthTaskType, label: String) -> some View {
         let isSelected = detectedHealthType == type
         let isBlocked  = type != .none && vm.duplicateHealthType(type.rawValue, in: listID) != nil
-        let accent: Color = {
-            switch type {
-            case .none:     return Color(hex: "#FFC107") // Yellow for Regular
-            case .steps:    return Color(hex: "#4FC3F7") // Light Blue
-            case .calories: return Color(hex: "#FF7043") // Orange/Red
-            case .distance: return Color(hex: "#2E7D32") // Green
-            }
-        }()
+        let accent: Color = Color(hex: type.accentColor)
 
         Button {
             if isBlocked {
@@ -415,8 +400,9 @@ struct SmartAddTaskSheet: View {
         let english = ["am", "pm", "at", "by", "before", "morning", "afternoon", "evening", "noon", "midnight"]
         let arabic  = ["صباح", "مساء", "ظهر", "الساعة", "في الساعة", "ليل", "فجر", "عصر", "بعد الظهر"]
         let spanish = ["mañana", "tarde", "noche", "mediodía", "medianoche", "a las", "antes de"]
+        let chinese = ["早上", "上午", "中午", "下午", "晚上", "凌晨", "点", "时", "分钟", "小时"]
         let lower = text.lowercased()
-        return (english + arabic + spanish).contains(where: { lower.contains($0) })
+        return (english + arabic + spanish + chinese).contains(where: { lower.contains($0) })
     }
 
     private func addTask() {
@@ -711,7 +697,7 @@ struct StarterListSheet: View {
                 HStack(spacing: 6) {
                     Image(systemName: isQuota ? "clock.badge.exclamationmark" : "exclamationmark.circle.fill")
                         .font(.system(size: 12))
-                    Text(isQuota ? errMsg : "Couldn't generate — check your connection and try again.")
+                    Text(isQuota ? errMsg : vm.localized("Couldn't generate — check your connection and try again."))
                         .font(.system(size: 12))
                 }
                 .foregroundColor(Theme.warning)
@@ -721,11 +707,11 @@ struct StarterListSheet: View {
                 HStack(spacing: 8) {
                     if isGenerating {
                         ProgressView().tint(ThemeManager.shared.isDark ? Color(hex: "#0A1A0A") : .white).scaleEffect(0.8)
-                        Text(String(localized: "Building your list…"))
+                        Text(vm.localized("Building your list…"))
                     } else {
                         Image(systemName: "sparkles")
                             .font(.system(size: 15, weight: .black))
-                        Text(generationFailed ? "Try Again" : "Generate List")
+                        Text(vm.localized(generationFailed ? "Try Again" : "Generate List"))
                     }
                 }
                 .font(.system(size: 16, weight: .bold))
@@ -761,7 +747,9 @@ struct StarterListSheet: View {
                         TextField(vm.localized("List name"), text: $editableListName)
                             .font(.system(size: 18, weight: .black))
                             .foregroundColor(Theme.text0)
-                        Text("\(selectedIndices.count) of \(editableTasks.count) tasks selected")
+                        Text(String(format: vm.localized("%lld of %lld tasks selected"),
+                                    Int64(selectedIndices.count),
+                                    Int64(editableTasks.count)))
                             .font(.system(size: 12))
                             .foregroundColor(Theme.text2)
                     }
@@ -776,7 +764,7 @@ struct StarterListSheet: View {
                         taskReminderIsOneTime = [:]
                         healthTargets = [:]
                     }) {
-                        Text("Redo")
+                        Text(vm.localized("Redo"))
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(Theme.accent)
                     }
@@ -813,9 +801,73 @@ struct StarterListSheet: View {
                                         }
                                         .buttonStyle(.plain)
 
-                                        TextField(vm.localized("Task name"), text: $editableTasks[idx])
-                                            .font(.system(size: 15, weight: .medium))
-                                            .foregroundColor(Theme.text0)
+                                        VStack(alignment: .leading, spacing: 6) {
+                                            TextField(vm.localized("Task name"), text: $editableTasks[idx])
+                                                .font(.system(size: 15, weight: .semibold))
+                                                .foregroundColor(Theme.text0)
+
+                                            if taskHealthType != .none {
+                                                let accent: Color = Color(hex: taskHealthType.accentColor)
+                                                let unit: String = taskHealthType.label.lowercased()
+                                                let placeholder = taskHealthType == .steps ? "10000" : (taskHealthType == .distance ? "5" : "500")
+
+                                                HStack(spacing: 6) {
+                                                    Image(systemName: taskHealthType.icon)
+                                                        .font(.system(size: 10, weight: .bold))
+                                                        .foregroundColor(accent)
+                                                        .frame(width: 14)
+
+                                                    Text(vm.localized("Target:"))
+                                                        .font(.system(size: 10, weight: .bold))
+                                                        .foregroundColor(Theme.text2)
+
+                                                    TextField(placeholder, text: Binding(
+                                                        get: { healthTargets[idx] ?? "" },
+                                                        set: { healthTargets[idx] = $0 }
+                                                    ))
+                                                    .font(.system(size: 12, weight: .black, design: .rounded))
+                                                    .foregroundColor(Theme.text0)
+                                                    .keyboardType(taskHealthType == .steps || taskHealthType == .calories ? .numberPad : .decimalPad)
+                                                    .multilineTextAlignment(.center)
+                                                    .frame(width: 58)
+                                                    .padding(.vertical, 4)
+                                                    .background(
+                                                        Capsule(style: .continuous)
+                                                            .fill(Theme.bg0.opacity(ThemeManager.shared.isDark ? 0.7 : 0.9))
+                                                            .overlay(
+                                                                Capsule(style: .continuous)
+                                                                    .strokeBorder(accent.opacity(0.28), lineWidth: 0.6)
+                                                            )
+                                                    )
+
+                                                    Button {
+                                                        if taskHealthType == .distance {
+                                                            hk.distanceUnit = (hk.distanceUnit == .kilometers ? .miles : .kilometers)
+                                                        }
+                                                    } label: {
+                                                        Text(unit)
+                                                            .font(.system(size: 11, weight: .black, design: .rounded))
+                                                            .foregroundColor(accent)
+                                                            .padding(.horizontal, 7)
+                                                            .padding(.vertical, 4)
+                                                            .background(Capsule(style: .continuous).fill(accent.opacity(0.12)))
+                                                    }
+                                                    .buttonStyle(.plain)
+                                                    .disabled(taskHealthType != .distance)
+                                                }
+                                                .padding(.horizontal, 8)
+                                                .padding(.vertical, 5)
+                                                .background(
+                                                    Capsule(style: .continuous)
+                                                        .fill(accent.opacity(0.07))
+                                                        .overlay(
+                                                            Capsule(style: .continuous)
+                                                                .strokeBorder(accent.opacity(0.18), lineWidth: 0.6)
+                                                        )
+                                                )
+                                                .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .leading)))
+                                            }
+                                        }
 
                                         Spacer(minLength: 0)
 
@@ -829,14 +881,7 @@ struct StarterListSheet: View {
                                             Button { setHealthType(.distance, for: idx) } label: { Label(vm.localized("Distance"), systemImage: "figure.run") }
                                                 .disabled(isTypeBlocked(.distance, currentIdx: idx))
                                         } label: {
-                                            let tagColor: Color = {
-                                                switch taskHealthType {
-                                                case .steps:    return Color(hex: "#4FC3F7")
-                                                case .calories: return Color(hex: "#FF7043")
-                                                case .distance: return Color(hex: "#8BC34A")
-                                                case .none:     return Color(hex: "#FFC107")
-                                                }
-                                            }()
+                                            let tagColor: Color = Color(hex: taskHealthType.accentColor)
                                             ZStack {
                                                 Circle()
                                                     .fill(tagColor.opacity(0.12))
@@ -862,65 +907,6 @@ struct StarterListSheet: View {
                                         .buttonStyle(.plain)
                                     }
 
-                                    // ── Editable health target row ──────────────────
-                                    if taskHealthType != .none {
-                                        let accent: Color = {
-                                            switch taskHealthType {
-                                            case .steps:    return Color(hex: "#4FC3F7")
-                                            case .calories: return Color(hex: "#FF7043")
-                                            case .distance: return Color(hex: "#2E7D32")
-                                            case .none:     return .clear
-                                            }
-                                        }()
-                                        let unit: String = {
-                                            switch taskHealthType {
-                                            case .steps:    return vm.localized("steps")
-                                            case .calories: return vm.localized("kcal")
-                                            case .distance: return vm.localized("kms")
-                                            case .none:     return ""
-                                            }
-                                        }()
-                                        let placeholder = taskHealthType == .steps ? "10000" : (taskHealthType == .distance ? "5" : "500")
-
-                                        HStack(spacing: 8) {
-                                            Image(systemName: taskHealthType.icon)
-                                                .font(.system(size: 11))
-                                                .foregroundColor(accent)
-
-                                            Text(String(localized: "Target:"))
-                                                .font(.system(size: 12, weight: .medium))
-                                                .foregroundColor(Theme.text2)
-
-                                            TextField(placeholder, text: Binding(
-                                                get: { healthTargets[idx] ?? "" },
-                                                set: { healthTargets[idx] = $0 }
-                                            ))
-                                            .font(.system(size: 12, weight: .semibold))
-                                            .foregroundColor(Theme.text0)
-                                            .keyboardType(.numberPad)
-                                            .frame(width: 72)
-                                            .padding(.horizontal, 8)
-                                            .padding(.vertical, 4)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                                    .fill(Theme.bg2)
-                                                    .overlay(
-                                                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                                            .strokeBorder(accent.opacity(0.35), lineWidth: 0.5)
-                                                    )
-                                            )
-
-                                            Text(unit)
-                                                .font(.system(size: 12))
-                                                .foregroundColor(Theme.text2)
-
-                                            Spacer()
-                                        }
-                                        .padding(.top, 8)
-                                        .padding(.leading, 34)
-                                        .transition(.move(edge: .top).combined(with: .opacity))
-                                    }
-
                                     // ── Reminder time row ──
                                     if let time = taskReminders[idx] {
                                         let isOT = taskReminderIsOneTime[idx] ?? false
@@ -944,8 +930,8 @@ struct StarterListSheet: View {
                                         .transition(.move(edge: .top).combined(with: .opacity))
                                     }
                                 }
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 14)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, taskHealthType != .none || taskReminders[idx] != nil ? 10 : 12)
                                 .background(
                                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                                         .fill(isSelected ? Theme.accent.opacity(0.07) : Theme.bg1)
@@ -979,7 +965,7 @@ struct StarterListSheet: View {
                     HStack(spacing: 6) {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 14, weight: .semibold))
-                        Text("Add More")
+                        Text(vm.localized("Add More"))
                             .font(.system(size: 14, weight: .semibold))
                     }
                     .foregroundColor(Theme.accent)
@@ -997,13 +983,7 @@ struct StarterListSheet: View {
                 }
 
                 Button(action: { createList(list) }) {
-                    let btnText: String = {
-                        switch vm.appLanguage {
-                        case .arabic: return "إنشاء قائمة بـ \(selectedIndices.count) مهام"
-                        case .spanish: return "Crear lista con \(selectedIndices.count) tareas"
-                        default: return "Create List with \(selectedIndices.count) Tasks"
-                        }
-                    }()
+                    let btnText = String(format: vm.localized("Create List with %lld Tasks"), Int64(selectedIndices.count))
                     Text(btnText)
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#0A1A0A") : .white)
@@ -1054,6 +1034,15 @@ struct StarterListSheet: View {
 
     private var goalExamples: [String] {
         switch vm.appLanguage {
+        case .chinese:
+            return [
+                "🏋️ 锻炼计划", "🥗 健康饮食", "🧘 保持健康", "🏃 有氧运动", "💤 改善睡眠",
+                "🧠 技能提升", "🗣️ 学习普通话", "📚 多读书", "💼 求职", "🚀 上线应用",
+                "💰 存钱理财", "🧘 正念冥想", "📸 社交成长", "✍️ 写作习惯", "🎯 早晨例程",
+                "💧 多喝水", "🧹 保持整洁", "💻 学习编程", "📈 智慧投资", "🌍 旅行计划",
+                "🎨 创意练习", "🤝 拓展人脉", "🧴 护肤例程", "🏠 家居改善", "🎸 学习吉他",
+                "🍳 在家做饭", "🐕 训练宠物", "📷 摄影练习", "🧘 减少压力", "⚡ 提升效率"
+            ]
         case .arabic:
             return [
                 "🏋️ روتين التمرين", "🥗 الأكل الصحي", "🧘 تمتع بالصحة", "🏃 تمارين الكارديو", "💤 نوم أفضل",
@@ -1137,35 +1126,27 @@ struct StarterListSheet: View {
                         editableListName = editableListName.trimmingCharacters(in: .whitespaces)
                     }
 
-                    starterList = StarterList(
-                        emoji: cleanEmoji,
-                        listName: editableListName,
-                        tasks: result.tasks
-                    )
+                    let allowHealthTasks = isHealthRelatedStarterGoal(goalInput) || isHealthRelatedStarterGoal(editableListName)
 
-                    // Prune duplicate health tasks (keep only the first of each type)
+                    // Health/phone trackers are powerful, but they must only appear when the goal asks for that domain.
                     var tasks: [String] = []
-                    var foundSteps = false
-                    var foundCalories = false
+                    var foundHealthTypes = Set<HealthTaskType>()
                     
                     for t in result.tasks {
                         let type = HealthTaskType.detect(from: t)
-                        if type == .steps {
-                            if !foundSteps {
-                                tasks.append(t)
-                                foundSteps = true
-                            }
-                        } else if type == .calories {
-                            if !foundCalories {
-                                tasks.append(t)
-                                foundCalories = true
-                            }
-                        } else {
+                        if type == .none {
                             tasks.append(t)
+                        } else if allowHealthTasks, !foundHealthTypes.contains(type) {
+                            tasks.append(t)
+                            foundHealthTypes.insert(type)
                         }
                     }
 
-                    // Removed hardcoded health injection to ensure relevance
+                    starterList = StarterList(
+                        emoji: cleanEmoji,
+                        listName: editableListName,
+                        tasks: tasks
+                    )
 
                     editableTasks = tasks
                     selectedIndices = Set(tasks.indices)
@@ -1176,6 +1157,7 @@ struct StarterListSheet: View {
                         taskHealthTypes[idx] = ht
                         if ht == .steps    { healthTargets[idx] = "10000" }
                         if ht == .calories { healthTargets[idx] = "500" }
+                        if ht == .distance { healthTargets[idx] = "5" }
                     }
                 } else {
                     generationFailed = true
@@ -1212,8 +1194,7 @@ struct StarterListSheet: View {
                         let newNum = String(Int(userTarget))
                         trimmed = trimmed.replacingOccurrences(of: oldNum, with: newNum)
                     } else {
-                        let unit = ht == .steps ? "steps" : "calories"
-                        trimmed += " \(Int(userTarget)) \(unit)"
+                        trimmed += " \(Int(userTarget)) \(titleInjectionUnit(for: ht))"
                     }
                 }
 
@@ -1270,6 +1251,56 @@ struct StarterListSheet: View {
         } else {
             dismiss()
         }
+    }
+
+    private func titleInjectionUnit(for type: HealthTaskType) -> String {
+        switch type {
+        case .steps:
+            switch vm.appLanguage {
+            case .arabic:  return "خطوة"
+            case .spanish: return "pasos"
+            case .chinese: return "步"
+            default:       return "steps"
+            }
+        case .calories:
+            switch vm.appLanguage {
+            case .arabic:  return "سعرة حرارية"
+            case .spanish: return "calorías"
+            case .chinese: return "卡路里"
+            default:       return "calories"
+            }
+        case .distance:
+            return hk.distanceUnit.rawValue
+        case .none:
+            return ""
+        }
+    }
+
+    private func isHealthRelatedStarterGoal(_ text: String) -> Bool {
+        let lower = text.lowercased()
+        let phraseTriggers = [
+            "get fit", "screen time", "phone usage", "phone use", "limit phone",
+            "tiempo de pantalla", "uso del móvil", "uso del movil",
+            "وقت الشاشة", "استخدام الهاتف",
+            // Chinese — character-level matching (no word boundaries in Chinese)
+            "健身", "步数", "卡路里", "跑步", "走路", "锻炼", "运动", "体重",
+            "睡眠", "饮食", "训练", "慢跑", "健康", "营养", "热量", "水分"
+        ]
+        if phraseTriggers.contains(where: { lower.contains($0) }) { return true }
+
+        let words = Set(lower.components(separatedBy: CharacterSet.alphanumerics.inverted).filter { !$0.isEmpty })
+        let wordTriggers: Set<String> = [
+            "health", "healthy", "fitness", "gym", "workout", "exercise", "training",
+            "cardio", "run", "running", "jog", "walk", "walking", "steps", "calories",
+            "kcal", "weight", "diet", "nutrition", "meal", "meals", "water", "hydrate",
+            "sleep", "recovery", "salud", "sano", "sana", "gimnasio", "entrenamiento",
+            "ejercicio", "correr", "caminar", "pasos", "calorías", "calorias", "peso",
+            "dieta", "nutrición", "nutricion", "comidas", "agua", "hidratar", "sueño",
+            "sueno", "descanso", "صحة", "صحي", "صحية", "لياقة", "جيم", "رياضة",
+            "تمرين", "تمارين", "جري", "ركض", "مشي", "خطوات", "سعرات", "وزن",
+            "حمية", "تغذية", "وجبات", "ماء", "ترطيب", "نوم", "تعافي"
+        ]
+        return !words.isDisjoint(with: wordTriggers)
     }
 }
 
@@ -1457,7 +1488,9 @@ private func stripBannedListNameSuffixes(_ name: String) -> String {
         // Spanish
         "rutina", "sistema", "programa", "habitos", "hábitos", "viaje", "desafio", "desafío",
         // Arabic
-        "نظام", "روتين", "برنامج", "خطة"
+        "نظام", "روتين", "برنامج", "خطة",
+        // Chinese
+        "系统", "计划", "程序", "旅程", "挑战"
     ]
     var words = name.components(separatedBy: .whitespaces).filter { !$0.isEmpty }
     while let last = words.last,
