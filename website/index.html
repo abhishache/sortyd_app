@@ -296,9 +296,11 @@
 
     /* ── Responsive ── */
     @media (max-width: 640px) {
-      nav { padding: 0 4vw; }
-      .lang-switcher { display: none; }
-      .hero { padding: 100px 5vw 60px; }
+      nav { padding: 0 4vw; height: auto; flex-wrap: wrap; gap: 8px; padding-top: 10px; padding-bottom: 10px; }
+      .nav-right { gap: 8px; }
+      .lang-btn { padding: 3px 7px; font-size: 0.72rem; }
+      .nav-cta { padding: 7px 14px; font-size: 0.78rem; }
+      .hero { padding: 120px 5vw 60px; }
       .hero-stats { gap: 24px; }
       .cta-banner { padding: 40px 24px; }
       footer { flex-direction: column; text-align: center; }
