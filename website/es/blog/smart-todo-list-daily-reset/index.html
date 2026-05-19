@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>La Lista de Tareas Inteligente de Sortyd: Un Comienzo Fresco Cada Día — Blog Sortyd</title>
+<meta name="description" content="Sortyd v1.3 introduce una lista de tareas integrada que se reinicia cada mañana. Descubre cómo el reinicio diario cambia la forma en que planificas tu día."/>
+<link rel="canonical" href="https://www.sortyd.com/es/blog/smart-todo-list-daily-reset/"/>
+<link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/smart-todo-list-daily-reset/"/>
+<link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/blog/smart-todo-list-daily-reset/"/>
+<link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/smart-todo-list-daily-reset/"/>
+<meta name="robots" content="index, follow"/>
+<meta property="og:type" content="article"/>
+<meta property="og:title" content="La Lista de Tareas Inteligente de Sortyd: Un Comienzo Fresco Cada Día — Blog Sortyd"/>
+<meta property="og:description" content="Sortyd v1.3 introduce una lista de tareas integrada que se reinicia cada mañana. Descubre cómo el reinicio diario cambia la forma en que planificas tu día."/>
+<meta property="og:url" content="https://www.sortyd.com/es/blog/smart-todo-list-daily-reset/"/>
+<meta property="og:image" content="https://www.sortyd.com/og-image.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --v:#7C6FFF; --c:#3ECFFF; --bg:#FAF8F4; --bg2:#FFFFFF; --ink:#1A1520; --mute:#B0AA9E; --dim:#5C5248; --grad:linear-gradient(90deg,#7C6FFF,#3ECFFF); }
+  body { font-family:'Space Grotesk',sans-serif; background:var(--bg); color:var(--ink); line-height:1.7; min-height:100vh; display:flex; flex-direction:column; }
+  .container { max-width:850px; margin:0 auto; padding:64px 24px; flex:1; width:100%; }
+  h1 { font-size:clamp(30px,5vw,44px); font-weight:700; letter-spacing:-0.02em; line-height:1.2; margin-bottom:16px; }
+  .card-tag { font-family:'Space Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.12em; color:var(--v); font-weight:700; margin-bottom:14px; display:inline-block; }
+  article { max-width:700px; margin:0 auto; }
+  .post-meta { font-family:'Space Mono',monospace; font-size:13px; color:var(--v); margin-bottom:40px; display:block; }
+  .post-content h2 { font-size:24px; margin:40px 0 16px; font-weight:600; border-bottom:1px solid rgba(0,0,0,0.06); padding-bottom:8px; }
+  .post-content p { font-size:17px; margin-bottom:20px; color:var(--dim); font-weight:300; }
+  .post-content ul,.post-content ol { margin-bottom:24px; padding-left:24px; color:var(--dim); }
+  .post-content li { margin-bottom:8px; font-size:16px; font-weight:300; }
+  .post-content strong { color:var(--ink); font-weight:600; }
+  footer { padding:48px 24px; background:var(--bg2); border-top:1px solid rgba(0,0,0,0.06); text-align:center; font-size:14px; color:var(--mute); }
+  footer a { color:var(--dim); text-decoration:none; margin:0 12px; transition:color 0.2s; }
+  footer a:hover { color:var(--v); }
+  @media(max-width:600px){ .container{padding:40px 20px;} h1{font-size:28px;} }
+  nav { position:sticky; top:0; z-index:500; display:flex; align-items:center; justify-content:space-between; padding:0 48px; height:72px; background:rgba(250,248,244,0.88); backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%); border-bottom:1px solid rgba(0,0,0,0.06); }
+  .nav-logo { display:flex; align-items:center; gap:12px; text-decoration:none; }
+  .nav-logo img { height:30px; width:auto; display:block; }
+  .nav-right { display:flex; align-items:center; gap:36px; }
+  .nav-link { font-size:.76rem; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); text-decoration:none; transition:color .2s; }
+  .nav-link:hover { color:var(--ink); }
+  .nav-dl { font-size:.76rem; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:#fff; background:var(--v); border:none; padding:9px 20px; border-radius:100px; cursor:pointer; transition:all .25s; text-decoration:none; display:inline-block; }
+  .nav-dl:hover { background:var(--c); transform:translateY(-1px); }
+  .lang-switcher { position:relative; display:flex; align-items:center; }
+  .lang-select { appearance:none; -webkit-appearance:none; background:transparent; border:1px solid rgba(0,0,0,.14); border-radius:100px; padding:6px 28px 6px 12px; font-family:'Space Mono',monospace; font-size:.66rem; font-weight:700; letter-spacing:.10em; color:var(--dim); cursor:pointer; transition:border-color .2s,color .2s; outline:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235C5248' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; }
+  .lang-select:hover { border-color:var(--v); color:var(--ink); }
+</style>
+</head>
+<body>
+<nav>
+  <a class="nav-logo" href="https://www.sortyd.com/es/">
+    <img src="/logo.png" alt="Sortyd Logo">
+  </a>
+  <div class="nav-right">
+    <a class="nav-link" href="https://www.sortyd.com/es/#features">Funciones</a>
+    <a class="nav-link" href="/es/blog/">Blog</a>
+    <a class="nav-link" href="https://www.sortyd.com/es/#how">Proceso</a>
+    <div class="lang-switcher">
+      <select class="lang-select" id="langSelect" onchange="switchLang(this.value)" aria-label="Seleccionar idioma">
+        <option value="en">EN</option>
+        <option value="es" selected>ES</option>
+        <option value="ar">ع</option>
+        <option value="zh">中文</option>
+      </select>
+    </div>
+    <a class="nav-dl" href="https://apps.apple.com/in/app/sortyd/id6762193535" target="_blank" rel="noopener noreferrer">Descargar</a>
+  </div>
+</nav>
+<div class="container">
+  <article>
+    <a href="/es/blog/" style="display:inline-block;margin-bottom:24px;color:var(--v);text-decoration:none;font-family:'Space Mono',monospace;font-size:13px;">← Volver al Blog</a>
+    <div class="card-tag">Nueva Función</div>
+    <h1>La Lista de Tareas Inteligente de Sortyd: Un Comienzo Fresco Cada Día</h1>
+    <span class="post-meta">Abril 2026 · 6 min de lectura</span>
+    <div class="post-content">
+
+      <p>Hay un momento que casi todos conocemos: abres tu app de tareas por la mañana y te encuentras con 47 elementos sin completar que llevan ahí desde hace semanas. Algunos son urgentes, otros ya no tienen sentido, y la mayoría generan una sensación difusa de fracaso antes de que hayas tomado el primer café. Esta es la trampa de la lista acumulativa, y es una de las razones por las que la gente abandona sus sistemas de productividad.</p>
+
+      <p>Con Sortyd v1.3, hemos introducido una lista de tareas integrada que funciona de forma radicalmente distinta: se reinicia cada mañana a medianoche. Lo que no completaste ayer desaparece del dashboard. Hoy empiezas desde cero. Aquí explicamos por qué eso no es rendirse, sino exactamente lo contrario.</p>
+
+      <h2>El problema real con las listas que nunca se vacían</h2>
+
+      <p>Las aplicaciones de tareas tradicionales están diseñadas bajo el supuesto de que <strong>más captura es mejor</strong>. Añades todo lo que se te ocurre, lo organizas en proyectos, subasignaciones y fechas de vencimiento, y confías en que el sistema lo recuerde todo por ti. En teoría, es perfecto. En la práctica, la lista crece más rápido de lo que puedes procesarla.</p>
+
+      <p>El resultado es lo que los psicólogos llaman <strong>fatiga por decisiones</strong>: cuando hay demasiadas opciones, el cerebro evita elegir. Una lista con 50 tareas no te hace más productivo; te paraliza. Cada elemento no completado activa lo que Bluma Zeigarnik describió en 1927: la mente humana presta más atención a las tareas interrumpidas que a las terminadas. Dicho de otro modo, tu lista de pendientes no es solo un recordatorio, es una fuente constante de tensión cognitiva.</p>
+
+      <p>El agobio que sientes al ver una lista enorme no es una señal de que eres desorganizado. Es una respuesta neurológica completamente normal a un sistema que está pidiendo demasiado a tu cerebro al mismo tiempo.</p>
+
+      <h2>El efecto del nuevo comienzo y por qué funciona</h2>
+
+      <p>En 2014, los investigadores Hengchen Dai, Katherine Milkman y Jason Riis describieron el <strong>"fresh start effect"</strong> (efecto del nuevo comienzo): la tendencia humana a iniciar comportamientos positivos en momentos que percibimos como un punto de partida nuevo — el primer día del año, un lunes, el comienzo de un mes, o incluso después de un cumpleaños.</p>
+
+      <p>Estos momentos actúan como separadores mentales. Nos ayudan a distanciarnos psicológicamente de los fracasos pasados y ver el futuro con más optimismo. El efecto es real y está respaldado por docenas de estudios sobre adherencia a metas, visitas al gimnasio, y cambios de comportamiento a largo plazo.</p>
+
+      <p>El reinicio diario de Sortyd aplica este principio de forma sistemática. En lugar de cargar con el peso de lo que no terminaste ayer, cada mañana tienes un punto de partida limpio. Esto no significa que ignores tus compromisos importantes — los hábitos recurrentes siguen ahí — sino que la lista de tareas del día se construye con intención cada mañana, no como herencia de días anteriores.</p>
+
+      <h2>Cómo funciona la lista de tareas en Sortyd</h2>
+
+      <p>La implementación técnica es sencilla pero tiene varias capas de pensamiento detrás:</p>
+
+      <p><strong>Reinicio a medianoche.</strong> Cada día a las 00:00 (hora local del dispositivo), la lista de tareas se limpia automáticamente. Las tareas completadas se registran en tu historial de analytics; las no completadas simplemente desaparecen. No hay "arrastrar a mañana", no hay listas de pendientes acumuladas.</p>
+
+      <p><strong>Repetición diaria inteligente.</strong> Si tienes tareas que genuinamente necesitas hacer todos los días — no son hábitos, sino compromisos específicos — puedes marcarlas como recurrentes. Aparecerán automáticamente cada mañana sin que tengas que volver a añadirlas. La diferencia con un hábito es que las tareas recurrentes tienen un carácter más transaccional: "revisar el correo del trabajo", "preparar el almuerzo", "revisar el calendario".</p>
+
+      <p><strong>Detección de conflictos en recordatorios.</strong> Cuando añades un recordatorio a una tarea, Sortyd verifica si ya tienes otro recordatorio programado en esa franja horaria. Si hay un conflicto, te avisa antes de guardarlo. Es un detalle pequeño, pero evita la situación habitual de programar cinco recordatorios para las 9:00 y luego ignorarlos todos.</p>
+
+      <p><strong>Integración con hábitos.</strong> La lista de tareas convive con el sistema de hábitos de Sortyd sin interferir con él. Los hábitos tienen su propio espacio, su propio sistema de rachas, y su propia lógica de repetición. La lista de tareas es para lo que no encaja en un hábito: lo singular, lo urgente, lo que solo importa hoy.</p>
+
+      <h2>La filosofía del "suficiente para hoy"</h2>
+
+      <p>Existe una regla no escrita en la productividad personal que muchos sistemas modernos han olvidado: <strong>un día tiene un tamaño fijo</strong>. Tienes aproximadamente 8-10 horas de trabajo cognitivo de calidad. No más. Una lista que intente meter 20 tareas en ese espacio no es ambiciosa; es matemáticamente incorrecta.</p>
+
+      <p>El reinicio diario de Sortyd te obliga a hacer una pregunta honesta cada mañana: <em>¿Qué es lo que realmente necesito completar hoy?</em> No lo que debería estar haciendo en abstracto, no los proyectos que llevan meses esperando, sino lo que importa específicamente en las próximas horas. Esta restricción aparente es en realidad una forma de claridad.</p>
+
+      <p>Los mejores sistemas de productividad no son los que te permiten añadir más cosas; son los que te ayudan a elegir menos y hacerlas mejor. El límite implícito del día es la mejor herramienta de priorización que existe.</p>
+
+      <h2>Gratis, sin suscripción, sin trucos</h2>
+
+      <p>Sortyd es completamente gratuita. No hay un plan "pro" que desbloquee la lista de tareas, ni una suscripción mensual para acceder al reinicio diario. Todas las funciones — la lista, los hábitos, el AI Coach, el Apple Watch, las analíticas — están disponibles para todos los usuarios desde el primer día.</p>
+
+      <p>Esta decisión no es accidental. Creemos que las herramientas que ayudan a las personas a mejorar su vida no deberían estar detrás de un paywall. El modelo funciona porque Sortyd crece por recomendación, no por retención forzada.</p>
+
+      <p>Si tienes un iPhone y quieres probar una forma diferente de gestionar tu día — una que empiece fresco cada mañana en lugar de acumular culpa — descárgala y pruébala. No tienes nada que perder, literalmente.</p>
+
+      <a class="nav-dl" href="https://apps.apple.com/in/app/sortyd/id6762193535" target="_blank" rel="noopener noreferrer" style="margin-top:32px;display:inline-block;">Descargar Sortyd Gratis →</a>
+    </div>
+  </article>
+</div>
+<footer>
+  <p>© 2026 Sortyd · <a href="/es/privacy/">Política de Privacidad</a> · <a href="/es/support/">Soporte</a></p>
+</footer>
+<script src="/i18n.js"></script>
+</body>
+</html>

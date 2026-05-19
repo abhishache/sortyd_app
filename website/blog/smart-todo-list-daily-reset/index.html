@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sortyd's Smart To-Do List: A Fresh Start Every Single Day — Sortyd Blog</title>
+<meta name="description" content="Sortyd v1.3 introduces a built-in to-do list that resets every morning and detects reminder conflicts. Here's how the daily reset feature changes the way you plan your day."/>
+<link rel="canonical" href="https://www.sortyd.com/blog/smart-todo-list-daily-reset/"/>
+<link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/smart-todo-list-daily-reset/"/>
+<link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/blog/smart-todo-list-daily-reset/"/>
+<link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/smart-todo-list-daily-reset/"/>
+<meta name="robots" content="index, follow"/>
+<meta property="og:type" content="article"/>
+<meta property="og:title" content="Sortyd's Smart To-Do List: A Fresh Start Every Single Day — Sortyd Blog"/>
+<meta property="og:description" content="Sortyd v1.3 introduces a built-in to-do list that resets every morning and detects reminder conflicts. Here's how the daily reset feature changes the way you plan your day."/>
+<meta property="og:url" content="https://www.sortyd.com/blog/smart-todo-list-daily-reset/"/>
+<meta property="og:image" content="https://www.sortyd.com/og-image.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --v:#7C6FFF; --c:#3ECFFF; --bg:#FAF8F4; --bg2:#FFFFFF; --ink:#1A1520; --mute:#B0AA9E; --dim:#5C5248; --grad:linear-gradient(90deg,#7C6FFF,#3ECFFF); }
+  body { font-family:'Space Grotesk',sans-serif; background:var(--bg); color:var(--ink); line-height:1.7; min-height:100vh; display:flex; flex-direction:column; }
+  .container { max-width:850px; margin:0 auto; padding:64px 24px; flex:1; width:100%; }
+  h1 { font-size:clamp(30px,5vw,44px); font-weight:700; letter-spacing:-0.02em; line-height:1.2; margin-bottom:16px; }
+  .card-tag { font-family:'Space Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.12em; color:var(--v); font-weight:700; margin-bottom:14px; display:inline-block; }
+  article { max-width:700px; margin:0 auto; }
+  .post-meta { font-family:'Space Mono',monospace; font-size:13px; color:var(--v); margin-bottom:40px; display:block; }
+  .post-content h2 { font-size:24px; margin:40px 0 16px; font-weight:600; border-bottom:1px solid rgba(0,0,0,0.06); padding-bottom:8px; }
+  .post-content p { font-size:17px; margin-bottom:20px; color:var(--dim); font-weight:300; }
+  .post-content ul,.post-content ol { margin-bottom:24px; padding-left:24px; color:var(--dim); }
+  .post-content li { margin-bottom:8px; font-size:16px; font-weight:300; }
+  .post-content strong { color:var(--ink); font-weight:600; }
+  footer { padding:48px 24px; background:var(--bg2); border-top:1px solid rgba(0,0,0,0.06); text-align:center; font-size:14px; color:var(--mute); }
+  footer a { color:var(--dim); text-decoration:none; margin:0 12px; transition:color 0.2s; }
+  footer a:hover { color:var(--v); }
+  @media(max-width:600px){ .container{padding:40px 20px;} h1{font-size:28px;} }
+  nav { position:sticky; top:0; z-index:500; display:flex; align-items:center; justify-content:space-between; padding:0 48px; height:72px; background:rgba(250,248,244,0.88); backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%); border-bottom:1px solid rgba(0,0,0,0.06); }
+  .nav-logo { display:flex; align-items:center; gap:12px; text-decoration:none; }
+  .nav-logo img { height:30px; width:auto; display:block; }
+  .nav-right { display:flex; align-items:center; gap:36px; }
+  .nav-link { font-size:.76rem; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); text-decoration:none; transition:color .2s; }
+  .nav-link:hover { color:var(--ink); }
+  .nav-dl { font-size:.76rem; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:#fff; background:var(--v); border:none; padding:9px 20px; border-radius:100px; cursor:pointer; transition:all .25s; text-decoration:none; display:inline-block; }
+  .nav-dl:hover { background:var(--c); transform:translateY(-1px); }
+  .lang-switcher { position:relative; display:flex; align-items:center; }
+  .lang-select { appearance:none; -webkit-appearance:none; background:transparent; border:1px solid rgba(0,0,0,.14); border-radius:100px; padding:6px 28px 6px 12px; font-family:'Space Mono',monospace; font-size:.66rem; font-weight:700; letter-spacing:.10em; color:var(--dim); cursor:pointer; transition:border-color .2s,color .2s; outline:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235C5248' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; }
+  .lang-select:hover { border-color:var(--v); color:var(--ink); }
+</style>
+</head>
+<body>
+<nav>
+  <a class="nav-logo" href="https://www.sortyd.com/">
+    <img src="/logo.png" alt="Sortyd Logo">
+  </a>
+  <div class="nav-right">
+    <a class="nav-link" href="https://www.sortyd.com/#features">Features</a>
+    <a class="nav-link" href="/blog/">Blog</a>
+    <a class="nav-link" href="https://www.sortyd.com/#how">Process</a>
+    <div class="lang-switcher">
+      <select class="lang-select" id="langSelect" onchange="switchLang(this.value)" aria-label="Select language">
+        <option value="en" selected>EN</option>
+        <option value="es">ES</option>
+        <option value="ar">ع</option>
+        <option value="zh">中文</option>
+      </select>
+    </div>
+    <a class="nav-dl" href="https://apps.apple.com/in/app/sortyd/id6762193535" target="_blank" rel="noopener noreferrer">Download</a>
+  </div>
+</nav>
+<div class="container">
+  <article>
+    <a href="/blog/" style="display:inline-block;margin-bottom:24px;color:var(--v);text-decoration:none;font-family:'Space Mono',monospace;font-size:13px;">← Back to Blog</a>
+    <div class="card-tag">New Feature</div>
+    <h1>Sortyd's Smart To-Do List: A Fresh Start Every Single Day</h1>
+    <span class="post-meta">April 2026 · 6 min read</span>
+    <div class="post-content">
+
+      <h2>The Problem With To-Do Lists That Never Die</h2>
+      <p>Open any mainstream to-do app and you'll find the same graveyard: tasks from three Tuesdays ago, a reminder you snoozed seventeen times, and a grocery item that somehow survived two phone upgrades. The list was supposed to help you get things done. Instead it became an archive of your procrastination — a running indictment that follows you from day to day.</p>
+      <p>This isn't a personal failing. It's a design problem. Most to-do apps were built around the idea that <strong>persistence equals value</strong> — the longer a task lives in the system, the more the app feels "powerful." But for daily planning, persistence is exactly the wrong default. It creates visual noise, cognitive load, and a low-grade sense of guilt that makes you less likely to open the app at all.</p>
+      <p>The irony is that tasks you genuinely need to carry forward — a project deadline, a doctor's appointment — live in your calendar, not your to-do list. What the to-do list is actually good for is capturing the short-horizon stuff: the things you intend to do today, this morning, before lunch. And for that job, a list that resets every day is strictly better than one that doesn't.</p>
+
+      <h2>The Psychology of the Fresh Start Effect</h2>
+      <p>In 2014, behavioral scientists Hengchen Dai, Katherine Milkman, and Jason Riis published research on what they called the "fresh start effect" — the documented tendency for people to pursue goals with greater motivation at temporal landmarks like the start of a new week, a new month, or a new year. The mechanism isn't magical. Temporal boundaries help us mentally separate our current self from our past self, allowing us to mentally "close the books" on prior failures and approach the new period with a cleaner psychological slate.</p>
+      <p>Every day is a temporal landmark. Midnight is a boundary. A to-do list that resets at midnight exploits this naturally. When you open your phone on Wednesday morning and see a clean, empty list rather than Tuesday's unfinished pile, your brain frames the day as a genuine fresh start. You're not playing catch-up. You're starting from scratch, which feels entirely different — and for most people, it results in markedly higher engagement with the list and higher task completion rates by end of day.</p>
+      <p>This is also why <strong>streaks work</strong>. Streaks give you a reason to care about each individual day as a fresh unit of effort. A daily-reset list pairs naturally with streak tracking because both systems treat days as discrete, equally-weighted opportunities rather than a continuous smear of obligation.</p>
+      <p>None of this means long-term goals disappear. It means you stop confusing your daily task list with your project management system. These are different tools for different cognitive jobs, and treating them as one is the source of most to-do app dysfunction.</p>
+
+      <h2>How Sortyd's Daily Reset Works</h2>
+      <p>Sortyd v1.3 added a built-in to-do list designed from the ground up around the daily-reset model. The mechanics are simple: at midnight, any uncompleted to-do items are cleared. If you completed a task, it vanishes quietly. If you didn't, it also vanishes — no guilt, no backlog, no notification telling you that you failed. The slate is clean.</p>
+      <p>Tasks you want to repeat — "drink 2L of water," "inbox zero," "10-minute walk after lunch" — can be set as <strong>daily recurring tasks</strong>. These repopulate automatically each morning. You're not manually re-entering them; the system remembers that these are daily intentions. The distinction matters: a recurring daily task is a habit you're building, while a one-off to-do is just something you need to handle today. Sortyd keeps both in the same list but handles them differently under the hood.</p>
+      <p>Adding a task is intentionally fast. One tap opens an entry field. Type the task name, optionally set a reminder time, and you're done. There's no project assignment, no priority flag, no subtask tree. That level of complexity belongs in dedicated project management tools. For a daily to-do list, friction is the enemy — the faster you can capture an intention, the more likely you are to capture it at all.</p>
+      <p>The list lives inside Sortyd alongside your habits, which means your full picture of the day — what you want to do (habits) and what you need to do (to-dos) — is in one place. You're not juggling three apps to answer the question "what should I be doing right now?"</p>
+
+      <h2>Smart Conflict Detection for Reminders</h2>
+      <p>One of the underrated causes of reminder fatigue is notification pileup. You set a habit reminder for 7:00 AM, then you add a to-do reminder for 7:05 AM, and you already have a calendar alert at 7:00 AM for your morning meeting. By the time your phone buzzes three times in five minutes, you've stopped reading any of them. You swipe them all away and get on with your day, which defeats the entire purpose of setting reminders.</p>
+      <p>Sortyd's smart conflict detection analyzes your existing reminder schedule when you set a new one. If you try to set a to-do reminder at a time that's already crowded with other notifications, the app surfaces a warning and suggests a nearby gap. It's not making decisions for you — it's just making you aware of a scheduling problem you would otherwise only discover after it was too late.</p>
+      <p>The same logic applies to habit reminders. If you have five habits all set to remind you at 8:00 AM, Sortyd will flag this and suggest spreading them. A single notification with a clear action is dramatically more effective than a cluster of five. This is basic behavioral design, but it's surprising how few apps actually implement it. The result is that your reminders start doing their job again instead of being background noise you've trained yourself to ignore.</p>
+
+      <h2>Why Free Matters for Daily Habit Tools</h2>
+      <p>Daily tools only work if you actually use them daily. That sounds obvious, but the economic model of most productivity apps works against it: you pay for a subscription, feel briefly motivated, use the app for a few weeks, then quietly stop when life gets busy — but keep paying because cancelling feels like admitting defeat.</p>
+      <p>Sortyd is <strong>free forever</strong>. No premium tier for the to-do list, no paywall on the conflict-detection reminders, no subscription required to unlock recurring tasks. This isn't a free trial — it's just free. The goal is to make a tool good enough and accessible enough that you use it every day, not one that monetizes your guilt.</p>
+      <p>If you've been looking for a daily planner that gives you a clean slate every morning, integrates naturally with your habit tracking, and doesn't charge you for the privilege, the v1.3 update is worth a look. The combination of daily-reset to-dos, recurring daily tasks, and smart reminder conflict detection makes for a planning system that actually fits how most people want to run their days — present-focused, low friction, and genuinely fresh each morning.</p>
+
+      <a class="nav-dl" href="https://apps.apple.com/in/app/sortyd/id6762193535" target="_blank" rel="noopener noreferrer" style="margin-top:32px;display:inline-block;">Download Sortyd Free →</a>
+    </div>
+  </article>
+</div>
+<footer>
+  <p>© 2026 Sortyd · <a href="/privacy/">Privacy Policy</a> · <a href="/support/">Support</a></p>
+</footer>
+<script src="/i18n.js"></script>
+</body>
+</html>

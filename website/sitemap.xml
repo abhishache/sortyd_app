@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- Home Pages -->
+  <url>
+    <loc>https://www.sortyd.com/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>weekly</changefreq><priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/"/>
+  </url>
+  <url>
+    <loc>https://www.sortyd.com/es/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>weekly</changefreq><priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/"/>
+  </url>
+  <url>
+    <loc>https://www.sortyd.com/ar/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>weekly</changefreq><priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/"/>
+  </url>
+  <url>
+    <loc>https://www.sortyd.com/zh/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>weekly</changefreq><priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/"/>
+  </url>
+
+  <!-- Support Pages -->
+  <url>
+    <loc>https://www.sortyd.com/support/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/support/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/support/"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/support/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/support/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/support/"/>
+  </url>
+  <url>
+    <loc>https://www.sortyd.com/es/support/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/support/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/support/"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/support/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/support/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/support/"/>
+  </url>
+  <url>
+    <loc>https://www.sortyd.com/ar/support/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/support/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/support/"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/support/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/support/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/support/"/>
+  </url>
+  <url>
+    <loc>https://www.sortyd.com/zh/support/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/support/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/support/"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/support/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/support/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/support/"/>
+  </url>
+
+  <!-- Privacy Pages -->
+  <url>
+    <loc>https://www.sortyd.com/privacy/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>yearly</changefreq><priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/privacy/"/>
+  </url>
+  <url>
+    <loc>https://www.sortyd.com/es/privacy/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>yearly</changefreq><priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/privacy/"/>
+  </url>
+  <url>
+    <loc>https://www.sortyd.com/ar/privacy/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>yearly</changefreq><priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/privacy/"/>
+  </url>
+  <url>
+    <loc>https://www.sortyd.com/zh/privacy/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>yearly</changefreq><priority>0.4</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/privacy/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/privacy/"/>
+  </url>
+
+  <!-- Blog Index Pages -->
+  <url>
+    <loc>https://www.sortyd.com/blog/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>weekly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/blog/"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/blog/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/"/>
+  </url>
+  <url>
+    <loc>https://www.sortyd.com/es/blog/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>weekly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/blog/"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/blog/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/"/>
+  </url>
+  <url>
+    <loc>https://www.sortyd.com/ar/blog/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>weekly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/blog/"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/blog/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/"/>
+  </url>
+  <url>
+    <loc>https://www.sortyd.com/zh/blog/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>weekly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/blog/"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/blog/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/"/>
+  </url>
+
+  <!-- Blog Post: Smart To-Do List (EN, ES) -->
+  <url>
+    <loc>https://www.sortyd.com/blog/smart-todo-list-daily-reset/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/smart-todo-list-daily-reset/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/blog/smart-todo-list-daily-reset/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/smart-todo-list-daily-reset/"/>
+  </url>
+  <url>
+    <loc>https://www.sortyd.com/es/blog/smart-todo-list-daily-reset/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/smart-todo-list-daily-reset/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/blog/smart-todo-list-daily-reset/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/smart-todo-list-daily-reset/"/>
+  </url>
+
+  <!-- Blog Post: How to Build Habits That Stick (EN, ZH) -->
+  <url>
+    <loc>https://www.sortyd.com/blog/how-to-build-habits-that-stick/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/how-to-build-habits-that-stick/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/how-to-build-habits-that-stick/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/how-to-build-habits-that-stick/"/>
+  </url>
+  <url>
+    <loc>https://www.sortyd.com/zh/blog/how-to-build-habits-that-stick/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/how-to-build-habits-that-stick/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/how-to-build-habits-that-stick/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/how-to-build-habits-that-stick/"/>
+  </url>
+
+  <!-- Blog Post: AI Coaching for Productivity (EN only) -->
+  <url>
+    <loc>https://www.sortyd.com/blog/ai-coaching-for-productivity/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/ai-coaching-for-productivity/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/ai-coaching-for-productivity/"/>
+  </url>
+
+  <!-- Blog Post: ADHD and Anxiety Habits (ZH only) -->
+  <url>
+    <loc>https://www.sortyd.com/zh/blog/adhd-anxiety-habits/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/adhd-anxiety-habits/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/zh/blog/adhd-anxiety-habits/"/>
+  </url>
+
+  <!-- Blog Post: Goal Analysis Progress (ZH only) -->
+  <url>
+    <loc>https://www.sortyd.com/zh/blog/goal-analysis-progress/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/goal-analysis-progress/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/zh/blog/goal-analysis-progress/"/>
+  </url>
+
+</urlset>

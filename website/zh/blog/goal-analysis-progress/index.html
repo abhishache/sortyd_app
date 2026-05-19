@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>超越待办清单：自我目标分析如何让你的进度翻十倍 — Sortyd 博客</title>
+<meta name="description" content="勾选掉一项任务感觉很好，但理解你为什么成功或失败才是带来真正成长的方法。探索自我目标分析的力量。"/>
+<link rel="canonical" href="https://www.sortyd.com/zh/blog/goal-analysis-progress/"/>
+<link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/goal-analysis-progress/"/>
+<link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/zh/blog/goal-analysis-progress/"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --v:    #7C6FFF;
+    --c:    #3ECFFF;
+    --bg:   #FAF8F4;
+    --bg2:  #FFFFFF;
+    --ink:  #1A1520;
+    --mute: #B0AA9E;
+    --dim:  #5C5248;
+    --grad: linear-gradient(90deg, #7C6FFF, #3ECFFF);
+  }
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.7;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .nav-logo img { height: 32px; width: auto; display: block; }
+
+  .container { max-width: 850px; margin: 0 auto; padding: 64px 24px; flex: 1; width: 100%; }
+  h1 { font-size: clamp(30px, 5vw, 44px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 16px; color: var(--ink); }
+  .subtitle { font-size: 18px; color: var(--dim); margin-bottom: 48px; font-weight: 300; }
+
+  .card-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--v);
+    font-weight: 700;
+    margin-bottom: 14px;
+    display: inline-block;
+  }
+  .card-meta { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--mute); }
+
+  /* Article Content Styling */
+  article { max-width: 700px; margin: 0 auto; }
+  article h1 { margin-bottom: 12px; }
+  .post-meta { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--v); margin-bottom: 40px; display: block; }
+  .post-content h2 { font-size: 24px; margin: 40px 0 16px; font-weight: 600; border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 8px; }
+  .post-content p { font-size: 17px; margin-bottom: 20px; color: var(--dim); font-weight: 300; text-align: justify; }
+  .post-content ul, .post-content ol { margin-bottom: 24px; padding-left: 24px; color: var(--dim); }
+  .post-content li { margin-bottom: 8px; font-size: 16px; font-weight: 300; }
+  .post-content strong { color: var(--ink); font-weight: 600; }
+
+  footer {
+    padding: 48px 24px;
+    background: var(--bg2);
+    border-top: 1px solid rgba(0,0,0,0.06);
+    text-align: center;
+    font-size: 14px;
+    color: var(--mute);
+  }
+  footer a { color: var(--dim); text-decoration: none; margin: 0 12px; transition: color 0.2s; }
+  footer a:hover { color: var(--v); }
+
+  @media (max-width: 600px) {
+    .container { padding: 40px 20px; }
+    h1 { font-size: 28px; }
+  }
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    height: 72px;
+    background: rgba(250, 248, 244, 0.88);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .nav-logo img { height: 30px; width: auto; display: block; }
+  
+  .nav-right { display: flex; align-items: center; gap: 36px; }
+  .nav-link { font-size: .76rem; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); text-decoration: none; transition: color 0.2s; }
+  .nav-link:hover { color: var(--ink); }
+  
+  .nav-dl { font-size: .76rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #fff; background: var(--v); border: none; padding: 9px 20px; border-radius: 100px; cursor: pointer; transition: all .25s; text-decoration: none; display: inline-block; }
+  .nav-dl:hover { background: var(--c); transform: translateY(-1px); }
+
+  /* Language Switcher */
+  .lang-switcher { position: relative; display: flex; align-items: center; }
+  .lang-select { appearance: none; -webkit-appearance: none; background: transparent; border: 1px solid rgba(0,0,0,.14); border-radius: 100px; padding: 6px 28px 6px 12px; font-family: 'Space Mono', monospace; font-size: .66rem; font-weight: 700; letter-spacing: .10em; color: var(--dim); cursor: pointer; transition: border-color .2s, color .2s; outline: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235C5248' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+  .lang-select:hover { border-color: var(--v); color: var(--ink); }
+
+</style>
+
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="https://www.sortyd.com/zh/">
+    <img src="/logo.png" alt="Sortyd Logo">
+  </a>
+  <div class="nav-right">
+    <a class="nav-link" href="https://www.sortyd.com/zh/#features">功能</a>
+    <a class="nav-link" href="/zh/blog/">博客</a>
+    <a class="nav-link" href="https://www.sortyd.com/zh/#how">使用流程</a>
+    <div class="lang-switcher">
+      <select class="lang-select" id="langSelect" onchange="switchLang(this.value)" aria-label="Select language">
+        <option value="en">EN</option>
+        <option value="es" >ES</option>
+        <option value="ar" >ع</option>
+        <option value="zh" selected>中文</option>
+      </select>
+    </div>
+    <a class="nav-dl" href="https://apps.apple.com/in/app/sortyd/id6762193535" target="_blank" rel="noopener noreferrer">下载</a>
+  </div>
+</nav>
+
+<div class="container">
+  <article>
+    <a href="/zh/blog/" style="display:inline-block; margin-bottom: 24px; color: var(--v); text-decoration:none; font-family: 'Space Mono', monospace; font-size: 13px;">← 返回博客</a>
+    <br>
+    <div class="card-tag">自我提升</div>
+    <h1>超越待办清单：自我目标分析如何让你的进度翻十倍</h1>
+    <span class="post-meta">2026年4月 · 6 分钟阅读</span>
+    
+    <div class="post-content">
+      <p>勾选掉一项任务感觉很好，但理解你<strong>为什么</strong>成功（或失败）才是带来真正成长的方法。这个过程被称为<strong>自我目标分析</strong>，它是努力与成就之间的桥梁。</p>
+
+      <p>传统的清单只显示剩余的事情。Sortyd 的<strong>性能分析</strong>工具向你显示你的连续记录、平均值和趋势。当你能看到自己的“上午8点完成率”高于晚间完成率时，你可以<strong>优化习惯</strong>以契合你天生的能量周期。</p>
+
+      <p>停止猜测，开始分析。使用 Sortyd，你将获得达到巅峰状态所需的洞察力。</p>
+
+      <a class="nav-dl" href="https://apps.apple.com/in/app/sortyd/id6762193535" target="_blank" rel="noopener noreferrer" style="margin-top: 32px; display: inline-block;">免费下载 Sortyd App →</a>
+    </div>
+  </article>
+</div>
+
+<footer>
+  <p>© 2026 Sortyd · <a href="/zh/privacy/">隐私政策</a> · <a href="/zh/support/">支持</a></p>
+</footer>
+<script src="/i18n.js"></script>
+</body>
+</html>

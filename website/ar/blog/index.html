@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>مدونة سورتد — تتبع العادات، التدريب بالذكاء الاصطناعي وزيادة الإنتاجية — Sortyd</title>
+<meta name="description" content="أبحاث وإرشادات من فريق سورتد لمساعدتك على بناء عادات أفضل وتطوير ذاتك يوميًا."/>
+<link rel="canonical" href="https://www.sortyd.com/ar/blog/"/>
+<link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/"/>
+<link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/blog/"/>
+<link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/blog/"/>
+<link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/"/>
+
+<meta name="robots" content="index, follow"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="مدونة سورتد — تتبع العادات والتدريب الذكي"/>
+<meta property="og:description" content="أبحاث وإرشادات من فريق سورتد لمساعدتك على بناء عادات أفضل وتطوير ذاتك يوميًا."/>
+<meta property="og:url" content="https://www.sortyd.com/ar/blog/"/>
+<meta property="og:image" content="https://www.sortyd.com/og-image.png"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Tajawal:wght@300;400;500;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --v:    #7C6FFF;
+    --c:    #3ECFFF;
+    --bg:   #FAF8F4;
+    --bg2:  #FFFFFF;
+    --ink:  #1A1520;
+    --mute: #B0AA9E;
+    --dim:  #5C5248;
+    --grad: linear-gradient(90deg, #7C6FFF, #3ECFFF);
+  }
+  body {
+    font-family: 'Tajawal', 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.8;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+  }
+  .nav-logo img { height: 32px; width: auto; display: block; }
+  .container { max-width: 850px; margin: 0 auto; padding: 64px 24px; flex: 1; width: 100%; }
+  h1 { font-size: clamp(32px, 6vw, 48px); font-weight: 800; letter-spacing: -0.01em; line-height: 1.2; margin-bottom: 16px; color: var(--ink); }
+  .subtitle { font-size: 18px; color: var(--dim); margin-bottom: 48px; font-weight: 300; }
+
+  .coming-soon-card {
+    background: var(--bg2);
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 24px;
+    padding: 48px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .coming-soon-icon {
+    font-size: 48px;
+    margin-bottom: 24px;
+    display: inline-block;
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .coming-soon-card h2 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 16px;
+  }
+  .coming-soon-card p {
+    font-size: 16px;
+    color: var(--dim);
+    margin-bottom: 32px;
+    font-weight: 300;
+  }
+  .coming-soon-cta {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    background: var(--v);
+    border: none;
+    padding: 14px 32px;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all .25s;
+    text-decoration: none;
+    display: inline-block;
+    box-shadow: 0 8px 24px rgba(124,111,255,0.25);
+  }
+  .coming-soon-cta:hover {
+    background: var(--c);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(62,207,255,0.3);
+  }
+
+  footer {
+    padding: 48px 24px;
+    background: var(--bg2);
+    border-top: 1px solid rgba(0,0,0,0.06);
+    text-align: center;
+    font-size: 14px;
+    color: var(--mute);
+  }
+  footer a { color: var(--dim); text-decoration: none; margin: 0 12px; transition: color 0.2s; }
+  footer a:hover { color: var(--v); }
+
+  @media (max-width: 600px) {
+    .container { padding: 40px 20px; }
+    h1 { font-size: 32px; }
+    .coming-soon-card { padding: 32px 20px; }
+  }
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    height: 72px;
+    background: rgba(250, 248, 244, 0.88);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    flex-direction: row-reverse;
+  }
+
+  .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .nav-logo img { height: 30px; width: auto; display: block; }
+  
+  .nav-right { display: flex; align-items: center; gap: 36px; flex-direction: row-reverse; }
+  .nav-link { font-size: .85rem; font-weight: 500; color: var(--dim); text-decoration: none; transition: color .2s; }
+  .nav-link:hover { color: var(--ink); }
+  
+  .nav-dl { font-size: .85rem; font-weight: 700; color: #fff; background: var(--v); border: none; padding: 9px 20px; border-radius: 100px; cursor: pointer; transition: all .25s; text-decoration: none; display: inline-block; }
+  .nav-dl:hover { background: var(--c); transform: translateY(-1px); }
+
+  /* Language Switcher */
+  .lang-switcher { position: relative; display: flex; align-items: center; }
+  .lang-select { appearance: none; -webkit-appearance: none; background: transparent; border: 1px solid rgba(0,0,0,.14); border-radius: 100px; padding: 6px 12px 6px 28px; font-family: 'Space Mono', monospace; font-size: .66rem; font-weight: 700; letter-spacing: .10em; color: var(--dim); cursor: pointer; transition: border-color .2s, color .2s; outline: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235C5248' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: left 10px center; }
+  .lang-select:hover { border-color: var(--v); color: var(--ink); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="https://www.sortyd.com/ar/">
+    <img src="/logo.png" alt="شعار سورتد">
+  </a>
+  <div class="nav-right">
+    <a class="nav-link" href="https://www.sortyd.com/ar/#features">الميزات</a>
+    <a class="nav-link" href="/ar/blog/">المدونة</a>
+    <a class="nav-link" href="https://www.sortyd.com/ar/#how">العملية</a>
+    <div class="lang-switcher">
+      <select class="lang-select" id="langSelect" onchange="switchLang(this.value)" aria-label="اختر اللغة">
+        <option value="en">EN</option>
+        <option value="es">ES</option>
+        <option value="ar" selected>ع</option>
+        <option value="zh">中文</option>
+      </select>
+    </div>
+    <a class="nav-dl" href="https://apps.apple.com/in/app/sortyd/id6762193535" target="_blank" rel="noopener noreferrer">تحميل</a>
+  </div>
+</nav>
+
+<div class="container">
+  <h1>مدونة سورتد</h1>
+  <p class="subtitle">دليلك العلمي لبناء العادات، وتطوير الذات، وتحقيق حياة متوازنة تفخر بها.</p>
+
+  <div class="coming-soon-card">
+    <span class="coming-soon-icon">✍️</span>
+    <h2>المقالات باللغة العربية قريبًا!</h2>
+    <p>نعمل حاليًا في فريق سورتد على ترجمة وإعداد مقالاتنا العلمية حول علم العادات والإنتاجية إلى اللغة العربية لتوفير محتوى متكامل ذو جودة عالية.</p>
+    <p>في هذه الأثناء، يمكنك تحميل التطبيق مجانًا والبدء في تنظيم مهامك وبناء عاداتك اليومية فورًا.</p>
+    <a class="coming-soon-cta" href="https://apps.apple.com/in/app/sortyd/id6762193535" target="_blank" rel="noopener noreferrer">تحميل تطبيق سورتد مجانًا</a>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 سورتد · <a href="/ar/privacy/">سياسة الخصوصية</a> · <a href="/ar/support/">الدعم الفني</a></p>
+</footer>
+<script src="/i18n.js"></script>
+</body>
+</html>

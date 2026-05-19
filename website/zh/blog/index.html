@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>博客 — 习惯养成、AI 教练与效率提升 — Sortyd</title>
+<meta name="description" content="由 Sortyd 团队提供的关于建立更好习惯、AI 教练、效率提升和生活方式追踪的指南和研究。"/>
+<link rel="canonical" href="https://www.sortyd.com/zh/blog/"/>
+<link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/"/>
+<link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/blog/"/>
+<link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/blog/"/>
+<link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/"/>
+<link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/"/>
+
+<meta name="robots" content="index, follow"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Sortyd 博客 — 习惯养成与 AI 教练"/>
+<meta property="og:description" content="关于建立更好习惯、AI 教练、效率提升和生活方式追踪的指南和研究。"/>
+<meta property="og:url" content="https://www.sortyd.com/zh/blog/"/>
+<meta property="og:image" content="https://www.sortyd.com/og-image.png"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --v:    #7C6FFF;
+    --c:    #3ECFFF;
+    --bg:   #FAF8F4;
+    --bg2:  #FFFFFF;
+    --ink:  #1A1520;
+    --mute: #B0AA9E;
+    --dim:  #5C5248;
+    --grad: linear-gradient(90deg, #7C6FFF, #3ECFFF);
+  }
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.7;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  [dir="rtl"] body { text-align: right; }
+
+  .nav-logo img { height: 32px; width: auto; display: block; }
+  
+  .nav-cta:hover { transform: translateY(-1px); opacity: 0.9; }
+
+  .container { max-width: 850px; margin: 0 auto; padding: 64px 24px; flex: 1; width: 100%; }
+  h1 { font-size: clamp(32px, 6vw, 48px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 16px; color: var(--ink); }
+  .subtitle { font-size: 18px; color: var(--dim); margin-bottom: 48px; font-weight: 300; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 32px; }
+  .card {
+    background: var(--bg2);
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 20px;
+    padding: 32px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(124, 111, 255, 0.08);
+    border-color: rgba(124, 111, 255, 0.15);
+  }
+  .card-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--v);
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .card h2 { font-size: 22px; font-weight: 600; line-height: 1.3; margin-bottom: 12px; }
+  .card h2 a { color: var(--ink); text-decoration: none; transition: color 0.2s; }
+  .card h2 a:hover { color: var(--v); }
+  .card p { font-size: 15px; color: var(--dim); margin-bottom: 24px; flex: 1; font-weight: 300; }
+  .card-meta { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--mute); }
+
+  /* Article Content Styling */
+  article { max-width: 700px; margin: 0 auto; }
+  article h1 { margin-bottom: 24px; }
+  .post-meta { font-family: 'Space Mono', monospace; font-size: 14px; color: var(--v); margin-bottom: 40px; display: block; }
+  .post-content h2 { font-size: 28px; margin: 48px 0 20px; font-weight: 600; }
+  .post-content p { font-size: 18px; margin-bottom: 24px; color: var(--dim); font-weight: 300; }
+  .post-content ul, .post-content ol { margin-bottom: 32px; padding-left: 24px; color: var(--dim); }
+  [dir="rtl"] .post-content ul, [dir="rtl"] .post-content ol { padding-left: 0; padding-right: 24px; }
+  .post-content li { margin-bottom: 12px; font-size: 17px; font-weight: 300; }
+  .post-content strong { color: var(--ink); font-weight: 600; }
+
+  footer {
+    padding: 48px 24px;
+    background: var(--bg2);
+    border-top: 1px solid rgba(0,0,0,0.06);
+    text-align: center;
+    font-size: 14px;
+    color: var(--mute);
+  }
+  footer a { color: var(--dim); text-decoration: none; margin: 0 12px; transition: color 0.2s; }
+  footer a:hover { color: var(--v); }
+
+  @media (max-width: 600px) {
+    .container { padding: 40px 20px; }
+    h1 { font-size: 32px; }
+  }
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    height: 72px;
+    background: rgba(250, 248, 244, 0.88);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  [dir="rtl"] nav { flex-direction: row-reverse; }
+
+  .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .nav-logo img { height: 30px; width: auto; display: block; }
+  
+  .nav-right { display: flex; align-items: center; gap: 36px; }
+  .nav-link { font-size: .76rem; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); text-decoration: none; transition: color 0.2s; }
+  .nav-link:hover { color: var(--ink); }
+  
+  .nav-dl { font-size: .76rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #fff; background: var(--v); border: none; padding: 9px 20px; border-radius: 100px; cursor: pointer; transition: all .25s; text-decoration: none; display: inline-block; }
+  .nav-dl:hover { background: var(--c); transform: translateY(-1px); }
+
+  /* Language Switcher */
+  .lang-switcher { position: relative; display: flex; align-items: center; }
+  .lang-select { appearance: none; -webkit-appearance: none; background: transparent; border: 1px solid rgba(0,0,0,.14); border-radius: 100px; padding: 6px 28px 6px 12px; font-family: 'Space Mono', monospace; font-size: .66rem; font-weight: 700; letter-spacing: .10em; color: var(--dim); cursor: pointer; transition: border-color .2s, color .2s; outline: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235C5248' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+  .lang-select:hover { border-color: var(--v); color: var(--ink); }
+  [dir="rtl"] .lang-select { padding: 6px 12px 6px 28px; background-position: left 10px center; }
+
+</style>
+
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="https://www.sortyd.com/zh/">
+    <img src="/logo.png" alt="Sortyd Logo">
+  </a>
+  <div class="nav-right">
+    <a class="nav-link" href="https://www.sortyd.com/zh/#features">功能</a>
+    <a class="nav-link" href="/zh/blog/">博客</a>
+    <a class="nav-link" href="https://www.sortyd.com/zh/#how">使用流程</a>
+    <div class="lang-switcher">
+      <select class="lang-select" id="langSelect" onchange="switchLang(this.value)" aria-label="Select language">
+        <option value="en">EN</option>
+        <option value="es" >ES</option>
+        <option value="ar" >ع</option>
+        <option value="zh" selected>中文</option>
+      </select>
+    </div>
+    <a class="nav-dl" href="https://apps.apple.com/in/app/sortyd/id6762193535" target="_blank" rel="noopener noreferrer">下载</a>
+  </div>
+</nav>
+
+
+<div class="container">
+  <h1>Sortyd 博客</h1>
+  <p class="subtitle">关于习惯养成、AI 教练、效率提升以及打造令自己自豪的生活的指南。</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-tag">心理健康</div>
+      <h2><a href="/zh/blog/adhd-anxiety-habits/">你的大脑没有问题 — 它只是需要一个更好的系统</a></h2>
+      <p>被ADHD、焦虑或坏习惯所困扰？了解为什么你的大脑会抗拒规律——以及一个简单的习惯追踪App如何让坚持变得真正可行。</p>
+      <div class="card-meta">2026年5月 · 8 分钟阅读</div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">习惯科学</div>
+      <h2><a href="/zh/blog/how-to-build-habits-that-stick/">持续性的科学：为什么习惯追踪器是你最好的生产力工具</a></h2>
+      <p>在自我提升的旅程中，最大的障碍并不是任务本身的难度，而是能否持之以恒。研究表明，“习惯堆叠”和视觉化的进度追踪是重塑大脑回路的关键。</p>
+      <div class="card-meta">2026年4月 · 8 分钟阅读</div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">自我提升</div>
+      <h2><a href="/zh/blog/goal-analysis-progress/">超越待办清单：自我目标分析如何让你的进度翻十倍</a></h2>
+      <p>勾选掉一项任务感觉很好，但理解你为什么成功或失败才是带来真正成长的方法。Sortyd 的性能分析工具向你显示你的连续记录、平均值和趋势。</p>
+      <div class="card-meta">2026年4月 · 6 分钟阅读</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 Sortyd · <a href="/zh/privacy/">隐私政策</a> · <a href="/zh/support/">支持</a></p>
+</footer>
+<script src="/i18n.js"></script>
+</body>
+</html>

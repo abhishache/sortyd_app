@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Blog — Habit Tracking, AI Coaching & Productivity — Sortyd</title>
+<meta name="description" content="Guides and research on building better habits, AI coaching, productivity, and lifestyle tracking from the team at Sortyd."/>
+<link rel="canonical" href="https://www.sortyd.com/blog/"/>
+<link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/"/>
+<link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/blog/"/>
+<link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/blog/"/>
+<link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/"/>
+<link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/"/>
+
+<meta name="robots" content="index, follow"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Sortyd Blog — Habit Tracking & AI Coaching"/>
+<meta property="og:description" content="Guides and research on building better habits, AI coaching, productivity, and lifestyle tracking."/>
+<meta property="og:url" content="https://www.sortyd.com/blog/"/>
+<meta property="og:image" content="https://www.sortyd.com/og-image.png"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --v:    #7C6FFF;
+    --c:    #3ECFFF;
+    --bg:   #FAF8F4;
+    --bg2:  #FFFFFF;
+    --ink:  #1A1520;
+    --mute: #B0AA9E;
+    --dim:  #5C5248;
+    --grad: linear-gradient(90deg, #7C6FFF, #3ECFFF);
+  }
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.7;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  [dir="rtl"] body { text-align: right; }
+  
+  
+  [dir="rtl"] 
+
+  .nav-logo img { height: 32px; width: auto; display: block; }
+  
+  .nav-cta:hover { transform: translateY(-1px); opacity: 0.9; }
+
+  .container { max-width: 850px; margin: 0 auto; padding: 64px 24px; flex: 1; width: 100%; }
+  h1 { font-size: clamp(32px, 6vw, 48px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 16px; color: var(--ink); }
+  .subtitle { font-size: 18px; color: var(--dim); margin-bottom: 48px; font-weight: 300; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 32px; }
+  .card {
+    background: var(--bg2);
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 20px;
+    padding: 32px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(124, 111, 255, 0.08);
+    border-color: rgba(124, 111, 255, 0.15);
+  }
+  .card-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--v);
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .card h2 { font-size: 22px; font-weight: 600; line-height: 1.3; margin-bottom: 12px; }
+  .card h2 a { color: var(--ink); text-decoration: none; transition: color 0.2s; }
+  .card h2 a:hover { color: var(--v); }
+  .card p { font-size: 15px; color: var(--dim); margin-bottom: 24px; flex: 1; font-weight: 300; }
+  .card-meta { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--mute); }
+
+  /* Article Content Styling */
+  article { max-width: 700px; margin: 0 auto; }
+  article h1 { margin-bottom: 24px; }
+  .post-meta { font-family: 'Space Mono', monospace; font-size: 14px; color: var(--v); margin-bottom: 40px; display: block; }
+  .post-content h2 { font-size: 28px; margin: 48px 0 20px; font-weight: 600; }
+  .post-content p { font-size: 18px; margin-bottom: 24px; color: var(--dim); font-weight: 300; }
+  .post-content ul, .post-content ol { margin-bottom: 32px; padding-left: 24px; color: var(--dim); }
+  [dir="rtl"] .post-content ul, [dir="rtl"] .post-content ol { padding-left: 0; padding-right: 24px; }
+  .post-content li { margin-bottom: 12px; font-size: 17px; font-weight: 300; }
+  .post-content strong { color: var(--ink); font-weight: 600; }
+
+  footer {
+    padding: 48px 24px;
+    background: var(--bg2);
+    border-top: 1px solid rgba(0,0,0,0.06);
+    text-align: center;
+    font-size: 14px;
+    color: var(--mute);
+  }
+  footer a { color: var(--dim); text-decoration: none; margin: 0 12px; transition: color 0.2s; }
+  footer a:hover { color: var(--v); }
+
+  @media (max-width: 600px) {
+    
+    .container { padding: 40px 20px; }
+    h1 { font-size: 32px; }
+  }
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    height: 72px;
+    background: rgba(250, 248, 244, 0.88);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  [dir="rtl"] nav { flex-direction: row-reverse; }
+
+  .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .nav-logo img { height: 30px; width: auto; display: block; }
+  
+  .nav-right { display: flex; align-items: center; gap: 36px; }
+  .nav-link { font-size: .76rem; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); text-decoration: none; transition: color 0.2s; }
+  .nav-link:hover { color: var(--ink); }
+  
+  .nav-dl { font-size: .76rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #fff; background: var(--v); border: none; padding: 9px 20px; border-radius: 100px; cursor: pointer; transition: all .25s; text-decoration: none; display: inline-block; }
+  .nav-dl:hover { background: var(--c); transform: translateY(-1px); }
+
+  /* Language Switcher */
+  .lang-switcher { position: relative; display: flex; align-items: center; }
+  .lang-select { appearance: none; -webkit-appearance: none; background: transparent; border: 1px solid rgba(0,0,0,.14); border-radius: 100px; padding: 6px 28px 6px 12px; font-family: 'Space Mono', monospace; font-size: .66rem; font-weight: 700; letter-spacing: .10em; color: var(--dim); cursor: pointer; transition: border-color .2s, color .2s; outline: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235C5248' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+  .lang-select:hover { border-color: var(--v); color: var(--ink); }
+  [dir="rtl"] .lang-select { padding: 6px 12px 6px 28px; background-position: left 10px center; }
+
+</style>
+
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="https://www.sortyd.com/">
+    <img src="/logo.png" alt="Sortyd Logo">
+  </a>
+  <div class="nav-right">
+    <a class="nav-link" href="https://www.sortyd.com/#features">Features</a>
+    <a class="nav-link" href="/blog/">Blog</a>
+    <a class="nav-link" href="https://www.sortyd.com/#how">Process</a>
+    <div class="lang-switcher">
+      <select class="lang-select" id="langSelect" onchange="switchLang(this.value)" aria-label="Select language">
+        <option value="en" selected>EN</option>
+        <option value="es" >ES</option>
+        <option value="ar" >ع</option>
+        <option value="zh">中文</option>
+      </select>
+    </div>
+    <a class="nav-dl" href="https://apps.apple.com/in/app/sortyd/id6762193535" target="_blank" rel="noopener noreferrer">Download</a>
+  </div>
+</nav>
+
+
+<div class="container">
+  <h1>Sortyd Blog</h1>
+  <p class="subtitle">Guides on habits, AI coaching, productivity, and building a life you're proud of.</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-tag">New Feature</div>
+      <h2><a href="https://www.sortyd.com/blog/smart-todo-list-daily-reset">Sortyd's Smart To-Do List: A Fresh Start Every Single Day</a></h2>
+      <p>Sortyd v1.3 introduces a built-in To-Do list that resets every morning — always a fresh start. Paired with smart conflict-detecting reminders, it's the daily organiser you've been missing.</p>
+      <div class="card-meta">April 2026 · 6 min read</div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">New Feature</div>
+      <h2><a href="https://www.sortyd.com/blog/apple-watch-healthkit-habit-tracking">Track Habits from Your Wrist: Sortyd on Apple Watch with HealthKit</a></h2>
+      <p>Sortyd is now on Apple Watch — check off habits from your wrist, mid-workout or on the go. Plus HealthKit integration means your health habits track themselves.</p>
+      <div class="card-meta">April 2026 · 7 min read</div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">Habit Science</div>
+      <h2><a href="https://www.sortyd.com/blog/how-to-build-habits-that-stick">How to Build Habits That Actually Stick</a></h2>
+      <p>Most habits fail within two weeks. Learn the science-backed strategies that separate the habits that last from the ones that don't.</p>
+      <div class="card-meta">April 2026 · 8 min read</div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">App Reviews</div>
+      <h2><a href="https://www.sortyd.com/blog/best-habit-tracker-apps">Best Habit Tracker Apps in 2026</a></h2>
+      <p>We tested Habitica, Streaks, Finch, Habitify, and Sortyd across real daily use. Here's an honest comparison of features, AI coaching, and value.</p>
+      <div class="card-meta">April 2026 · 10 min read</div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">AI Coaching</div>
+      <h2><a href="https://www.sortyd.com/blog/ai-coaching-for-productivity">AI Coaching for Productivity: Does It Actually Work?</a></h2>
+      <p>AI coaching apps are everywhere — but most are just chatbots with push notifications. Here's what real AI coaching looks like and how to spot it.</p>
+      <div class="card-meta">April 2026 · 7 min read</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 Sortyd · <a href="https://www.sortyd.com/privacy">Privacy Policy</a> · <a href="https://www.sortyd.com/support">Support</a></p>
+</footer>
+<script src="/i18n.js"></script>
+</body>
+</html>
