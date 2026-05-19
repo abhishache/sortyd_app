@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>الدعم — Sortyd</title>
+  <meta name="description" content="احصل على المساعدة مع Sortyd — تطبيق تتبع العادات بالذكاء الاصطناعي. اعثر على إجابات للأسئلة الشائعة أو تواصل مع الفريق مباشرة." />
+  <link rel="canonical" href="https://www.sortyd.com/ar/support" />
+  <link rel="alternate" hreflang="en" href="https://www.sortyd.com/support"/>
+  <link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/support"/>
+  <link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/support"/>
+  <link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/support"/>
+  <link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/support"/>
+  <meta name="robots" content="index, follow" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Sortyd" />
+  <meta property="og:title" content="الدعم — Sortyd" />
+  <meta property="og:description" content="احصل على المساعدة مع Sortyd — تطبيق تتبع العادات بالذكاء الاصطناعي. اعثر على إجابات للأسئلة الشائعة أو تواصل مع الفريق مباشرة." />
+  <meta property="og:url" content="https://www.sortyd.com/ar/support" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --v:    #7C6FFF;
+      --c:    #3ECFFF;
+      --bg:   #FAF8F4;
+      --bg2:  #F0EDE5;
+      --bg3:  #141424;
+      --ink:  #1A1520;
+      --mute: #B0AA9E;
+      --dim:  #5C5248;
+      --grad: linear-gradient(90deg, #7C6FFF, #3ECFFF);
+      --r:    16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 64px;
+      background: rgba(250, 248, 244, 0.88);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .nav-wordmark {
+      font-family: 'Space Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .nav-link {
+      color: var(--dim);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-link:hover { color: var(--ink); }
+
+    .nav-dl {
+      background: var(--grad);
+      border: none;
+      border-radius: 100px;
+      padding: 8px 20px;
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: opacity 0.2s;
+    }
+    .nav-dl:hover { opacity: 0.85; }
+
+    main {
+      flex: 1;
+      max-width: 760px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 80px 24px 100px;
+    }
+
+    .page-eyebrow {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      margin-bottom: 20px;
+    }
+
+    .hero-sub {
+      font-size: 18px;
+      color: var(--mute);
+      line-height: 1.7;
+      margin-bottom: 48px;
+      max-width: 560px;
+    }
+
+    .contact-card {
+      background: var(--bg2);
+      border: 1px solid rgba(124, 111, 255, 0.18);
+      border-radius: var(--r);
+      padding: 32px;
+      margin-bottom: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .contact-card-left h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .contact-card-left p {
+      font-size: 15px;
+      color: var(--mute);
+    }
+
+    .email-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--grad);
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px 24px;
+      border-radius: 100px;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+      flex-shrink: 0;
+    }
+    .email-btn:hover { opacity: 0.85; }
+
+    .section-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.20em;
+      text-transform: uppercase;
+      color: var(--mute);
+      margin-bottom: 24px;
+    }
+
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-bottom: 64px;
+    }
+
+    details {
+      background: var(--bg2);
+      border: 1px solid var(--dim);
+      border-radius: var(--r);
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    details[open] { border-color: rgba(124, 111, 255, 0.35); }
+
+    summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      gap: 16px;
+    }
+    summary::-webkit-details-marker { display: none; }
+
+    .faq-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1.5px solid var(--dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+      color: var(--mute);
+      transition: all 0.2s;
+    }
+    details[open] .faq-icon {
+      background: var(--v);
+      border-color: var(--v);
+      color: #fff;
+    }
+
+    .faq-body {
+      padding: 0 24px 20px;
+      font-size: 15px;
+      color: var(--mute);
+      line-height: 1.8;
+    }
+
+    .faq-body a { color: var(--c); text-decoration: none; }
+    .faq-body a:hover { text-decoration: underline; }
+
+    .tips-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 64px;
+    }
+
+    @media (max-width: 560px) {
+      .tips-grid { grid-template-columns: 1fr; }
+    }
+
+    .tip-card {
+      background: var(--bg2);
+      border: 1px solid var(--dim);
+      border-radius: var(--r);
+      padding: 24px;
+    }
+
+    .tip-icon {
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+
+    .tip-card h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .tip-card p {
+      font-size: 14px;
+      color: var(--mute);
+      line-height: 1.6;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--dim);
+      margin: 56px 0;
+      opacity: 0.4;
+    }
+
+    footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 28px 40px;
+      border-top: 1px solid rgba(0, 0, 0, 0.07);
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .footer-wordmark {
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .footer-div {
+      width: 1px;
+      height: 14px;
+      background: var(--dim);
+    }
+
+    .footer-tagline {
+      font-size: 13px;
+      color: var(--mute);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-links a {
+      font-size: 13px;
+      color: var(--mute);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--ink); }
+
+    .footer-copy {
+      font-size: 13px;
+      color: var(--dim);
+      width: 100%;
+      text-align: left;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 640px) {
+      nav { padding: 0 20px; }
+      .nav-right { gap: 16px; }
+      footer { padding: 24px 20px; flex-direction: column; align-items: flex-start; }
+      .contact-card { flex-direction: column; align-items: flex-start; }
+    }
+
+    .lang-switcher { position: relative; display: flex; align-items: center; }
+    .lang-select { appearance: none; -webkit-appearance: none; background: transparent; border: 1px solid rgba(0,0,0,.14); border-radius: 100px; padding: 6px 28px 6px 12px; font-family: 'Space Mono', monospace; font-size: .66rem; font-weight: 700; letter-spacing: .10em; color: var(--dim); cursor: pointer; transition: border-color .2s, color .2s; outline: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235C5248' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+    .lang-select:hover { border-color: var(--v); color: var(--ink); }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-logo" href="https://www.sortyd.com/ar/">
+      <img src="/logo.png" alt="Sortyd Logo" style="height: 32px; width: auto; display: block;">
+    </a>
+    <div class="nav-right">
+      <a class="nav-link" href="https://www.sortyd.com/ar/#features">الميزات</a>
+      <a class="nav-link" href="https://www.sortyd.com/ar/#how">كيف يعمل</a>
+      <div class="lang-switcher">
+        <select class="lang-select" id="langSelect" onchange="switchLang(this.value)" aria-label="اختر اللغة">
+          <option value="en">EN</option>
+          <option value="es">ES</option>
+          <option value="ar" selected>ع</option>
+          <option value="zh">中文</option>
+        </select>
+      </div>
+      <a class="nav-dl" href="https://apps.apple.com/in/app/sortyd/id6762193535">تحميل</a>
+    </div>
+  </nav>
+
+  <main>
+
+    <p class="page-eyebrow">الدعم</p>
+    <h1>كيف يمكننا<br>مساعدتك؟</h1>
+    <p class="hero-sub">اعثر على إجابات للأسئلة الشائعة أدناه، أو تواصل معنا مباشرة — نردّ في غضون 24 ساعة.</p>
+
+    <div class="contact-card">
+      <div class="contact-card-left">
+        <h2>الدعم عبر البريد الإلكتروني</h2>
+        <p>الأسئلة والملاحظات وتقارير الأخطاء — نقرأ كل رسالة بعناية.</p>
+      </div>
+      <a class="email-btn" href="mailto:support@sortyd.com">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M2 4a1 1 0 011-1h10a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V4z" stroke="#fff" stroke-width="1.4"/>
+          <path d="M2 4l6 5 6-5" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>
+        </svg>
+        support@sortyd.com
+      </a>
+    </div>
+
+    <p class="section-label">الأسئلة الشائعة</p>
+    <div class="faq-list">
+
+      <details>
+        <summary>
+          هل Sortyd مجاني فعلاً؟
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          نعم — مجاني تمامًا، إلى الأبد. لا اشتراكات، ولا خطط مميزة، ولا رسوم مخفية. كل ميزة في التطبيق متاحة لجميع المستخدمين، دائمًا.
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          هل أحتاج إلى حساب لاستخدام Sortyd؟
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          لا حاجة لأي حساب. يعمل Sortyd بالكامل دون اتصال بالإنترنت. تُخزَّن بياناتك على جهازك — لن نطلب منك بريدًا إلكترونيًا أو كلمة مرور أبدًا.
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          كيف يعمل منشئ العادات بالذكاء الاصطناعي؟
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          اضغط على زر "قائمة البداية بالذكاء الاصطناعي"، وصِف هدفك (مثل "أصبح بشكل أفضل" أو "روتين الصباح")، وسيُنشئ Sortyd قائمة عادات يومية كاملة ومنظمة حول هدفك — عادةً 4–6 مهام محددة وقابلة للتنفيذ. يمكنك تعديل أي مهمة أو حذفها بعد إنشائها.
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          ما البيانات التي يُرسلها Coach الذكاء الاصطناعي إلى الإنترنت؟
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          عند استخدام ميزتي Coach أو التحليلات، تُرسَل فقط عناوين مهامك ومعدلات إتمامها (مثل "تمرين الصباح: أُنجز 5 من أصل 7 أيام") إلى وكيل الذكاء الاصطناعي الخاص بنا. لا تُنقل أي معلومات شخصية أو بيانات صحية أو معرّفات الجهاز. راجع <a href="/ar/privacy">سياسة الخصوصية</a> للمزيد من التفاصيل.
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          كيف تعمل المزامنة مع Apple Health؟
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          عند إضافة مهمة صحية (مثل "المشي 10,000 خطوة")، يقرأ Sortyd عدد خطواتك والسعرات الحرارية النشطة من Apple Health في وضع القراءة فقط. عند بلوغ هدفك، تكتمل المهمة تلقائيًا. بيانات صحتك لا تغادر جهازك أبدًا — ولا تُرسَل إلى خوادمنا.
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          اختفت سلسلتي — ماذا حدث؟
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          تُحسَب السلاسل بناءً على الأيام التي أكملت فيها 80% أو أكثر من مهامك. إذا كان أداؤك في يوم ما أقل من هذا الحد، تُعاد السلسلة من الصفر. تحقق من تبويب التحليلات لعرض سجل الإتمام اليومي ومعرفة أين انقطعت السلسلة.
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          كيف أحذف قائمة أو مهمة؟
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          لحذف مهمة: اسحب لليسار في تبويب اليوم. لحذف قائمة أو أرشفتها: انتقل إلى تبويب القوائم، اسحب القائمة لليسار واختر حذف أو أرشفة. القوائم المؤرشفة تُخفى لكن يُحفظ تاريخها في التحليلات.
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          الويدجت لا يتحدث — كيف أُصلح ذلك؟
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          تتحدث الويدجت وفق جدول iOS الخاص بها (عادةً في غضون دقائق). لإجبارها على التحديث: افتح تطبيق Sortyd، أكمل مهمة أو ألغِ إكمالها، ثم عُد إلى الشاشة الرئيسية. إذا استمرت في عرض بيانات قديمة بعد 10 دقائق، جرّب حذفها وإضافتها مجددًا من معرض الويدجت.
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          كيف أضبط تطبيق Apple Watch؟
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          ثبّت Sortyd على iPhone الخاص بك، ثم افتح تطبيق Watch على iPhone وثبّت Sortyd من قسم "التطبيقات المتاحة". تتزامن قائمتك النشطة تلقائيًا عبر WatchConnectivity — دون الحاجة إلى إعداد إضافي.
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          كيف أبلّغ عن خطأ أو أقترح ميزة جديدة؟
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          أرسل بريدًا إلكترونيًا إلى <a href="mailto:support@sortyd.com">support@sortyd.com</a> مع وصف للمشكلة أو الفكرة. في حالة الأخطاء، أرفق إصدار iOS لديك ووصفًا مختصرًا لما حدث — نهدف للرد خلال 24 ساعة.
+        </div>
+      </details>
+
+    </div>
+
+    <p class="section-label">نصائح سريعة</p>
+    <div class="tips-grid">
+
+      <div class="tip-card">
+        <div class="tip-icon">🎯</div>
+        <h3>اجعل قوائمك قصيرة</h3>
+        <p>4–6 مهام لكل قائمة هو النقطة المثالية. أكثر من 8 مهام يؤدي إلى معدلات إتمام أقل.</p>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-icon">🔔</div>
+        <h3>تذكير واحد لكل مهمة</h3>
+        <p>اضغط على أيقونة الساعة في أي مهمة لضبط تذكير يومي. الأوقات المحددة أفضل من النوايا المبهمة.</p>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-icon">🤖</div>
+        <h3>استخدم Coach الذكاء الاصطناعي أسبوعيًا</h3>
+        <p>يتحسن تبويب Coach مع توفر المزيد من البيانات. تحقق منه بعد أول 7 أيام للحصول على أول رؤية حقيقية.</p>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-icon">📊</div>
+        <h3>حدّد يومك الأضعف</h3>
+        <p>تُظهر التحليلات أي يوم في الأسبوع يتراجع فيه أداؤك أكثر. هذه هي الفجوة التي يجب معالجتها أولًا.</p>
+      </div>
+
+    </div>
+
+    <div class="divider"></div>
+
+    <p style="font-size:15px; color: var(--mute); text-align:center;">
+      لا تزال تواجه مشكلة؟ راسلنا على <a href="mailto:support@sortyd.com" style="color:var(--c); text-decoration:none;">support@sortyd.com</a> — نحن فريق صغير ونقرأ كل رسالة فعلًا.
+    </p>
+
+  </main>
+
+  <footer>
+    <div class="footer-left">
+      <span class="footer-wordmark">sortyd</span>
+      <div class="footer-div"></div>
+      <span class="footer-tagline">تطبيق تتبع العادات بالذكاء الاصطناعي</span>
+    </div>
+    <div class="footer-links">
+      <a href="/ar/privacy">الخصوصية</a>
+      <a href="/ar/support">الدعم</a>
+      <a href="mailto:support@sortyd.com">اتصل بنا</a>
+    </div>
+    <span class="footer-copy">© 2026 Sortyd</span>
+  </footer>
+
+<script src="/i18n.js"></script>
+</body>
+</html>

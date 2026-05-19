@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Soporte — Sortyd</title>
+  <meta name="description" content="Obtén ayuda con Sortyd — Rastreador de Hábitos con IA. Encuentra respuestas a preguntas frecuentes o contacta al equipo directamente." />
+  <link rel="canonical" href="https://www.sortyd.com/es/support" />
+  <link rel="alternate" hreflang="en" href="https://www.sortyd.com/support"/>
+  <link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/support"/>
+  <link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/support"/>
+  <link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/support"/>
+  <link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/support"/>
+  <meta name="robots" content="index, follow" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Sortyd" />
+  <meta property="og:title" content="Soporte — Sortyd" />
+  <meta property="og:description" content="Obtén ayuda con Sortyd — Rastreador de Hábitos con IA. Encuentra respuestas a preguntas frecuentes o contacta al equipo directamente." />
+  <meta property="og:url" content="https://www.sortyd.com/es/support" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --v:    #7C6FFF;
+      --c:    #3ECFFF;
+      --bg:   #FAF8F4;
+      --bg2:  #F0EDE5;
+      --bg3:  #141424;
+      --ink:  #1A1520;
+      --mute: #B0AA9E;
+      --dim:  #5C5248;
+      --grad: linear-gradient(90deg, #7C6FFF, #3ECFFF);
+      --r:    16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 64px;
+      background: rgba(250, 248, 244, 0.88);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .nav-wordmark {
+      font-family: 'Space Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .nav-link {
+      color: var(--dim);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-link:hover { color: var(--ink); }
+
+    .nav-dl {
+      background: var(--grad);
+      border: none;
+      border-radius: 100px;
+      padding: 8px 20px;
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: opacity 0.2s;
+    }
+    .nav-dl:hover { opacity: 0.85; }
+
+    main {
+      flex: 1;
+      max-width: 760px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 80px 24px 100px;
+    }
+
+    .page-eyebrow {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+
+    .hero-sub {
+      font-size: 18px;
+      color: var(--mute);
+      line-height: 1.6;
+      margin-bottom: 48px;
+      max-width: 560px;
+    }
+
+    .contact-card {
+      background: var(--bg2);
+      border: 1px solid rgba(124, 111, 255, 0.18);
+      border-radius: var(--r);
+      padding: 32px;
+      margin-bottom: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .contact-card-left h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .contact-card-left p {
+      font-size: 15px;
+      color: var(--mute);
+    }
+
+    .email-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--grad);
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px 24px;
+      border-radius: 100px;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+      flex-shrink: 0;
+    }
+    .email-btn:hover { opacity: 0.85; }
+
+    .section-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.20em;
+      text-transform: uppercase;
+      color: var(--mute);
+      margin-bottom: 24px;
+    }
+
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-bottom: 64px;
+    }
+
+    details {
+      background: var(--bg2);
+      border: 1px solid var(--dim);
+      border-radius: var(--r);
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    details[open] { border-color: rgba(124, 111, 255, 0.35); }
+
+    summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      gap: 16px;
+    }
+    summary::-webkit-details-marker { display: none; }
+
+    .faq-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1.5px solid var(--dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+      color: var(--mute);
+      transition: all 0.2s;
+    }
+    details[open] .faq-icon {
+      background: var(--v);
+      border-color: var(--v);
+      color: #fff;
+    }
+
+    .faq-body {
+      padding: 0 24px 20px;
+      font-size: 15px;
+      color: var(--mute);
+      line-height: 1.7;
+    }
+
+    .faq-body a { color: var(--c); text-decoration: none; }
+    .faq-body a:hover { text-decoration: underline; }
+
+    .tips-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 64px;
+    }
+
+    @media (max-width: 560px) {
+      .tips-grid { grid-template-columns: 1fr; }
+    }
+
+    .tip-card {
+      background: var(--bg2);
+      border: 1px solid var(--dim);
+      border-radius: var(--r);
+      padding: 24px;
+    }
+
+    .tip-icon {
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+
+    .tip-card h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .tip-card p {
+      font-size: 14px;
+      color: var(--mute);
+      line-height: 1.6;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--dim);
+      margin: 56px 0;
+      opacity: 0.4;
+    }
+
+    footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 28px 40px;
+      border-top: 1px solid rgba(0, 0, 0, 0.07);
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .footer-wordmark {
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .footer-div {
+      width: 1px;
+      height: 14px;
+      background: var(--dim);
+    }
+
+    .footer-tagline {
+      font-size: 13px;
+      color: var(--mute);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-links a {
+      font-size: 13px;
+      color: var(--mute);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--ink); }
+
+    .footer-copy {
+      font-size: 13px;
+      color: var(--dim);
+      width: 100%;
+      text-align: right;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 640px) {
+      nav { padding: 0 20px; }
+      .nav-right { gap: 16px; }
+      footer { padding: 24px 20px; flex-direction: column; align-items: flex-start; }
+      .footer-copy { text-align: left; }
+      .contact-card { flex-direction: column; align-items: flex-start; }
+    }
+
+    .lang-switcher { position: relative; display: flex; align-items: center; }
+    .lang-select { appearance: none; -webkit-appearance: none; background: transparent; border: 1px solid rgba(0,0,0,.14); border-radius: 100px; padding: 6px 28px 6px 12px; font-family: 'Space Mono', monospace; font-size: .66rem; font-weight: 700; letter-spacing: .10em; color: var(--dim); cursor: pointer; transition: border-color .2s, color .2s; outline: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235C5248' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+    .lang-select:hover { border-color: var(--v); color: var(--ink); }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-logo" href="https://www.sortyd.com/es/">
+      <img src="/logo.png" alt="Sortyd Logo" style="height: 32px; width: auto; display: block;">
+    </a>
+    <div class="nav-right">
+      <a class="nav-link" href="https://www.sortyd.com/es/#features">Funciones</a>
+      <a class="nav-link" href="https://www.sortyd.com/es/#how">Proceso</a>
+      <div class="lang-switcher">
+        <select class="lang-select" id="langSelect" onchange="switchLang(this.value)" aria-label="Seleccionar idioma">
+          <option value="en">EN</option>
+          <option value="es" selected>ES</option>
+          <option value="ar">ع</option>
+          <option value="zh">中文</option>
+        </select>
+      </div>
+      <a class="nav-dl" href="https://apps.apple.com/in/app/sortyd/id6762193535">Descargar</a>
+    </div>
+  </nav>
+
+  <main>
+
+    <p class="page-eyebrow">Soporte</p>
+    <h1>¿Cómo podemos<br>ayudarte?</h1>
+    <p class="hero-sub">Encuentra respuestas a preguntas frecuentes a continuación, o contáctanos directamente — respondemos en menos de 24 horas.</p>
+
+    <div class="contact-card">
+      <div class="contact-card-left">
+        <h2>Soporte por correo</h2>
+        <p>Preguntas, comentarios o reportes de errores — leemos cada mensaje.</p>
+      </div>
+      <a class="email-btn" href="mailto:support@sortyd.com">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M2 4a1 1 0 011-1h10a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V4z" stroke="#fff" stroke-width="1.4"/>
+          <path d="M2 4l6 5 6-5" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>
+        </svg>
+        support@sortyd.com
+      </a>
+    </div>
+
+    <p class="section-label">Preguntas frecuentes</p>
+    <div class="faq-list">
+
+      <details>
+        <summary>
+          ¿Sortyd es realmente gratis?
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          Sí — completamente gratis, para siempre. Sin suscripción, sin nivel premium, sin cargos ocultos. Cada función de la app está disponible para todos los usuarios, siempre.
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          ¿Necesito una cuenta para usar Sortyd?
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          No se necesita cuenta. Sortyd funciona completamente sin conexión. Tus datos se guardan en tu dispositivo — nunca te pedimos correo electrónico ni contraseña.
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          ¿Cómo funciona el creador de hábitos con IA?
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          Toca el botón "Lista IA inicial", describe tu objetivo (ej. "ponerme en forma" o "rutina matutina") y Sortyd genera una lista de hábitos diarios completa y estructurada — normalmente 4–6 tareas específicas y accionables. Puedes editar o eliminar cualquier tarea después de crearla.
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          ¿Qué datos envía el Coach de IA a internet?
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          Solo los títulos de tus tareas y tasas de completado (ej. "Ejercicio matutino: completado 5 de 7 días") se envían a nuestro proxy de IA cuando usas las funciones de Coach o Análisis. Nunca se transmite información personal, datos de salud ni identificadores de dispositivo. Consulta nuestra <a href="/es/privacy">Política de Privacidad</a> para más detalles.
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          ¿Cómo funciona la sincronización con Apple Health?
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          Al agregar una tarea de salud (ej. "Caminar 10.000 pasos"), Sortyd lee tu conteo de pasos y calorías activas de Apple Health en modo solo lectura. Cuando alcanzas tu meta, la tarea se completa automáticamente. Tus datos de salud nunca salen de tu dispositivo — nunca se envían a nuestros servidores.
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          Mi racha desapareció — ¿qué pasó?
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          Las rachas se calculan en base a los días en que completaste el 80% o más de tus tareas. Si tuviste un día por debajo de ese umbral, la racha se reinicia. Revisa la pestaña Análisis para ver tu historial diario e identificar dónde se interrumpió.
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          ¿Cómo elimino una lista o tarea?
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          Para eliminar una tarea: desliza a la izquierda en la pestaña Hoy. Para eliminar o archivar una lista: ve a la pestaña Listas, desliza a la izquierda y elige Eliminar o Archivar. Las listas archivadas se ocultan pero su historial se conserva en Análisis.
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          El widget no se actualiza — ¿cómo lo soluciono?
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          Los widgets se actualizan según el propio calendario de iOS (normalmente en pocos minutos). Para forzar una actualización: abre la app Sortyd, completa o desmarca una tarea y vuelve a la pantalla de inicio. Si el widget sigue mostrando datos desactualizados después de 10 minutos, intenta eliminarlo y volver a añadirlo desde la galería de widgets.
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          ¿Cómo configuro la app de Apple Watch?
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          Instala Sortyd en tu iPhone, luego abre la app Watch en tu iPhone e instala Sortyd desde la sección "Apps disponibles". Tu lista activa se sincroniza automáticamente mediante WatchConnectivity — sin configuración adicional.
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          ¿Cómo reporto un error o sugiero una función?
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          Envía un correo a <a href="mailto:support@sortyd.com">support@sortyd.com</a> con una descripción del problema o idea. Para errores, incluye tu versión de iOS y una breve descripción de lo que ocurrió — respondemos en menos de 24 horas.
+        </div>
+      </details>
+
+    </div>
+
+    <p class="section-label">Consejos rápidos</p>
+    <div class="tips-grid">
+
+      <div class="tip-card">
+        <div class="tip-icon">🎯</div>
+        <h3>Mantén las listas cortas</h3>
+        <p>4–6 tareas por lista es el punto ideal. Más de 8 tareas lleva a tasas de completado más bajas.</p>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-icon">🔔</div>
+        <h3>Un recordatorio por tarea</h3>
+        <p>Toca el ícono de reloj en cualquier tarea para establecer un recordatorio diario. Las horas concretas son más efectivas que las intenciones vagas.</p>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-icon">🤖</div>
+        <h3>Usa el Coach de IA semanalmente</h3>
+        <p>La pestaña Coach mejora con más datos. Revísala después de tus primeros 7 días para obtener tu primer análisis real.</p>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-icon">📊</div>
+        <h3>Identifica tu día más débil</h3>
+        <p>Análisis muestra en qué día de la semana fallas más. Ese es el hueco de hábito que debes resolver primero.</p>
+      </div>
+
+    </div>
+
+    <div class="divider"></div>
+
+    <p style="font-size:15px; color: var(--mute); text-align:center;">
+      ¿Sigues teniendo problemas? Escríbenos a <a href="mailto:support@sortyd.com" style="color:var(--c); text-decoration:none;">support@sortyd.com</a> — somos un equipo pequeño y leemos todos los mensajes.
+    </p>
+
+  </main>
+
+  <footer>
+    <div class="footer-left">
+      <span class="footer-wordmark">sortyd</span>
+      <div class="footer-div"></div>
+      <span class="footer-tagline">Rastreador de Hábitos IA</span>
+    </div>
+    <div class="footer-links">
+      <a href="/es/privacy">Privacidad</a>
+      <a href="/es/support">Soporte</a>
+      <a href="mailto:support@sortyd.com">Contacto</a>
+    </div>
+    <span class="footer-copy">© 2026 Sortyd</span>
+  </footer>
+
+<script src="/i18n.js"></script>
+</body>
+</html>
