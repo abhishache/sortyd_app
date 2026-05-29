@@ -5,7 +5,7 @@
   <!-- Home Pages -->
   <url>
     <loc>https://www.sortyd.com/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>weekly</changefreq><priority>1.0</priority>
+    <lastmod>2026-05-29</lastmod><changefreq>weekly</changefreq><priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/"/>
     <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/"/>
     <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/"/>
@@ -194,12 +194,36 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/ai-coaching-for-productivity/"/>
   </url>
 
-  <!-- Blog Post: ADHD and Anxiety Habits (ZH only) -->
+  <!-- Blog Post: ADHD and Anxiety Habits (EN, ZH) -->
+  <url>
+    <loc>https://www.sortyd.com/blog/adhd-anxiety-habits/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/adhd-anxiety-habits/"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/adhd-anxiety-habits/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/adhd-anxiety-habits/"/>
+  </url>
   <url>
     <loc>https://www.sortyd.com/zh/blog/adhd-anxiety-habits/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
+    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/adhd-anxiety-habits/"/>
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/adhd-anxiety-habits/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/zh/blog/adhd-anxiety-habits/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/adhd-anxiety-habits/"/>
+  </url>
+
+  <!-- Blog Post: AI Productivity Coach (EN only) -->
+  <url>
+    <loc>https://www.sortyd.com/blog/ai-productivity-coach/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/ai-productivity-coach/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/ai-productivity-coach/"/>
+  </url>
+
+  <!-- Blog Post: Mejores Apps (ES only) -->
+  <url>
+    <loc>https://www.sortyd.com/es/blog/mejores-apps-seguimiento-habitos/</loc>
+    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/blog/mejores-apps-seguimiento-habitos/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/es/blog/mejores-apps-seguimiento-habitos/"/>
   </url>
 
   <!-- Blog Post: Goal Analysis Progress (ZH only) -->

@@ -46,7 +46,7 @@
   "@context": "https://schema.org",
   "@type": "MobileApplication",
   "name": "Sortyd",
-  "description": "AI-powered habit tracker, daily to-do list and personal coach app for iOS. Track streaks, analyse your behaviour, and get smart coaching — free.",
+  "description": "تطبيق تتبع العادات بالذكاء الاصطناعي، قائمة المهام اليومية والمدرب الشخصي لنظام iOS. تتبّع سلاسلك، حلّل سلوكك، واحصل على تدريب ذكي — مجانًا.",
   "operatingSystem": "iOS",
   "applicationCategory": "HealthApplication",
   "offers": {
@@ -63,7 +63,7 @@
   "image": "https://www.sortyd.com/og-image.png",
   "aggregateRating": {
     "@type": "AggregateRating",
-    "ratingValue": "4.8",
+    "ratingValue": "4.9",
     "reviewCount": "94",
     "bestRating": "5",
     "worstRating": "1"
@@ -77,50 +77,50 @@
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "Is Sortyd free?",
+      "name": "هل Sortyd مجاني؟",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. Sortyd is free to download on the iOS App Store. Core features including habit tracking, daily to-do lists, and streaks are free to use."
+        "text": "نعم. Sortyd متاح للتحميل مجانًا من App Store على iOS. الميزات الأساسية، بما فيها تتبع العادات وقوائم المهام اليومية والسلاسل، مجانية الاستخدام."
       }
     },
     {
       "@type": "Question",
-      "name": "How is Sortyd different from other habit tracker apps?",
+      "name": "كيف يختلف Sortyd عن تطبيقات تتبع العادات الأخرى؟",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Sortyd combines habit tracking, a smart to-do list, and AI coaching in one app. It tracks your completion patterns over 30 days, groups tasks into life pillars, grades your performance, and gives you personalised AI coaching based on your actual behaviour data — not generic tips."
+        "text": "يجمع Sortyd بين تتبع العادات، وقائمة المهام الذكية، والتدريب بالذكاء الاصطناعي في تطبيق واحد. يتتبع أنماط إنجازك على مدار 30 يومًا، ويجمّع المهام في ركائز الحياة، ويقيّم أداءك، ويقدم تدريبًا شخصيًا بالذكاء الاصطناعي بناءً على بياناتك الفعلية — وليس نصائح عامة."
       }
     },
     {
       "@type": "Question",
-      "name": "Does Sortyd have AI coaching?",
+      "name": "هل يمتلك Sortyd ميزة التدريب بالذكاء الاصطناعي؟",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. Sortyd's built-in AI coach analyses your habit completion data and provides personalised feedback and guidance. It identifies your strongest and weakest days, spots patterns, and gives actionable suggestions to improve your consistency."
+        "text": "نعم. يحلل المدرب الذكي المدمج في Sortyd بيانات إنجاز عاداتك ويقدم ملاحظات وتوجيهات شخصية. يحدد أقوى أيامك وأضعفها، ويرصد الأنماط، ويقدم اقتراحات عملية لتحسين انتظامك."
       }
     },
     {
       "@type": "Question",
-      "name": "Is Sortyd available on Android?",
+      "name": "هل Sortyd متاح على Android؟",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Sortyd is currently available on iOS (iPhone and iPad). An Android version is planned for the future."
+        "text": "Sortyd متاح حاليًا على iOS (iPhone وiPad). إصدار Android مخطط له في المستقبل."
       }
     },
     {
       "@type": "Question",
-      "name": "What is a life pillar in Sortyd?",
+      "name": "ما هي ركيزة الحياة في Sortyd؟",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Life pillars are categories that group your habits and tasks — such as Health, Work, Relationships, or Personal Growth. Sortyd uses pillars to show you which areas of your life you are consistently investing in and which are being neglected."
+        "text": "ركائز الحياة هي فئات تجمّع عاداتك ومهامك — كالصحة والعمل والعلاقات والنمو الشخصي. يستخدم Sortyd الركائز لإظهار المجالات التي تستثمر فيها باستمرار وتلك التي قد تتجاهلها."
       }
     },
     {
       "@type": "Question",
-      "name": "Can Sortyd replace my to-do list app?",
+      "name": "هل يمكن أن يحل Sortyd محل تطبيق قائمة المهام لديّ؟",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. Sortyd includes a full daily to-do list and task tracker alongside habit tracking. The key difference is that Sortyd remembers your recurring tasks and tracks how consistently you complete them over time, giving you a performance score rather than just ticking boxes."
+        "text": "نعم. يتضمن Sortyd قائمة مهام يومية كاملة وأداة تتبع المهام إلى جانب تتبع العادات. الفارق الجوهري أن Sortyd يتذكر مهامك المتكررة ويتتبع مدى انتظامك في إنجازها عبر الزمن، مما يمنحك درجة أداء بدلًا من مجرد تحديد خانات الاختيار."
       }
     }
   ]
@@ -448,6 +448,45 @@ body.theme-dark .test-card-badge.insight { background: rgba(62,207,255,.1); colo
   margin-bottom: 10px;
 }
 .num-label { font-size: .78rem; font-weight: 300; color: var(--dim); line-height: 1.5; transition: color var(--spd) ease; }
+.num-cell-rating {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(124,111,255,.10), rgba(62,207,255,.04) 58%, transparent);
+}
+.num-cell-rating::after {
+  content: '';
+  position: absolute;
+  left: -34px;
+  top: -34px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232,184,75,.22), transparent 68%);
+  pointer-events: none;
+}
+.num-rating-top { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.num-stars {
+  color: #E8B84B;
+  font-size: .76rem;
+  letter-spacing: .08em;
+  text-shadow: 0 0 20px rgba(232,184,75,.25);
+}
+.num-rating-pill {
+  display: inline-flex;
+  margin-top: 12px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(232,184,75,.26);
+  background: rgba(232,184,75,.10);
+  color: #9A6A16;
+  font-family: 'Space Mono', monospace;
+  font-size: .56rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+body.theme-dark .num-cell-rating { background: linear-gradient(135deg, rgba(124,111,255,.14), rgba(62,207,255,.06) 58%, transparent); }
+body.theme-dark .num-rating-pill { color: #E8B84B; border-color: rgba(232,184,75,.24); background: rgba(232,184,75,.09); }
 
 /* ═══ MARQUEE ═══ */
 .marquee-section {
@@ -754,6 +793,12 @@ body.theme-dark #sticky-widget { background: rgba(13,14,26,.94); border-color: r
   .how-steps { grid-template-columns: 1fr; }
   .fc-header { grid-template-columns: 1fr; }
   .fc-header-right { display: none; }
+  .num-cell { padding: 28px 20px; }
+  .num-val { font-size: 2.15rem; }
+  .num-label { font-size: .72rem; }
+  .num-rating-top { gap: 8px; }
+  .num-stars { font-size: .62rem; }
+  .num-rating-pill { font-size: .46rem; letter-spacing: .08em; padding: 5px 8px; }
   .cta-headline { font-size: clamp(3rem, 12vw, 5rem); }
   .num-grid { grid-template-columns: 1fr 1fr; }
 }
@@ -992,6 +1037,14 @@ body.theme-dark .review-card { background: rgba(255,255,255,.03); border-color: 
     <div class="num-cell reveal">
       <div class="num-val">مجاني</div>
       <div class="num-label">دائمًا. بدون رسوم خفية أو ميزات محجوبة.</div>
+    </div>
+    <div class="num-cell num-cell-rating reveal">
+      <div class="num-rating-top">
+        <div class="num-val">٤٫٩</div>
+        <div class="num-stars" aria-label="تقييم ٥ نجوم على App Store">★★★★★</div>
+      </div>
+      <div class="num-label">تقييم ٤٫٩ على App Store</div>
+      <div class="num-rating-pill">مراجعات App Store</div>
     </div>
   </div>
 </section>
