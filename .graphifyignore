@@ -1,0 +1,8 @@
+**/graphify-out/**
+graphify-out/**
+**/build/**
+**/.gradle/**
+**/.wrangler/**
+**/build_log.txt
+**/*.xcuserstate
+**/xcuserdata/**

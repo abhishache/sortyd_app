@@ -31,7 +31,7 @@ DATE: 2026-05-08
 • نظام تقييم مدمج: شاركنا رأيك من خلال نظام تقييم جديد وغير مزعج.
 • تحسين التوطين: تحسين الترجمات للمستخدمين باللغتين الإسبانية والعربية.
 • تعزيز الأداء: انتقالات أكثر سلاسة ومنطق مطور لإعادة التعيين اليومي.
-• مزامنة صحية موثوقة: دمج أسرع وأكثر دقة لبيانات HealthKit.
+• مزامنة صحية موثوقة: دمج أسرع وأكثر دقة لبيانات الصحة (HealthKit).
 
 --------------------------------------------------------------------------------
 
@@ -45,6 +45,446 @@ DATE: 2026-05-08
 • SISTEMA DE RESEÑAS COMPACTO: Comparte tus comentarios a través de nuestro nuevo aviso de reseña no intrusivo.
 • LOCALIZACIÓN MEJORADA: Traducciones optimizadas para usuarios de español y árabe.
 • MEJORA DE RENDIMIENTO: Transiciones más fluidas y lógica de reinicio diario optimizada.
-• SINCRONIZACIÓN DE SALUD CONFIABLE: Integración de datos de HealthKit más rápida y precisa.
+• SINCRONIZACIÓN DE SALUD CONFIABLE: Integración de datos de Salud (HealthKit) más rápida y precisa.
+
+================================================================================
+
+VERSION: 1.7
+DATE: 2026-05-16
+================================================================================
+
+--- 🇬🇧 ENGLISH ---
+
+[PROMOTIONAL TEXT]
+"Plan your day and week with AI lists, time blocking, habit analytics, HealthKit goals, screen-time limits, and a calmer coach for routines that stick."
+
+[KEYWORDS]
+adhd,routine,planner,timeblock,habits,streak,goals,health,coach,focus,todo,weekly,calendar,tracker
+
+[WHAT'S NEW]
+• WEEKLY PLANNER: Shape your whole week with a visual time-blocking calendar built for routines, habits, study, fitness, focus, and deep work.
+• DAILY PLANNER MODE: Your current habit flow is now clearly labeled as Daily Planner, so today’s tasks stay fast and focused.
+• TAP TO PLAN: Tap any time slot to add a planned task with a reminder and color tile.
+• LIVE NOW HIGHLIGHT: The weekly calendar now opens near the current time and highlights the live hour so you instantly know where you are.
+• BETTER TASK TILES: Planned tasks now appear as raised color tiles, making your week easier to scan.
+• CLEANER PLANNER SWITCH: Move between Daily Planner and Weekly Planner with a smoother, more visual selector.
+
+--------------------------------------------------------------------------------
+
+--- 🇸🇦 ARABIC (العربية) ---
+
+[نص ترويجي - PROMOTIONAL TEXT]
+"خطط ليومك وأسبوعك مع قوائم ذكية، حجب وقت، تحليلات عادات، أهداف الصحة (HealthKit)، حدود استخدام الهاتف، ومدرب يساعدك بهدوء."
+
+[كلمات مفتاحية - KEYWORDS]
+عادات,روتين,مخطط,مهام,أهداف,تركيز,صحة,إنجاز,تنظيم,تتبع,يومي,أسبوعي,إنتاجية,وقت,إدارة,ذكاء اصطناعي,تطوير الذات,جدول
+
+[ما الجديد - WHAT'S NEW]
+• المخطط الأسبوعي: خطط لأسبوعك بالكامل بتقويم بصري لحجب الوقت، مناسب للروتين، العادات، الدراسة، اللياقة، التركيز والعمل العميق.
+• وضع المخطط اليومي: أصبح التدفق الحالي واضحًا باسم "المخطط اليومي" حتى تبقى مهام اليوم سريعة ومركزة.
+• اضغط للتخطيط: اضغط على أي خانة وقت لإضافة مهمة مخططة مع تذكير وبطاقة ملونة.
+• إبراز الوقت الحالي: يفتح التقويم الأسبوعي قرب الوقت الحالي ويبرز الساعة المباشرة لتعرف موقعك فورًا.
+• بطاقات مهام أوضح: تظهر المهام المخططة كبطاقات ملونة بارزة ليسهل مسح الأسبوع بسرعة.
+• تبديل مخططات أنظف: تنقل بسلاسة بين المخطط اليومي والمخطط الأسبوعي من خلال محدد بصري أجمل.
+
+--------------------------------------------------------------------------------
+
+--- 🇪🇸 SPANISH (Español) ---
+
+[TEXTO PROMOCIONAL - PROMOTIONAL TEXT]
+"Planifica tu día y semana con listas con IA, bloques de tiempo, análisis de hábitos, metas de Salud (HealthKit), límites de pantalla y un coach más sereno."
+
+[PALABRAS CLAVE - KEYWORDS]
+tdah,rutina,habitos,agenda,semanal,metas,salud,enfoque,tareas,coach,productividad,calendario,rastreador,diario,bloques de tiempo,estudio,fitness,inteligencia artificial,organizador
+
+[NOVEDADES - WHAT'S NEW]
+• PLANIFICADOR SEMANAL: Diseña toda tu semana con un calendario visual de bloques de tiempo para rutinas, hábitos, estudio, fitness, enfoque y trabajo profundo.
+• MODO PLANIFICADOR DIARIO: El flujo actual queda claro como Planificador Diario, para que las tareas de hoy sigan rápidas y enfocadas.
+• TOCA PARA PLANIFICAR: Toca cualquier franja horaria para añadir una tarea planificada con recordatorio y color.
+• HORA ACTUAL RESALTADA: El calendario semanal se abre cerca de la hora actual y destaca la franja en vivo para ubicarte al instante.
+• TAREAS MÁS VISUALES: Las tareas planificadas aparecen como tarjetas de color con relieve para escanear mejor la semana.
+• CAMBIO MÁS LIMPIO: Alterna entre Planificador Diario y Planificador Semanal con un selector más fluido y visual.
+
+================================================================================
+VERSION: 1.7.1
+DATE: 2026-05-19
+================================================================================
+
+--- 🇬🇧 ENGLISH ---
+
+[PROMOTIONAL TEXT]
+"Plan better days and calmer weeks with Daily Planner, Weekly Planner, AI habit analysis, Health goals, reminders, and visual time blocks."
+
+[KEYWORDS - 100/100 CHARACTERS]
+habit,adhd,planner,routine,todo,weekly,focus,streak,goals,health,life,coach,study,selfcare,reset,gym
+
+[DESCRIPTION]
+Sortyd - AI Habit, Goal & Life Tracker
+Build real habits. Hit your goals. Upgrade your lifestyle. Completely free.
+
+Most habit trackers give you a blank list. Sortyd gives you an intelligent system built around the person you want to become.
+
+Describe any goal in plain language and Sortyd's AI Habit Builder creates a structured daily plan tailored to your lifestyle. No generic templates. No setup fatigue. Just a personalized to-do list ready in seconds. Track habits, build streaks, plan your week, and let your AI Coach study your progress to show you exactly where to improve.
+
+WHY SORTYD STANDS OUT
+
+AI HABIT & GOAL BUILDER
+Type any goal - get fit, build a morning routine, study better, learn Spanish, sleep earlier, reduce screen time - and Sortyd turns it into a practical daily checklist.
+
+DAILY PLANNER
+Your day stays simple: tap to complete tasks, monitor your live completion score, set smart reminders, and keep momentum visible.
+
+WEEKLY PLANNER
+Plan the full week with visual time blocks. Add tasks to exact time slots, choose 15, 30, or 60 minute durations, and see your week as raised, scannable tiles.
+
+PERSONALIZED AI LIFE COACH
+Sortyd analyzes your habit history and finds real patterns: weak days, skipped tasks, broken routines, and the next action that would help most.
+
+LIFESTYLE PILLARS & PROGRESS
+Habits are grouped into areas like Health, Discipline, Mindset, Learning, and Focus, each scored from 0-100 so you know where to put your energy.
+
+ANALYTICS & WEEKLY GRADES
+See 30-day trends, weekly grades, streaks, day-of-week heatmaps, and per-habit breakdowns that reveal where progress actually happens.
+
+APPLE HEALTH & HEALTHKIT SYNC
+Steps, distance, and active calories can be tracked automatically. Hit your movement goal and health tasks complete without manual logging.
+
+APPLE WATCH & INTERACTIVE WIDGETS
+Check off habits from your wrist or Home Screen. Your streak, score, and daily progress stay visible without opening the app.
+
+100% FREE. NO ACCOUNT REQUIRED.
+No subscriptions. No premium tiers. No catch. Build your first habit plan in under a minute.
+
+Sortyd - Build the life you keep promising yourself.
+
+[WHAT'S NEW]
+• WEEKLY PLANNER ARRIVES: Plan the full week with a visual time-blocking grid built for habits, study, fitness, routines, and focus work.
+• DAILY PLANNER CLARITY: The existing daily flow is now clearly named Daily Planner, so today’s tasks stay fast and simple.
+• SMART TIME BLOCKS: Tap a weekly time slot, add a task, choose 15m, 30m, or 60m, and see it as a raised visual tile.
+• LIVE TIME AWARENESS: Weekly Planner highlights the current time so you instantly know where you are in the day.
+• DEEPER LOCALIZATION: Chinese, Spanish, Arabic, and English now cover more UI, AI Coach text, reminders, and notification moments.
+• AI COACH CLEANUP: Habit statuses now stay in the selected language, including generated AI analysis.
+• RELEASE POLISH: Android received matching planner, localization, notification, and Play Store readiness improvements.
+
+--------------------------------------------------------------------------------
+
+--- 🇸🇦 ARABIC (العربية) ---
+
+[نص ترويجي - PROMOTIONAL TEXT]
+"خطط ليومك وأسبوعك بهدوء مع المخطط اليومي، المخطط الأسبوعي، تحليل عادات بالذكاء الاصطناعي، أهداف الصحة، والتذكيرات."
+
+[كلمات مفتاحية - KEYWORDS - 99/100 CHARACTERS]
+عادات,روتين,مهام,مخطط,أسبوعي,تركيز,أهداف,صحة,إنجاز,تتبع,دراسة,تنظيم,حياة,انضباط,نوم,لياقة,ذكاء,صباح
+
+[الوصف - DESCRIPTION]
+Sortyd - متتبع عادات وأهداف وحياة بالذكاء الاصطناعي
+ابنِ عادات حقيقية. حقق أهدافك. طوّر أسلوب حياتك. مجاني بالكامل.
+
+معظم تطبيقات العادات تعطيك قائمة فارغة. Sortyd يعطيك نظامًا ذكيًا مبنيًا حول الشخص الذي تريد أن تصبحه.
+
+اكتب أي هدف بلغة بسيطة وسيبني AI Habit Builder في Sortyd خطة يومية منظمة تناسب أسلوب حياتك. لا قوالب عامة ولا إعدادات مرهقة. فقط قائمة مهام شخصية جاهزة خلال ثوانٍ. تتبع عاداتك، ابنِ سلسلة إنجاز، خطط لأسبوعك، ودع مدرب الذكاء الاصطناعي يحلل تقدمك ليخبرك أين تتحسن.
+
+لماذا يبرز Sortyd؟
+
+منشئ العادات والأهداف بالذكاء الاصطناعي
+اكتب أي هدف: اللياقة، روتين صباحي، دراسة أفضل، تعلم لغة، نوم أبكر، أو تقليل استخدام الهاتف. يحوله Sortyd إلى قائمة يومية عملية.
+
+المخطط اليومي
+يبقى يومك بسيطًا: اضغط لإنهاء المهام، راقب نسبة إنجازك المباشرة، فعّل التذكيرات الذكية، واجعل الزخم واضحًا دائمًا.
+
+المخطط الأسبوعي
+خطط للأسبوع كاملًا بكتل وقت مرئية. أضف المهام في أوقات محددة، اختر 15 أو 30 أو 60 دقيقة، وشاهد أسبوعك كبطاقات واضحة وسهلة القراءة.
+
+مدرب حياة ذكي وشخصي
+يحلل Sortyd تاريخ عاداتك ليجد الأنماط الحقيقية: الأيام الضعيفة، المهام المتروكة، الروتين المكسور، والخطوة التالية الأكثر فائدة.
+
+ركائز نمط الحياة والتقدم
+تُجمع العادات في مجالات مثل الصحة، الانضباط، العقلية، التعلم، والتركيز، مع درجة من 0 إلى 100 لتعرف أين تضع طاقتك.
+
+تحليلات ودرجات أسبوعية
+شاهد اتجاهات 30 يومًا، درجات أسبوعية، سلاسل إنجاز، خرائط أيام الأسبوع، وتفاصيل كل عادة لتعرف أين يحدث التقدم فعلًا.
+
+مزامنة Apple Health وHealthKit
+يمكن تتبع الخطوات والمسافة والسعرات النشطة تلقائيًا. عند تحقيق هدف الحركة، تكتمل مهام الصحة دون تسجيل يدوي.
+
+Apple Watch والودجات التفاعلية
+أنهِ عاداتك من ساعتك أو الشاشة الرئيسية. تبقى السلسلة والدرجة والتقدم اليومي أمامك دون فتح التطبيق.
+
+مجاني 100٪. لا يحتاج إلى حساب.
+لا اشتراكات. لا خطط مدفوعة. لا مفاجآت. ابنِ أول خطة عادات خلال أقل من دقيقة.
+
+Sortyd - ابنِ الحياة التي تَعِد نفسك بها دائمًا.
+
+[ما الجديد - WHAT'S NEW]
+• المخطط الأسبوعي وصل: خطط للأسبوع كاملًا بشبكة مرئية لحجب الوقت، مناسبة للعادات، الدراسة، اللياقة، الروتين، والتركيز.
+• وضوح المخطط اليومي: أصبح التدفق الحالي باسم المخطط اليومي حتى تبقى مهام اليوم سريعة وواضحة.
+• كتل وقت ذكية: اضغط على أي خانة في الأسبوع، أضف مهمة، واختر 15 أو 30 أو 60 دقيقة لتظهر كبطاقة بارزة.
+• معرفة الوقت الحالي: يبرز المخطط الأسبوعي الوقت الحالي لتعرف موقعك في اليوم فورًا.
+• توطين أعمق: الصينية والإسبانية والعربية والإنجليزية تغطي الآن المزيد من الواجهة، نصوص مدرب الذكاء الاصطناعي، التذكيرات، والإشعارات.
+• تحسين مدرب الذكاء الاصطناعي: حالات العادات تبقى الآن باللغة المختارة حتى داخل التحليل الناتج عن الذكاء الاصطناعي.
+• صقل الإصدار: حصل Android على المخطط نفسه، وتحسينات التوطين، والإشعارات، وجاهزية Play Store.
+
+--------------------------------------------------------------------------------
+
+--- 🇪🇸 SPANISH (Español) ---
+
+[TEXTO PROMOCIONAL - PROMOTIONAL TEXT]
+"Planifica días mejores y semanas más claras con plan diario, plan semanal, IA de hábitos, metas de salud, recordatorios y bloques visuales."
+
+[PALABRAS CLAVE - KEYWORDS - 98/100 CHARACTERS]
+habitos,tdah,rutina,agenda,tareas,semanal,foco,metas,salud,coach,estudio,vida,disciplina,orden,gym
+
+[DESCRIPCIÓN - DESCRIPTION]
+Sortyd - Rastreador de hábitos, metas y vida con IA
+Crea hábitos reales. Cumple tus metas. Mejora tu estilo de vida. Gratis por completo.
+
+La mayoría de apps de hábitos te dan una lista en blanco. Sortyd te da un sistema inteligente creado alrededor de la persona en la que quieres convertirte.
+
+Describe cualquier objetivo en lenguaje simple y el AI Habit Builder de Sortyd crea al instante un plan diario estructurado y adaptado a tu estilo de vida. Sin plantillas genéricas. Sin configuración pesada. Solo una lista de tareas personalizada lista en segundos. Sigue tus hábitos, aumenta tu racha, planifica tu semana y deja que tu Coach IA analice tu progreso para decirte exactamente cómo mejorar.
+
+POR QUÉ SORTYD DESTACA
+
+Creador de hábitos y metas con IA
+Escribe cualquier meta: ponerte en forma, crear una rutina de mañana, estudiar mejor, aprender español, dormir antes o reducir el tiempo de pantalla. Sortyd la convierte en una checklist diaria práctica.
+
+Planificador diario
+Tu día se mantiene simple: toca para completar tareas, mira tu puntuación en vivo, activa recordatorios inteligentes y mantén el impulso siempre visible.
+
+Planificador semanal
+Organiza toda la semana con bloques de tiempo visuales. Añade tareas a horas exactas, elige duraciones de 15, 30 o 60 minutos y mira tu semana como tarjetas claras y fáciles de revisar.
+
+Coach de vida personalizado con IA
+Sortyd analiza tu historial de hábitos y encuentra patrones reales: días débiles, tareas saltadas, rutinas rotas y la próxima acción que más te puede ayudar.
+
+Pilares de estilo de vida y progreso
+Tus hábitos se agrupan en áreas como Salud, Disciplina, Mentalidad, Aprendizaje y Enfoque, cada una con una puntuación de 0 a 100.
+
+Analíticas y notas semanales
+Consulta tendencias de 30 días, notas semanales, rachas, mapas por día de la semana y desglose por hábito para entender dónde ocurre el progreso.
+
+Apple Health y HealthKit
+Pasos, distancia y calorías activas pueden registrarse automáticamente. Cumple tu objetivo de movimiento y las tareas de salud se completan solas.
+
+Apple Watch y widgets interactivos
+Marca hábitos desde tu muñeca o desde la pantalla de inicio. Tu racha, puntuación y progreso diario están visibles sin abrir la app.
+
+100% GRATIS. SIN CUENTA.
+Sin suscripciones. Sin planes premium. Sin truco. Crea tu primer plan de hábitos en menos de un minuto.
+
+Sortyd - Construye la vida que sigues prometiéndote.
+
+[NOVEDADES - WHAT'S NEW]
+• LLEGA EL PLANIFICADOR SEMANAL: Organiza toda la semana con una cuadrícula visual de bloques de tiempo para hábitos, estudio, fitness, rutinas y enfoque.
+• MÁS CLARIDAD DIARIA: El flujo actual ahora se llama Planificador Diario, para que las tareas de hoy sigan rápidas y simples.
+• BLOQUES INTELIGENTES: Toca una hora, añade una tarea, elige 15, 30 o 60 minutos y mírala como una tarjeta visual con relieve.
+• HORA ACTUAL DESTACADA: El planificador semanal resalta la hora actual para ubicarte al instante.
+• LOCALIZACIÓN MÁS PROFUNDA: Chino, español, árabe e inglés cubren más interfaz, texto del Coach IA, recordatorios y notificaciones.
+• COACH IA MEJORADO: Los estados de hábitos permanecen en el idioma elegido, incluso en el análisis generado por IA.
+• PULIDO DE LANZAMIENTO: Android recibió el mismo planificador, mejoras de localización, notificaciones y preparación para Play Store.
+
+--------------------------------------------------------------------------------
+
+--- 🇨🇳 CHINESE SIMPLIFIED (简体中文) ---
+
+[推广文本 - PROMOTIONAL TEXT]
+"用每日计划、每周计划、AI 习惯分析、健康目标、提醒和可视化时间块，规划更清晰的一天和一周。"
+
+[关键词 - KEYWORDS - 98/100 CHARACTERS]
+习惯,计划,日程,待办,任务,每周,专注,目标,健康,打卡,自律,学习,时间管理,生活,AI教练,番茄钟,晨间,健身,睡眠,复盘,成长,效率,减肥,阅读,冥想,清单,坚持,运动,早起,备考,专注力
+
+[描述 - DESCRIPTION]
+Sortyd - AI 习惯、目标与生活追踪器
+养成真正的习惯。实现你的目标。升级你的生活方式。完全免费。
+
+大多数习惯 App 只给你一张空白清单。Sortyd 给你的是一个围绕“你想成为谁”构建的智能系统。
+
+用简单语言描述任何目标，Sortyd 的 AI 习惯构建器会立即生成适合你生活方式的每日计划。没有通用模板，没有复杂设置，只有几秒钟内就能开始执行的个性化待办清单。追踪习惯，积累连续打卡，规划一整周，并让 AI 教练分析你的进度，告诉你下一步该如何改进。
+
+为什么 Sortyd 更适合习惯追踪？
+
+AI 习惯与目标构建器
+输入任何目标：健身、晨间 routine、提高学习效率、学习语言、早睡、减少屏幕时间。Sortyd 会把它变成可执行的每日清单。
+
+每日计划
+你的一天保持简单：轻点完成任务，查看实时完成分数，设置智能提醒，让动力始终可见。
+
+每周计划
+用可视化时间块安排整周。把任务添加到具体时间段，选择 15、30 或 60 分钟，并用清晰的立体任务卡查看一周安排。
+
+个性化 AI 生活教练
+Sortyd 会分析你的习惯历史，找出真实模式：薄弱日期、跳过的任务、中断的 routine，以及最值得执行的下一步。
+
+生活支柱与进度
+习惯会归类到健康、自律、心态、学习、专注等领域，并以 0-100 分显示，让你知道应该把精力放在哪里。
+
+分析与每周评分
+查看 30 天趋势、每周评分、连续打卡、星期热力图和单个习惯拆解，清楚看到进步发生在哪里。
+
+Apple Health 与 HealthKit 同步
+步数、距离和活动卡路里可自动追踪。达到运动目标后，健康任务会自动完成，无需手动记录。
+
+Apple Watch 与互动小组件
+在手表或主屏幕上直接完成习惯。无需打开 App，也能看到连续记录、分数和今日进度。
+
+100% 免费。无需账号。
+没有订阅，没有高级会员，没有套路。不到一分钟，就能建立你的第一个习惯计划。
+
+Sortyd - 建立那个你一直承诺要拥有的生活。
+
+[更新内容 - WHAT'S NEW]
+• 每周计划上线：用可视化时间块安排整周，适合习惯、学习、健身、日常节奏和专注工作。
+• 每日计划更清晰：原有今日任务流程现在明确命名为每日计划，让当天任务保持快速、简单。
+• 智能时间块：点击每周时间段，添加任务，选择 15、30 或 60 分钟，并以立体任务卡显示。
+• 当前时间高亮：每周计划会突出当前时间，让你一眼知道自己在当天的位置。
+• 更深入本地化：中文、西班牙语、阿拉伯语和英语现在覆盖更多界面、AI 教练文本、提醒和通知内容。
+• AI 教练优化：习惯状态会始终使用你选择的语言，包括 AI 生成的分析结果。
+• 发布前打磨：Android 已同步每周计划、本地化、通知和 Play Store 上架准备优化。
+
+================================================================================
+VERSION: 1.7.3
+BUILD: 1
+DATE: 2026-06-07
+================================================================================
+
+--- 🇬🇧 ENGLISH ---
+
+[PROMOTIONAL TEXT]
+"Faster launch, more reliable AI coach, cleaner multilingual UI, and habit-only summaries that stay focused on your real Lists progress."
+
+[WHAT'S NEW]
+• GPT-POWERED AI: Sortyd now uses the newer GPT-OSS AI path for list generation, task parsing, and habit coaching.
+• COACH IS BACK: Fixed an issue where AI Coach could load as a blank screen when the previous model path stopped responding.
+• CLEANER AI SUMMARIES: 11 PM summaries, recap cards, and reminder nudges now talk only about performance inside your real habit Lists.
+• PLANNER EXCLUDED: Weekly Planner and TO DO are no longer mixed into coaching summaries, recaps, or reminder-style analysis.
+• WEEKLY PLANNER BUG FIX: Removed the broken legacy Weekly Planner entry inside Lists so it no longer sends you back to the first-launch flow.
+• TO DO IMPROVEMENTS: The TO DO area now has corrected labels, better spacing, and direct task editing from the row.
+• FASTER APP LAUNCH: Removed artificial startup delays so Sortyd gets past the launch screen faster.
+• BETTER LOCALIZATION: Fixed language leaks across the app so Coach, Lists, Analytics, and supporting UI follow your selected language more consistently.
+• VERSION DISPLAY FIX: Coach info now shows the real app version instead of outdated static text.
+
+--------------------------------------------------------------------------------
+
+--- 🇸🇦 ARABIC (العربية) ---
+
+[نص ترويجي - PROMOTIONAL TEXT]
+"تشغيل أسرع، ومدرب ذكاء اصطناعي أكثر موثوقية، وواجهة متعددة اللغات أنظف، وملخصات تركّز فقط على تقدمك الحقيقي داخل القوائم."
+
+[ما الجديد - WHAT'S NEW]
+• ذكاء اصطناعي مدعوم بـ GPT: يستخدم Sortyd الآن مسار GPT-OSS الأحدث لإنشاء القوائم، فهم المهام، وتحليل العادات.
+• عودة المدرب الذكي: تم إصلاح مشكلة كانت قد تجعل شاشة AI Coach تظهر فارغة عندما يتوقف المسار السابق عن الاستجابة.
+• ملخصات أنظف: ملخص 11 مساءً، وبطاقات المراجعة، والتنبيهات الدورية تتحدث الآن فقط عن الأداء داخل قوائم العادات الحقيقية.
+• استبعاد المخطط: لم يعد المخطط الأسبوعي ولا TO DO يدخلان في ملخصات المدرب أو المراجعات أو التحليلات التذكيرية.
+• إصلاح خطأ المخطط الأسبوعي: تمت إزالة إدخال Weekly Planner القديم والمعطّل داخل القوائم حتى لا يعيدك إلى شاشة البداية الأولى.
+• تحسينات TO DO: تم تصحيح التسميات، وتحسين المسافات، وإضافة تعديل مباشر للمهام من داخل الصف.
+• تشغيل أسرع للتطبيق: أزلنا التأخيرات الاصطناعية عند البدء حتى يتجاوز Sortyd شاشة الإطلاق بشكل أسرع.
+• توطين أفضل: تم إصلاح ظهور نصوص بلغات غير مختارة في أنحاء التطبيق، ليحترم Coach والقوائم والتحليلات اللغة المختارة بشكل أفضل.
+• إصلاح عرض الإصدار: تعرض صفحة المدرب الآن إصدار التطبيق الحقيقي بدل النص القديم الثابت.
+
+--------------------------------------------------------------------------------
+
+--- 🇪🇸 SPANISH (Español) ---
+
+[TEXTO PROMOCIONAL - PROMOTIONAL TEXT]
+"Inicio más rápido, coach con IA más fiable, interfaz multilingüe más limpia y resúmenes centrados solo en tu progreso real dentro de tus listas."
+
+[NOVEDADES - WHAT'S NEW]
+• IA POTENCIADA POR GPT: Sortyd ahora usa la ruta GPT-OSS más reciente para crear listas, interpretar tareas y analizar hábitos.
+• EL COACH VOLVIÓ: Se corrigió un fallo que podía dejar AI Coach en blanco cuando la ruta anterior dejaba de responder.
+• RESÚMENES MÁS LIMPIOS: El resumen de las 11 PM, las tarjetas de recap y los recordatorios ahora hablan solo del rendimiento dentro de tus listas reales de hábitos.
+• SIN MEZCLAR EL PLANIFICADOR: El Plan Semanal y TO DO ya no entran en los resúmenes del coach, recaps ni avisos de seguimiento.
+• CORRECCIÓN DEL PLANIFICADOR SEMANAL: Se eliminó la entrada heredada y rota de Weekly Planner dentro de Lists para que no te devuelva a la pantalla inicial.
+• MEJORAS EN TO DO: Se corrigieron las etiquetas, se ajustó el espaciado y ahora puedes editar tareas directamente desde la fila.
+• INICIO MÁS RÁPIDO: Eliminamos retrasos artificiales al arrancar para que Sortyd salga antes de la pantalla de lanzamiento.
+• MEJOR LOCALIZACIÓN: Corregimos textos que se colaban en inglés u otros idiomas para que Coach, Lists y Analytics sigan mejor el idioma elegido.
+• VERSIÓN CORRECTA EN COACH: La pantalla informativa del coach ahora muestra la versión real de la app en lugar de texto antiguo.
+
+--------------------------------------------------------------------------------
+
+--- 🇨🇳 CHINESE SIMPLIFIED (简体中文) ---
+
+[推广文本 - PROMOTIONAL TEXT]
+"启动更快，AI 教练更稳定，多语言界面更干净，摘要也只聚焦你在真实习惯列表中的进展。"
+
+[更新内容 - WHAT'S NEW]
+• GPT 驱动的 AI：Sortyd 现在使用更新后的 GPT-OSS 路径来生成列表、解析任务并分析习惯。
+• AI 教练恢复正常：修复了旧路径失效后，AI Coach 页面可能出现空白的问题。
+• 摘要更干净：晚上 11 点摘要、回顾卡片和周期提醒现在只讨论你在真实习惯列表中的表现。
+• 不再混入计划内容：每周计划和 TO DO 不再参与教练摘要、每日回顾或提醒式分析。
+• 修复每周计划旧入口问题：移除了 Lists 中那个有问题的旧 Weekly Planner 入口，不会再把你带回首次启动界面。
+• TO DO 体验改进：修正了标签文字，调整了间距，并支持直接从任务行编辑任务。
+• 启动更快：移除了人为启动延迟，让 Sortyd 更快离开启动页。
+• 本地化更完善：修复了部分界面仍显示英文或其他语言的情况，让 Coach、Lists 和 Analytics 更一致地遵循所选语言。
+• 版本显示修复：Coach 信息页现在显示真实应用版本，不再显示过时的静态文字。
+
+================================================================================
+VERSION: 1.7.2
+DATE: 2026-05-22
+================================================================================
+
+--- 🇬🇧 ENGLISH ---
+
+[PROMOTIONAL TEXT]
+"New: Weekly Plan with North Star goals, Recovery Rail to rescue dormant habits, and smart evening summaries — all free."
+
+[WHAT'S NEW]
+• WEEKLY PLAN: Set a North Star goal, weekly theme, daily focus per day, must-do tasks, anti-goals, and a recovery day to design your whole week with intention.
+• RECOVERY RAIL: Analytics now surfaces every task you haven't touched in days, ranked by urgency with a color spectrum from yellow to deep red so nothing falls through the cracks.
+• TASK DNA: A new analytics layer breaks down your habits by pattern, showing where consistency lives and where it doesn't.
+• COLD TASK NUDGE: If a habit quietly goes dark, Sortyd sends one gentle nudge every few days — no spam, just a timely reminder to re-engage.
+• SMART EVENING SUMMARY: A data-driven 11 PM notification shows today's wins, what slipped, and what to improve — personalized to your actual history.
+• TO-DO REDESIGN: The To-Do list gets a Stress-Free Zone identity with a new orbital donut visual and cleaner task flow.
+• FRESH APP ICON: New icon, same mission.
+• FIRST-LIST TOUR: New users get a guided discovery overlay the first time they land on the lists screen.
+
+--------------------------------------------------------------------------------
+
+--- 🇸🇦 ARABIC (العربية) ---
+
+[نص ترويجي - PROMOTIONAL TEXT]
+"جديد: خطة أسبوعية بهدف رئيسي، مسار الاسترداد لإنقاذ العادات المتوقفة، وملخص مسائي ذكي — كل ذلك مجانًا."
+
+[ما الجديد - WHAT'S NEW]
+• الخطة الأسبوعية: حدد هدفك الأساسي، وموضوع الأسبوع، وتركيز كل يوم، والمهام الحتمية، والأهداف المضادة، ويوم التعافي — لتصميم أسبوعك بوعي كامل.
+• مسار الاسترداد: تكشف التحليلات الآن كل مهمة لم تلمسها منذ أيام، مرتبة حسب الإلحاحية بمقياس لوني من الأصفر إلى الأحمر الغامق حتى لا يفوتك شيء.
+• الحمض النووي للمهام: طبقة تحليلية جديدة تفكك عاداتك حسب النمط وتكشف أين يعيش الاتساق وأين يختفي.
+• تنبيه المهمة الباردة: إذا توقفت عادة بهدوء، يرسل Sortyd تنبيهًا لطيفًا كل بضعة أيام — بلا إزعاج، فقط تذكير في الوقت المناسب.
+• الملخص المسائي الذكي: إشعار الساعة 11 مساءً يعرض إنجازات اليوم وما فاتك وما يمكن تحسينه — مخصص بناءً على تاريخك الفعلي.
+• إعادة تصميم قائمة المهام: تحصل قائمة المهام على هوية "منطقة بلا توتر" مع مرئي حلقي دائري جديد وتدفق مهام أكثر سلاسة.
+• أيقونة تطبيق جديدة: أيقونة جديدة، نفس الرسالة.
+• جولة القائمة الأولى: يحصل المستخدمون الجدد على نافذة اكتشاف إرشادية في أول مرة يصلون فيها إلى شاشة القوائم.
+
+--------------------------------------------------------------------------------
+
+--- 🇪🇸 SPANISH (Español) ---
+
+[TEXTO PROMOCIONAL - PROMOTIONAL TEXT]
+"Nuevo: Plan semanal con objetivo estrella, Carril de recuperación para hábitos dormidos, y resumen vespertino inteligente — todo gratis."
+
+[NOVEDADES - WHAT'S NEW]
+• PLAN SEMANAL: Define tu objetivo estrella, tema semanal, enfoque diario por día, tareas imprescindibles, antiobjetivos y un día de recuperación para diseñar tu semana con intención.
+• CARRIL DE RECUPERACIÓN: Los análisis ahora muestran cada tarea que no has tocado en días, ordenadas por urgencia con un espectro de color de amarillo a rojo intenso para que nada se pierda.
+• ADN DE TAREAS: Una nueva capa analítica desglosa tus hábitos por patrón, mostrando dónde vive la constancia y dónde no.
+• AVISO DE TAREA FRÍA: Si un hábito se apaga en silencio, Sortyd envía un recordatorio amable cada pocos días — sin spam, solo un toque en el momento justo.
+• RESUMEN VESPERTINO INTELIGENTE: Una notificación a las 11 PM muestra los logros del día, lo que se escapó y qué mejorar — personalizada con tu historial real.
+• REDISEÑO DE LISTA DE TAREAS: La lista de tareas estrena identidad de "Zona sin estrés" con un nuevo visual de dona orbital y flujo más limpio.
+• NUEVO ÍCONO DE APP: Icono renovado, misma misión.
+• TOUR DE PRIMERA LISTA: Los nuevos usuarios reciben una guía de descubrimiento la primera vez que llegan a la pantalla de listas.
+
+--------------------------------------------------------------------------------
+
+--- 🇨🇳 CHINESE SIMPLIFIED (简体中文) ---
+
+[推广文本 - PROMOTIONAL TEXT]
+"全新：带有北极星目标的每周计划、唤醒沉睡习惯的恢复轨道，以及智能晚间总结 — 完全免费。"
+
+[更新内容 - WHAT'S NEW]
+• 每周计划：设定北极星目标、每周主题、每天专注方向、必做任务、反目标和恢复日，有意识地规划整周节奏。
+• 恢复轨道：分析页现在会显示所有你多天未触碰的任务，按紧迫度排序，从黄色到深红色的色谱标注，让任何习惯都不会悄悄滑落。
+• 任务 DNA：全新分析层按模式拆解你的习惯，清晰呈现哪里有坚持、哪里在断裂。
+• 冷任务提醒：如果某个习惯悄悄沉寂，Sortyd 每隔几天发送一次温和提醒 — 不打扰，只在合适的时机轻触一下。
+• 智能晚间总结：11 PM 数据驱动通知，展示今日成果、遗漏项以及改进方向 — 基于你的真实习惯历史个性化呈现。
+• 待办事项重设计：待办列表焕新为"无压区"形象，搭配全新轨道甜甜圈视觉和更简洁的任务流。
+• 全新 App 图标：新图标，同样的使命。
+• 首个列表导览：新用户首次进入列表页面时将看到引导式发现浮层。
 
 ================================================================================

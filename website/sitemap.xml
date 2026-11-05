@@ -1,237 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
-
-  <!-- Home Pages -->
-  <url>
-    <loc>https://www.sortyd.com/</loc>
-    <lastmod>2026-05-29</lastmod><changefreq>weekly</changefreq><priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/"/>
-  </url>
-  <url>
-    <loc>https://www.sortyd.com/es/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>weekly</changefreq><priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/"/>
-  </url>
-  <url>
-    <loc>https://www.sortyd.com/ar/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>weekly</changefreq><priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/"/>
-  </url>
-  <url>
-    <loc>https://www.sortyd.com/zh/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>weekly</changefreq><priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/"/>
-  </url>
-
-  <!-- Support Pages -->
-  <url>
-    <loc>https://www.sortyd.com/support/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/support/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/support/"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/support/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/support/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/support/"/>
-  </url>
-  <url>
-    <loc>https://www.sortyd.com/es/support/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/support/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/support/"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/support/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/support/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/support/"/>
-  </url>
-  <url>
-    <loc>https://www.sortyd.com/ar/support/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/support/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/support/"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/support/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/support/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/support/"/>
-  </url>
-  <url>
-    <loc>https://www.sortyd.com/zh/support/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/support/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/support/"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/support/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/support/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/support/"/>
-  </url>
-
-  <!-- Privacy Pages -->
-  <url>
-    <loc>https://www.sortyd.com/privacy/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>yearly</changefreq><priority>0.5</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/privacy/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/privacy/"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/privacy/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/privacy/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/privacy/"/>
-  </url>
-  <url>
-    <loc>https://www.sortyd.com/es/privacy/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>yearly</changefreq><priority>0.4</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/privacy/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/privacy/"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/privacy/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/privacy/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/privacy/"/>
-  </url>
-  <url>
-    <loc>https://www.sortyd.com/ar/privacy/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>yearly</changefreq><priority>0.4</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/privacy/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/privacy/"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/privacy/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/privacy/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/privacy/"/>
-  </url>
-  <url>
-    <loc>https://www.sortyd.com/zh/privacy/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>yearly</changefreq><priority>0.4</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/privacy/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/privacy/"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/privacy/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/privacy/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/privacy/"/>
-  </url>
-
-  <!-- Blog Index Pages -->
-  <url>
-    <loc>https://www.sortyd.com/blog/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>weekly</changefreq><priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/blog/"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/blog/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/"/>
-  </url>
-  <url>
-    <loc>https://www.sortyd.com/es/blog/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>weekly</changefreq><priority>0.6</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/blog/"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/blog/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/"/>
-  </url>
-  <url>
-    <loc>https://www.sortyd.com/ar/blog/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>weekly</changefreq><priority>0.6</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/blog/"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/blog/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/"/>
-  </url>
-  <url>
-    <loc>https://www.sortyd.com/zh/blog/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>weekly</changefreq><priority>0.6</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/blog/"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/blog/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/"/>
-  </url>
-
-  <!-- Blog Post: Smart To-Do List (EN, ES) -->
-  <url>
-    <loc>https://www.sortyd.com/blog/smart-todo-list-daily-reset/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/smart-todo-list-daily-reset/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/blog/smart-todo-list-daily-reset/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/smart-todo-list-daily-reset/"/>
-  </url>
-  <url>
-    <loc>https://www.sortyd.com/es/blog/smart-todo-list-daily-reset/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/smart-todo-list-daily-reset/"/>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/blog/smart-todo-list-daily-reset/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/smart-todo-list-daily-reset/"/>
-  </url>
-
-  <!-- Blog Post: How to Build Habits That Stick (EN, ZH) -->
-  <url>
-    <loc>https://www.sortyd.com/blog/how-to-build-habits-that-stick/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/how-to-build-habits-that-stick/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/how-to-build-habits-that-stick/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/how-to-build-habits-that-stick/"/>
-  </url>
-  <url>
-    <loc>https://www.sortyd.com/zh/blog/how-to-build-habits-that-stick/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/how-to-build-habits-that-stick/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/how-to-build-habits-that-stick/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/how-to-build-habits-that-stick/"/>
-  </url>
-
-  <!-- Blog Post: AI Coaching for Productivity (EN only) -->
-  <url>
-    <loc>https://www.sortyd.com/blog/ai-coaching-for-productivity/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/ai-coaching-for-productivity/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/ai-coaching-for-productivity/"/>
-  </url>
-
-  <!-- Blog Post: ADHD and Anxiety Habits (EN, ZH) -->
-  <url>
-    <loc>https://www.sortyd.com/blog/adhd-anxiety-habits/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/adhd-anxiety-habits/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/adhd-anxiety-habits/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/adhd-anxiety-habits/"/>
-  </url>
-  <url>
-    <loc>https://www.sortyd.com/zh/blog/adhd-anxiety-habits/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/adhd-anxiety-habits/"/>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/adhd-anxiety-habits/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/adhd-anxiety-habits/"/>
-  </url>
-
-  <!-- Blog Post: AI Productivity Coach (EN only) -->
-  <url>
-    <loc>https://www.sortyd.com/blog/ai-productivity-coach/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.sortyd.com/blog/ai-productivity-coach/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/blog/ai-productivity-coach/"/>
-  </url>
-
-  <!-- Blog Post: Mejores Apps (ES only) -->
-  <url>
-    <loc>https://www.sortyd.com/es/blog/mejores-apps-seguimiento-habitos/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/blog/mejores-apps-seguimiento-habitos/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/es/blog/mejores-apps-seguimiento-habitos/"/>
-  </url>
-
-  <!-- Blog Post: Goal Analysis Progress (ZH only) -->
-  <url>
-    <loc>https://www.sortyd.com/zh/blog/goal-analysis-progress/</loc>
-    <lastmod>2026-05-19</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/blog/goal-analysis-progress/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/zh/blog/goal-analysis-progress/"/>
-  </url>
-
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://www.sortyd.com/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://www.sortyd.com/features/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sortyd.com/download/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sortyd.com/glossary/</loc><lastmod>2026-06-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.sortyd.com/compare/best-free-habit-tracker-apps/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sortyd.com/compare/sortyd-vs-habitica/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sortyd.com/compare/sortyd-vs-productive/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sortyd.com/compare/sortyd-vs-loop-habit-tracker/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sortyd.com/compare/sortyd-vs-habit-coach-ai/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sortyd.com/for/morning-routine/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sortyd.com/for/fitness-habits/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sortyd.com/for/mental-health/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sortyd.com/for/students/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sortyd.com/for/productivity/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sortyd.com/blog/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sortyd.com/privacy/</loc><lastmod>2026-06-09</lastmod><changefreq>monthly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://www.sortyd.com/support/</loc><lastmod>2026-06-09</lastmod><changefreq>monthly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://www.sortyd.com/ar</loc><lastmod>2026-06-09</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.sortyd.com/es</loc><lastmod>2026-06-09</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.sortyd.com/zh</loc><lastmod>2026-06-09</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.sortyd.com/features/ai-habit-coach/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.sortyd.com/features/habit-tracker/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sortyd.com/features/to-do-list/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sortyd.com/features/weekly-planner/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sortyd.com/features/life-pillars/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sortyd.com/features/streak-tracker/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sortyd.com/features/apple-watch/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sortyd.com/features/behavioural-analytics/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sortyd.com/features/smart-reminders/</loc><lastmod>2026-06-09</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.sortyd.com/blog/how-to-build-a-morning-routine/</loc><lastmod>2026-06-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.sortyd.com/blog/habit-stacking-guide/</loc><lastmod>2026-06-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.sortyd.com/blog/how-long-does-it-take-to-build-a-habit/</loc><lastmod>2026-06-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.sortyd.com/blog/best-habits-for-productivity/</loc><lastmod>2026-06-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.sortyd.com/blog/how-to-track-habits-on-iphone/</loc><lastmod>2026-06-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.sortyd.com/blog/ai-vs-traditional-habit-trackers/</loc><lastmod>2026-06-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.sortyd.com/blog/why-habit-streaks-work/</loc><lastmod>2026-06-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.sortyd.com/blog/life-pillars-explained/</loc><lastmod>2026-06-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.sortyd.com/blog/habit-tracker-for-adhd/</loc><lastmod>2026-06-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.sortyd.com/blog/how-to-use-apple-watch-for-habits/</loc><lastmod>2026-06-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
 </urlset>

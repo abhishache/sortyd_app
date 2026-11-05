@@ -1,0 +1,27 @@
+import { readFile } from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const source = await readFile(new URL('../cloudflare/sortyd-proxy/worker.js', import.meta.url), 'utf8');
+const worker = (await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`)).default;
+let answer, calls = 0, args;
+const env = { AI_RATE_LIMITER: { limit: async () => ({ success: true }) }, AI: { run: async (model, input) => { calls++; args = input; return { response: answer }; } } };
+async function send(body) { return worker.fetch(new Request('https://example.com/api/ai', { method: 'POST', body: JSON.stringify(body) }), env); }
+assert.equal((await send(null)).status, 400);
+assert.equal((await send({ messages: [null] })).status, 400);
+assert.equal(calls, 0);
+answer = { results: [{ listId: 'list-1', headline: 'Progress', summary: 'Summary', highlight: 'Reading', nudge: 'Plan', grade: 'B', gradeReason: 'Data' }] };
+let response = await send({ messages: [{ role: 'user', content: 'Return a JSON array with "gradeReason"' }] });
+assert.equal(response.status, 200);
+assert.deepEqual(JSON.parse((await response.json()).choices[0].message.content), answer.results);
+assert.equal(args.response_format.type, 'json_schema');
+answer = { results: [{ listId: 'list-1', headline: 'Missing other fields' }] };
+assert.equal((await send({ messages: [{ role: 'user', content: 'Return a JSON array with "gradeReason"' }] })).status, 502);
+answer = { emoji: '📚', listName: 'Read', tasks: ['Read', 'Study', 'Reflect', 'Plan'] };
+response = await send({ messages: [{ role: 'user', content: 'Return "listName" and tasks' }], max_tokens: -5 });
+assert.equal(response.status, 200);
+assert.deepEqual(JSON.parse((await response.json()).choices[0].message.content), answer);
+assert.equal(args.max_tokens, 1);
+answer.tasks = ['Too few'];
+assert.equal((await send({ messages: [{ role: 'user', content: 'Return "listName" and tasks' }] })).status, 502);
+env.AI_RATE_LIMITER.limit = async () => ({ success: false });
+assert.equal((await send({})).status, 429);
+console.log('AI Worker contract, validation, compatibility and rate limit tests passed');

@@ -8,16 +8,20 @@ import FirebaseAnalytics
 struct HomeView: View {
     @EnvironmentObject var vm: AppViewModel
     @EnvironmentObject var themeManager: ThemeManager
+    
+    @State private var showWeeklyPlanner = false
+    
     @StateObject private var hk = HealthKitManager.shared
     @State private var showSwitcher = false
     @State private var showAddTodoTask = false
     @State private var showTodoEdit = false
+    @State private var editingTodoTask: SortydTask? = nil
 
     private var list: TaskList? { vm.activeList }
     private var isTodoActive: Bool { list?.isTodo == true }
     /// True when the user has at least one non-todo, non-archived list
     private var hasRealLists: Bool {
-        vm.lists.contains(where: { !$0.isTodo && !$0.isArchived })
+        vm.lists.contains(where: { !$0.isTodo && !$0.isArchived && !$0.isWeekly })
     }
 
     /// Live health-aware completion % for the active list
@@ -33,29 +37,51 @@ struct HomeView: View {
             ZStack(alignment: .bottom) {
                 Theme.bg0.ignoresSafeArea()
 
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 0) {
-                        headerSection
-                            .padding(.horizontal, Theme.s16)
-                            .padding(.top, 1)
-                            .padding(.bottom, 0)
+                VStack(spacing: 0) {
+                    headerSection
+                        .padding(.horizontal, Theme.s16)
+                        .padding(.top, 0)
+                        .padding(.bottom, 8)
 
+                    if !showWeeklyPlanner {
+                        ScrollView(showsIndicators: false) {
+                            VStack(spacing: 0) {
+                                if !isTodoActive {
+                                    heroSection
+                                        .padding(.horizontal, Theme.s16)
+                                        .padding(.bottom, 10)
 
-                        heroSection
-                            .padding(.horizontal, Theme.s16)
-                            .padding(.bottom, 10)
+                                    heatmapSection
+                                        .padding(.horizontal, Theme.s16)
+                                        .padding(.bottom, 10)
+                                } else {
+                                    todoHeaderSection
+                                        .padding(.horizontal, Theme.s16)
+                                        .padding(.top, 12)
+                                        .padding(.bottom, 10)
+                                }
 
-                        heatmapSection
-                            .padding(.horizontal, Theme.s16)
-                            .padding(.bottom, 20)
-
-                        taskSection
-                            .padding(.horizontal, Theme.s16)
-
-                        Spacer(minLength: 60)
+                                taskSection
+                                    .padding(.horizontal, Theme.s16)
+                                    .padding(.bottom, 100)
+                            }
+                        }
+                        .refreshable { await vm.refresh() }
+                    } else {
+                        WeeklyPlannerSection()
+                            .padding(.horizontal, 8)
+                        Spacer()
                     }
                 }
-                .refreshable { await vm.refresh() }
+                .frame(maxWidth: .infinity)
+
+                if let recap = vm.dailyRecap {
+                    DailyRecapBanner(data: recap) {
+                        vm.dailyRecap = nil
+                    }
+                    .frame(maxHeight: .infinity, alignment: .top)
+                    .zIndex(100)
+                }
             }
             .navigationBarHidden(true)
             .sheet(isPresented: $showSwitcher) {
@@ -73,6 +99,11 @@ struct HomeView: View {
                     }
                 }
             }
+            .sheet(item: $editingTodoTask) { task in
+                if let id = vm.todoList?.id {
+                    EditTaskSheet(task: task, listID: id).environmentObject(vm)
+                }
+            }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
                 hk.fetchToday()
             }
@@ -84,6 +115,7 @@ struct HomeView: View {
             }
         }
     }
+    
     // MARK: - Header
 
     private var headerSection: some View {
@@ -91,14 +123,14 @@ struct HomeView: View {
             // Theme Toggle (Left)
             ThemeToggleButton()
                 .environmentObject(themeManager)
-                .frame(width: 58, alignment: .leading)
-                .padding(.leading, 6)
+                .frame(width: 40, alignment: .leading)
+                .padding(.leading, 2)
 
             // Scrollable Lists
             ScrollViewReader { proxy in
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
-                        let activeLists = vm.lists.filter { !$0.isArchived && !$0.isTodo }
+                        let activeLists = vm.lists.filter { !$0.isArchived && !$0.isTodo && !$0.isWeekly }
                         ForEach(activeLists) { l in
                             let hv = hk.healthValues(for: l.tasks)
                             let fraction = l.completionFraction(healthValues: hv)
@@ -116,9 +148,9 @@ struct HomeView: View {
                             .id(l.id)
                         }
                     }
-                    .padding(.leading, 8)
-                    .padding(.trailing, 16)
-                    .padding(.vertical, 24) // Extra room for glow & shadow falloff
+                    .padding(.leading, 24)
+                    .padding(.trailing, 24)
+                    .padding(.vertical, 12) // Extra room for glow & shadow falloff
                 }
                 .onChange(of: vm.activeListID) { _, newID in
                     if let id = newID {
@@ -132,8 +164,8 @@ struct HomeView: View {
                 LinearGradient(
                     stops: [
                         .init(color: .clear, location: 0),
-                        .init(color: .black, location: 0.08),
-                        .init(color: .black, location: 0.92),
+                        .init(color: .black, location: 0.03),
+                        .init(color: .black, location: 0.97),
                         .init(color: .clear, location: 1)
                     ],
                     startPoint: .init(x: 0, y: 0.5),
@@ -142,23 +174,50 @@ struct HomeView: View {
             )
 
             // TO DO Pill (fixed, right side) — only show when user has real lists
-            if let todo = vm.todoList, hasRealLists {
+            if hasRealLists {
                 Rectangle()
-                    .fill(Theme.text2.opacity(0.22))
-                    .frame(width: 1, height: 18)
-                    .padding(.horizontal, 5)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Theme.accent.opacity(0.08),
+                                Theme.accent.opacity(0.42),
+                                Theme.accent.opacity(0.08)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(width: 1.2, height: 22)
+                    .shadow(color: Theme.accent.opacity(0.35), radius: 6, x: 0, y: 0)
+                    .padding(.leading, 6)
+                    .padding(.trailing, 10)
 
-                TodoPill(
-                    isActive: vm.activeListID == todo.id,
-                    fraction: todo.completionFraction,
-                    onTap: {
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
-                            vm.setActiveList(todo)
+                HStack(spacing: 8) {
+                    if let todo = vm.todoList {
+                        TodoPill(
+                            isActive: vm.activeListID == todo.id && !showWeeklyPlanner,
+                            fraction: todo.completionFraction,
+                            onTap: {
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
+                                    showWeeklyPlanner = false
+                                    vm.setActiveList(todo)
+                                }
+                            },
+                            onDoubleTap: { showTodoEdit = true }
+                        )
+                    }
+
+                    WeekCalendarPill(
+                        weekNumber: currentWeekNumber,
+                        isActive: showWeeklyPlanner,
+                        onTap: {
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.78)) {
+                                showWeeklyPlanner.toggle()
+                            }
                         }
-                    },
-                    onDoubleTap: { showTodoEdit = true }
-                )
-                .padding(.trailing, 16)
+                    )
+                }
+                .padding(.trailing, 0)
             }
         }
         .background(
@@ -168,6 +227,11 @@ struct HomeView: View {
                 .offset(y: 10)
         )
     }
+
+    private var currentWeekNumber: Int {
+        Calendar.current.component(.weekOfYear, from: Date())
+    }
+
 
     // MARK: - Hero (uses live health-aware %)
 
@@ -188,7 +252,7 @@ struct HomeView: View {
                         .minimumScaleFactor(0.4)
                 }
                 .accessibilityElement(children: .combine)
-                .accessibilityLabel(String(localized: "\(liveCompletionPct) percent complete today"))
+                .accessibilityLabel(vm.localized("\(liveCompletionPct) percent complete today"))
 
                 Text(vm.localized("Done Today"))
                     .font(Theme.font(size: 14, weight: .medium))
@@ -216,7 +280,7 @@ struct HomeView: View {
             }
             .padding(.bottom, 4)
             .accessibilityElement(children: .combine)
-            .accessibilityLabel(String(localized: "\(vm.cachedBestStreak) day streak"))
+            .accessibilityLabel(vm.localized("\(vm.cachedBestStreak) day streak"))
         }
     }
 
@@ -233,8 +297,8 @@ struct HomeView: View {
             }
         }
         .padding(.horizontal, 14)
-        .padding(.top, 20)
-        .padding(.bottom, 19)
+        .padding(.top, 14)
+        .padding(.bottom, 14)
         .background(
             RoundedRectangle(cornerRadius: Theme.r20, style: .continuous)
                 .fill(Theme.bg1)
@@ -250,31 +314,35 @@ struct HomeView: View {
 
     @ViewBuilder
     private var taskSection: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 12) {
             HStack {
-                Text(vm.localized("TASKS"))
-                    .font(Theme.font(size: 11, weight: .bold))
-                    .kerning(1.6)
-                    .foregroundColor(Theme.text2)
-                Spacer()
-                if isTodoActive && hasRealLists {
-                    Button { showAddTodoTask = true } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 10, weight: .bold))
-                            Text("Add Task")
-                                .font(.system(size: 11, weight: .semibold))
+                if isTodoActive {
+                    HStack(spacing: 8) {
+                        ZStack {
+                            Circle()
+                                .fill(Color(hex: "#4CAF50"))
+                                .frame(width: 8, height: 8)
+                            Circle()
+                                .fill(Color(hex: "#4CAF50").opacity(0.4))
+                                .frame(width: 14, height: 14)
+                                .blur(radius: 2)
                         }
-                        .foregroundColor(Color(hex: "#4CAF50"))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(Capsule().fill(Color(hex: "#4CAF50").opacity(0.12)))
+                        Text(vm.localized("INBOX TASKS"))
+                            .font(Theme.font(size: 12, weight: .black))
+                            .kerning(1.8)
+                            .foregroundColor(Theme.text1)
                     }
-                    .buttonStyle(.plain)
-                } else if let list = list, !list.isTodo {
+                } else {
+                    Text(vm.localized("TASKS"))
+                        .font(Theme.font(size: 11, weight: .bold))
+                        .kerning(1.6)
+                        .foregroundColor(Theme.text2)
+                }
+                Spacer()
+                if let list = list, !list.isTodo {
                     let done = list.tasks.filter(\.isCompleted).count
                     let left = list.tasks.count - done
-                    Text("\(done) \(String(localized: "done", locale: vm.appLanguage.locale)) · \(left) \(String(localized: "left", locale: vm.appLanguage.locale))")
+                    Text("\(done) \(vm.localized("done")) · \(left) \(vm.localized("left"))")
                         .font(Theme.font(size: 12, weight: .semibold, design: .rounded))
                         .foregroundColor(Theme.text1)
                 }
@@ -289,11 +357,49 @@ struct HomeView: View {
             } else if let list = list, !list.tasks.isEmpty {
                 VStack(spacing: 8) {
                     ForEach(list.tasks) { task in
-                        TaskRowView(task: task, hk: hk) { vm.toggleTask(task) }
+                        if isTodoActive {
+                            TodoSwipeRow(
+                                task: task,
+                                onEdit: {
+                                    editingTodoTask = task
+                                },
+                                onDelete: {
+                                    vm.deleteTask(task, from: list.id)
+                                }
+                            ) {
+                                TaskRowView(
+                                    task: task,
+                                    hk: hk,
+                                    isTodoStyle: true,
+                                    onEdit: nil
+                                ) {
+                                    vm.toggleTask(task)
+                                }
+                            }
+                        } else {
+                            TaskRowView(
+                                task: task,
+                                hk: hk,
+                                isTodoStyle: false,
+                                onEdit: nil
+                            ) {
+                                vm.toggleTask(task)
+                            }
+                        }
                     }
                 }
+                if isTodoActive {
+                    HStack {
+                        Spacer()
+                        todoAddButton
+                    }
+                        .padding(.top, 6)
+                }
             } else if isTodoActive {
-                TodoEmptyView { showAddTodoTask = true }
+                HStack {
+                    Spacer()
+                    todoAddButton
+                }
                     .padding(.top, 1)
             } else {
                 EmptyStateView(onAddList: {
@@ -306,13 +412,171 @@ struct HomeView: View {
                 HStack(spacing: 5) {
                     Image(systemName: "clock.arrow.2.circlepath")
                         .font(.system(size: 9))
-                    Text("Resets at 4 AM daily")
+                    Text(vm.localized("Resets at 4 AM daily"))
                         .font(.system(size: 10))
                 }
                 .foregroundColor(Theme.text2.opacity(0.6))
                 .padding(.top, 4)
             }
         }
+    }
+
+    private var todoHeaderSection: some View {
+        HStack(alignment: .center) {
+            // Left Icon with Glow
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: "#4CAF50"), Color(hex: "#2E7D32")],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 38, height: 38)
+                    .shadow(color: Color(hex: "#4CAF50").opacity(0.4), radius: 6, x: 0, y: 3)
+
+                Image(systemName: "tray.full.fill")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
+            }
+            .overlay(
+                Circle()
+                    .strokeBorder(Color.white.opacity(0.25), lineWidth: 0.5)
+            )
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(vm.localized("TO DO"))
+                    .font(Theme.font(size: 14, weight: .black))
+                    .kerning(1.5)
+                    .foregroundColor(Theme.text0)
+                    .shadow(color: Theme.text0.opacity(0.2), radius: 1, x: 0, y: 1)
+
+                Text(vm.localized("Stress-Free Zone"))
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(Color(hex: "#4CAF50").opacity(0.9))
+            }
+            .padding(.leading, 6)
+
+            Spacer()
+
+            // Time Badge
+            VStack(spacing: 2) {
+                Image(systemName: "moon.zzz.fill")
+                    .font(.system(size: 10))
+                    .foregroundColor(Color(hex: "#7C6FFF"))
+                Text(vm.localized("Resets 4 AM"))
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundColor(Theme.text1)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Theme.bg0.opacity(0.7))
+                    .shadow(color: Color.black.opacity(0.15), radius: 3, x: 0, y: 1)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.08), lineWidth: 0.5)
+            )
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(
+            ZStack {
+                // Deep background base
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(Theme.bg1)
+                
+                // Gradient mesh overlay
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color(hex: "#4CAF50").opacity(0.06),
+                                Theme.bg1.opacity(0.5),
+                                Color(hex: "#7C6FFF").opacity(0.06)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+
+                // Inner glow ring
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.12), Color.white.opacity(0.01), Color.white.opacity(0.04)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            }
+            // Multi-layered shadows for depth
+            .shadow(color: Color.black.opacity(0.35), radius: 15, x: 0, y: 8)
+            .shadow(color: Color(hex: "#4CAF50").opacity(0.12), radius: 10, x: 0, y: 4)
+        )
+    }
+
+    private func todoPremiumChip(icon: String, title: String, color: Color) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 9, weight: .black))
+            Text(title)
+                .font(.system(size: 10, weight: .bold))
+                .kerning(0.5)
+        }
+        .foregroundColor(color)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            Capsule()
+                .fill(color.opacity(0.12))
+        )
+        .overlay(
+            Capsule()
+                .strokeBorder(color.opacity(0.25), lineWidth: 0.5)
+        )
+        // Subtle glow for chips
+        .shadow(color: color.opacity(0.15), radius: 6, x: 0, y: 2)
+    }
+
+    private var todoAddButton: some View {
+        Button { showAddTodoTask = true } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "plus.circle.fill")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(Color(hex: "#4CAF50"))
+                Text(vm.localized("Add Task"))
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(Theme.text0)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(
+                Capsule()
+                    .fill(Theme.bg2)
+                    .shadow(color: Color.black.opacity(0.3), radius: 6, x: 0, y: 3)
+            )
+            .overlay(
+                Capsule()
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.15), Color.white.opacity(0.02)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            .shadow(color: Color(hex: "#4CAF50").opacity(0.1), radius: 8, x: 0, y: 2)
+        }
+        .buttonStyle(.plain)
+        .scaleEffect(showAddTodoTask ? 0.96 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: showAddTodoTask)
     }
 }
 
@@ -346,7 +610,7 @@ struct OrbitalDonutPill: View {
                         Circle()
                             .fill(Color(hex: "#3ECFFF").opacity(0.18))
                             .frame(width: 34, height: 34)
-                            .blur(radius: 6)
+                            .blur(radius: 4)
                             .scaleEffect(pulse ? 1.08 : 0.92)
                     }
                     
@@ -409,7 +673,7 @@ struct OrbitalDonutPill: View {
                     if isActive {
                         Capsule()
                             .fill(Theme.bg1)
-                            .shadow(color: Theme.accent.opacity(0.45), radius: 12, x: 0, y: 4)
+                            .shadow(color: Theme.accent.opacity(0.45), radius: 8, x: 0, y: 3)
                     } else {
                         Circle()
                             .fill(Theme.bg2.opacity(0.4))
@@ -471,6 +735,7 @@ struct OrbitalDonutPill: View {
 // ══════════════════════════════════════════════
 
 struct TodoPill: View {
+    @EnvironmentObject var vm: AppViewModel
     let isActive: Bool
     let fraction: Double
     let onTap: () -> Void
@@ -494,7 +759,7 @@ struct TodoPill: View {
                     Circle()
                         .fill(green.opacity(0.18))
                         .frame(width: 34, height: 34)
-                        .blur(radius: 6)
+                        .blur(radius: 4)
                         .scaleEffect(pulse ? 1.1 : 0.9)
                 }
                 Circle()
@@ -511,7 +776,7 @@ struct TodoPill: View {
             }
             .frame(width: 34, height: 34)
 
-            Text("To-Do List")
+            Text(vm.localized("TO DO"))
                 .font(.system(size: 7, weight: .bold))
                 .tracking(0.4)
                 .foregroundColor(isActive ? green : Theme.text2)
@@ -523,7 +788,7 @@ struct TodoPill: View {
                 .fill(isActive ? Theme.bg1 : Theme.bg2.opacity(0.4))
                 .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .strokeBorder(isActive ? green.opacity(0.5) : Theme.border, lineWidth: isActive ? 1.0 : 0.5))
-                .shadow(color: isActive ? green.opacity(0.28) : .clear, radius: 8, x: 0, y: 3)
+                .shadow(color: isActive ? green.opacity(0.28) : .clear, radius: 5, x: 0, y: 2)
         )
         .scaleEffect(isActive ? 1.05 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isActive)
@@ -535,6 +800,213 @@ struct TodoPill: View {
     }
 }
 
+struct WeekCalendarPill: View {
+    let weekNumber: Int
+    let isActive: Bool
+    let onTap: () -> Void
+
+    @State private var pulse = false
+
+    var body: some View {
+        VStack(spacing: 3) {
+            ZStack(alignment: .top) {
+                if isActive {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [Theme.accent.opacity(0.24), Theme.coral.opacity(0.18)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 40, height: 36)
+                        .blur(radius: 5)
+                        .scaleEffect(pulse ? 1.06 : 0.94)
+                }
+
+                RoundedRectangle(cornerRadius: 11, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: isActive
+                                ? [Color(hex: "#3ECFFF"), Color(hex: "#7C6FFF"), Color(hex: "#FF8A5B")]
+                                : [Theme.bg1, Theme.bg2],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 40, height: 36)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 11, style: .continuous)
+                            .strokeBorder(isActive ? Color.white.opacity(0.42) : Theme.border, lineWidth: isActive ? 1.0 : 0.5)
+                    )
+
+                Capsule()
+                    .fill(Color.black.opacity(isActive ? 0.18 : 0.08))
+                    .frame(width: 24, height: 4)
+                    .offset(y: 5)
+
+                VStack(spacing: 1) {
+                    Text("WK")
+                        .font(.system(size: 7, weight: .black))
+                        .kerning(0.4)
+                        .foregroundColor(isActive ? Color.white.opacity(0.9) : Theme.text2)
+                    Text("\(weekNumber)")
+                        .font(.system(size: 14, weight: .black, design: .rounded))
+                        .foregroundColor(isActive ? .white : Theme.text0)
+                }
+                .offset(y: 9)
+            }
+            .frame(width: 40, height: 36)
+
+            Text("WEEK")
+                .font(.system(size: 7, weight: .bold))
+                .tracking(0.4)
+                .foregroundColor(isActive ? Theme.accent : Theme.text2)
+        }
+        .padding(.horizontal, 7)
+        .padding(.vertical, 5)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(isActive ? Theme.bg1 : Theme.bg2.opacity(0.4))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .strokeBorder(isActive ? Theme.accent.opacity(0.52) : Theme.border, lineWidth: isActive ? 1.0 : 0.5)
+                )
+                .shadow(color: isActive ? Theme.accent.opacity(0.22) : .clear, radius: 6, x: 0, y: 2)
+        )
+        .scaleEffect(isActive ? 1.05 : 1.0)
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onTap)
+        .onAppear { if isActive { startPulse() } }
+        .onChange(of: isActive) { _, active in
+            if active { startPulse() } else { pulse = false }
+        }
+    }
+
+    private func startPulse() {
+        withAnimation(.easeInOut(duration: 2.1).repeatForever(autoreverses: true)) {
+            pulse = true
+        }
+    }
+}
+
+// ══════════════════════════════════════════════
+// MARK: TodoSwipeRow — Custom Swipe-to-Reveal
+// ══════════════════════════════════════════════
+
+struct TodoSwipeRow<Content: View>: View {
+    @EnvironmentObject var vm: AppViewModel
+    let task: SortydTask
+    let onEdit: () -> Void
+    let onDelete: () -> Void
+    let content: () -> Content
+
+    @State private var offset: CGFloat = 0
+    @State private var isSwiped = false
+    
+    private let buttonWidth: CGFloat = 70
+    private let maxOffset: CGFloat = -140 // 2 buttons: Edit (70) + Delete (70)
+
+    var body: some View {
+        ZStack {
+            // Background Action Buttons
+            HStack(spacing: 0) {
+                Spacer()
+                
+                // Edit Button
+                Button(action: {
+                    let gen = UIImpactFeedbackGenerator(style: .medium)
+                    gen.impactOccurred()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        offset = 0
+                        isSwiped = false
+                    }
+                    onEdit()
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(Color(hex: "#4CAF50").opacity(0.12))
+                            .frame(width: 38, height: 38)
+                            .overlay(
+                                Circle()
+                                    .strokeBorder(Color(hex: "#4CAF50").opacity(0.4), lineWidth: 1)
+                            )
+                        Image(systemName: "pencil")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(Color(hex: "#4CAF50"))
+                    }
+                    .frame(width: buttonWidth)
+                    .frame(maxHeight: .infinity)
+                }
+                .buttonStyle(.plain)
+                
+                // Delete Button
+                Button(action: {
+                    let gen = UINotificationFeedbackGenerator()
+                    gen.notificationOccurred(.warning)
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        offset = 0
+                        isSwiped = false
+                    }
+                    onDelete()
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.red.opacity(0.12))
+                            .frame(width: 38, height: 38)
+                            .overlay(
+                                Circle()
+                                    .strokeBorder(Color.red.opacity(0.4), lineWidth: 1)
+                            )
+                        Image(systemName: "trash.fill")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(Color.red)
+                    }
+                    .frame(width: buttonWidth)
+                    .frame(maxHeight: .infinity)
+                }
+                .buttonStyle(.plain)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: Theme.r16, style: .continuous))
+            
+            // Foreground Content
+            content()
+                .offset(x: offset)
+                .gesture(
+                    DragGesture(minimumDistance: 15, coordinateSpace: .local)
+                        .onChanged { gesture in
+                            let dragAmount = gesture.translation.width
+                            // Only allow swipe left (negative offset)
+                            if isSwiped {
+                                let newOffset = maxOffset + dragAmount
+                                offset = min(0, max(maxOffset - 40, newOffset))
+                            } else {
+                                if dragAmount < 0 {
+                                    offset = max(maxOffset - 40, dragAmount)
+                                }
+                            }
+                        }
+                        .onEnded { gesture in
+                            let dragAmount = gesture.translation.width
+                            let velocity = gesture.predictedEndTranslation.width
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                if velocity < -50 || offset < maxOffset / 2 || dragAmount < -80 {
+                                    offset = maxOffset
+                                    isSwiped = true
+                                    let gen = UIImpactFeedbackGenerator(style: .light)
+                                    gen.impactOccurred()
+                                } else {
+                                    offset = 0
+                                    isSwiped = false
+                                }
+                            }
+                        }
+                )
+        }
+        .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
 // ══════════════════════════════════════════════
 // MARK: TaskRowView — with optional SmallHealthDonut
 // ══════════════════════════════════════════════
@@ -543,6 +1015,8 @@ struct TaskRowView: View {
     @EnvironmentObject var vm: AppViewModel
     let task: SortydTask
     let hk: HealthKitManager
+    var isTodoStyle: Bool = false
+    var onEdit: (() -> Void)? = nil
     let onToggle: () -> Void
     
 
@@ -556,7 +1030,8 @@ struct TaskRowView: View {
 
     /// True when this task needs HealthKit but permission hasn't been granted yet
     private var needsHealthPermission: Bool {
-        resolvedHealthType != nil && !hk.isAuthorized
+        guard let ht = resolvedHealthType, ht != .none else { return false }
+        return !hk.isAuthorized
     }
 
     private var timeLabel: String? {
@@ -568,10 +1043,10 @@ struct TaskRowView: View {
     }
 
     private var subtitleText: String {
-        if needsHealthPermission { return String(localized: "Tap to allow Health access") }
-        if task.isCompleted { return String(localized: "Completed") }
+        if needsHealthPermission { return vm.localized("Tap to allow Health access") }
+        if task.isCompleted { return vm.localized("Completed") }
         
-        if let t = timeLabel { return String(localized: "Due \(t)") }
+        if let t = timeLabel { return vm.localized("Due \(t)") }
         
         // Removed health measure from subtitle - shown vertically next to tank
         return vm.localized("Anytime")
@@ -628,18 +1103,22 @@ struct TaskRowView: View {
                     VStack(alignment: .leading, spacing: 1) { // Reduced spacing
                         Text(task.title)
                             .font(.system(size: 15, weight: task.isCompleted ? .regular : .semibold))
-                            .foregroundColor(task.isCompleted ? Theme.text2 : Theme.text0)
-                            .strikethrough(task.isCompleted, color: Theme.text2)
+                            .foregroundColor(task.isCompleted ? Theme.text2.opacity(0.68) : Theme.text0)
+                            .strikethrough(task.isCompleted, color: isTodoStyle ? Theme.text2.opacity(0.55) : Theme.text2)
                             .lineLimit(1)
 
                         HStack(spacing: 3) {
                             if timeLabel != nil && !task.isCompleted {
                                 Image(systemName: "bell.fill").font(.system(size: 7))
-                                    .foregroundColor(Color(hex: "#00E5FF"))
+                                    .foregroundColor(isTodoStyle ? Color(hex: "#4CAF50").opacity(0.82) : Color(hex: "#00E5FF"))
                             }
                             Text(subtitleText)
                                 .font(.system(size: 9, weight: .bold)) // Matches alert size
-                                .foregroundColor(timeLabel != nil && !task.isCompleted ? Color(hex: "#00E5FF") : (task.isCompleted ? Theme.accent.opacity(0.6) : Theme.text2))
+                                .foregroundColor(
+                                    timeLabel != nil && !task.isCompleted
+                                    ? (isTodoStyle ? Color(hex: "#4CAF50").opacity(0.82) : Color(hex: "#00E5FF"))
+                                    : (task.isCompleted ? Theme.text2.opacity(0.62) : (isTodoStyle ? Color(hex: "#4CAF50").opacity(0.72) : Theme.text2))
+                                )
                         }
                     }
 
@@ -674,6 +1153,8 @@ struct TaskRowView: View {
                         }
                     }
 
+
+
                     Button(action: {
                         let gen = UIImpactFeedbackGenerator(style: .medium)
                         gen.prepare(); gen.impactOccurred()
@@ -685,10 +1166,10 @@ struct TaskRowView: View {
                     }) {
                         ZStack {
                             Circle()
-                                .strokeBorder(task.isCompleted ? Theme.accent : Theme.border, lineWidth: 1.5)
+                                .strokeBorder(task.isCompleted ? (isTodoStyle ? Color(hex: "#4CAF50") : Theme.accent) : (isTodoStyle ? Color(hex: "#4CAF50").opacity(0.35) : Theme.border), lineWidth: 1.5)
                                 .frame(width: 26, height: 26)
                             if task.isCompleted {
-                                Circle().fill(Theme.accent).frame(width: 26, height: 26)
+                                Circle().fill(isTodoStyle ? Color(hex: "#4CAF50") : Theme.accent).frame(width: 26, height: 26)
                                 Image(systemName: "checkmark")
                                     .font(.system(size: 10, weight: .black))
                                     .foregroundColor(ThemeManager.shared.isDark ? Theme.bg0 : .white)
@@ -699,8 +1180,10 @@ struct TaskRowView: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(task.isCompleted ? "Mark \(task.title) incomplete" : "Mark \(task.title) complete")
-                    .accessibilityHint(task.isCompleted ? "Double tap to uncheck" : "Double tap to check off")
+                    .accessibilityLabel(task.isCompleted
+                                        ? String(format: vm.localized("Mark %@ incomplete"), task.title)
+                                        : String(format: vm.localized("Mark %@ complete"), task.title))
+                    .accessibilityHint(task.isCompleted ? vm.localized("Double tap to uncheck") : vm.localized("Double tap to check off"))
                 }
                 .padding(.horizontal, Theme.s16)
                 .padding(.vertical, 7)
@@ -709,11 +1192,11 @@ struct TaskRowView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: hk.isAuthorized)
-        .alert("Target Not Reached", isPresented: $showHealthConfirm) {
-            Button("Yes, I completed it", role: .none) { onToggle() }
-            Button("No", role: .cancel) {}
+        .alert(vm.localized("Target Not Reached"), isPresented: $showHealthConfirm) {
+            Button(vm.localized("Yes, I completed it"), role: .none) { onToggle() }
+            Button(vm.localized("No"), role: .cancel) {}
         } message: {
-            Text(healthConfirmMessage + "\n\nWe recommend using a tracking device or keeping your phone on you so Sortyd auto-detects and never doubts.")
+            Text(healthConfirmMessage + "\n\n" + vm.localized("We recommend using a tracking device or keeping your phone on you so Sortyd auto-detects and never doubts."))
         }
         .sheet(isPresented: $showHealthPermission) {
             if let ht = resolvedHealthType {
@@ -722,6 +1205,7 @@ struct TaskRowView: View {
                     onGrant: { hk.fetchToday() },
                     onSkip:  {}
                 )
+                .environmentObject(vm)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
                 .presentationCornerRadius(Theme.r32)
@@ -744,11 +1228,12 @@ struct TaskRowView: View {
         let current = hk.currentValue(for: ht)
         switch ht {
         case .steps:
-            return "You've logged \(Int(current)) steps, but your target is \(Int(target)) steps. Are you sure you completed this?"
+            return String(format: vm.localized("You've logged %lld steps, but your target is %lld steps. Are you sure you completed this?"), Int64(current), Int64(target))
         case .calories:
-            return "You've burned \(Int(current)) kcal, but your target is \(Int(target)) kcal. Are you sure you completed this?"
+            return String(format: vm.localized("You've burned %lld kcal, but your target is %lld kcal. Are you sure you completed this?"), Int64(current), Int64(target))
         case .distance:
-            return String(format: "You've covered %.1f km, but your target is %.1f km. Are you sure you completed this?", current, target)
+            let label = ht.label.lowercased()
+            return String(format: vm.localized("You've covered %.1f %@, but your target is %.1f %@. Are you sure you completed this?"), current, label, target, label)
         case .none:
             return ""
         }
@@ -768,63 +1253,56 @@ struct TaskRowView: View {
 
     @ViewBuilder
     private var taskBackground: some View {
+        let fillStyle: AnyShapeStyle = {
+            if isTodoStyle {
+                return AnyShapeStyle(Theme.bg2)
+            } else {
+                return AnyShapeStyle(task.isCompleted ? Theme.accent.opacity(0.05) : Theme.bg1)
+            }
+        }()
+
+        let strokeStyle: AnyShapeStyle = {
+            if isTodoStyle {
+                return AnyShapeStyle(
+                    LinearGradient(
+                        colors: [Color.white.opacity(0.12), Color.white.opacity(0.02)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+            } else {
+                return AnyShapeStyle(task.isCompleted ? Theme.accent.opacity(0.15) : Theme.border)
+            }
+        }()
+
         RoundedRectangle(cornerRadius: Theme.r16, style: .continuous)
-            .fill(task.isCompleted ? Theme.accent.opacity(0.05) : Theme.bg1)
+            .fill(fillStyle)
+            .shadow(color: isTodoStyle ? Color.black.opacity(0.2) : .clear, radius: 8, x: 0, y: 4)
             .overlay(
                 RoundedRectangle(cornerRadius: Theme.r16, style: .continuous)
-                    .strokeBorder(
-                        task.isCompleted ? Theme.accent.opacity(0.15) : Theme.border,
-                        lineWidth: 0.5
-                    )
+                    .strokeBorder(strokeStyle, lineWidth: isTodoStyle ? 1.0 : 0.5)
             )
+            .overlay(alignment: .leading) {
+                if isTodoStyle {
+                    RoundedRectangle(cornerRadius: 3, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: task.isCompleted
+                                    ? [Color(hex: "#4CAF50").opacity(0.5), Color(hex: "#2E7D32").opacity(0.5)]
+                                    : [Color(hex: "#4CAF50"), Color(hex: "#2E7D32")],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 4, height: 36)
+                        .shadow(color: task.isCompleted ? .clear : Color(hex: "#4CAF50").opacity(0.4), radius: 6, x: 0, y: 0)
+                        .padding(.leading, 8)
+                }
+            }
             .cardShadow()
     }
 }
 
-// ══════════════════════════════════════════════
-// MARK: TodoEmptyView
-// ══════════════════════════════════════════════
-
-struct TodoEmptyView: View {
-    let onAdd: () -> Void
-
-    var body: some View {
-        VStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(Color(hex: "#4CAF50").opacity(0.10))
-                    .frame(width: 64, height: 64)
-                Image(systemName: "checklist")
-                    .font(.system(size: 26, weight: .semibold))
-                    .foregroundColor(Color(hex: "#4CAF50").opacity(0.7))
-            }
-            VStack(spacing: 6) {
-                Text("Nothing here yet")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(Theme.text1)
-                Text("Add today's tasks — they reset at 4 AM for a fresh start.")
-                    .font(.system(size: 12))
-                    .foregroundColor(Theme.text2)
-                    .multilineTextAlignment(.center)
-            }
-            Button(action: onAdd) {
-                HStack(spacing: 6) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 12, weight: .bold))
-                    Text("Add Task")
-                        .font(.system(size: 13, weight: .semibold))
-                }
-                .foregroundColor(.white)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
-                .background(Capsule().fill(Color(hex: "#4CAF50")))
-            }
-            .buttonStyle(.plain)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 24)
-    }
-}
 
 // MARK: EmptyStateView
 // ══════════════════════════════════════════════
@@ -835,16 +1313,18 @@ struct EmptyStateView: View {
 
     private var line1: String {
         switch vm.appLanguage {
-        case .arabic:  return "لنبدأ"
-        case .spanish: return "Vamos a"
-        default:       return "Let's get"
+        case .arabic:   return "لنبدأ"
+        case .spanish:  return "Vamos a"
+        case .chinese:  return "开始"
+        default:        return "Let's get"
         }
     }
     private var line2: String {
         switch vm.appLanguage {
-        case .arabic:  return "التتبع"
-        case .spanish: return "Rastrear"
-        default:       return "Tracking"
+        case .arabic:   return "التتبع"
+        case .spanish:  return "Rastrear"
+        case .chinese:  return "追踪"
+        default:        return "Tracking"
         }
     }
     @State private var line1Count: Int = 0
@@ -870,9 +1350,10 @@ struct EmptyStateView: View {
     private let cyan   = Color(hex: "#7C6FFF")
     private var letsPrefix: Int {
         switch vm.appLanguage {
-        case .arabic: return 0 // Start typing immediately
+        case .arabic:  return 0
+        case .chinese: return 0
         case .spanish: return 6 // 'Vamos ' is 6
-        default: return 6 // 'Let's ' is 6
+        default:       return 6 // 'Let's ' is 6
         }
     }
 
@@ -915,7 +1396,7 @@ struct EmptyStateView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .lastTextBaseline, spacing: 0) {
-                    if vm.appLanguage == .arabic {
+                    if vm.appLanguage == .arabic || vm.appLanguage == .chinese {
                          Text(revealedLine1)
                             .font(.system(size: 40, weight: .black, design: .serif))
                             .foregroundColor(Theme.text0)
@@ -1101,13 +1582,13 @@ struct ListSwitcherSheet: View {
                         .padding(.top, 12).padding(.bottom, Theme.s20)
 
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(vm.appLanguage == .arabic ? "تبديل القائمة" : (vm.appLanguage == .spanish ? "Cambiar lista" : "Switch List")).font(.system(size: 22, weight: .black)).foregroundColor(Theme.text0)
-                        Text(vm.appLanguage == .arabic ? "تظهر في علامة تبويب اليوم" : (vm.appLanguage == .spanish ? "Mostrando en la pestaña Hoy" : "Showing on Today tab")).font(.system(size: 13)).foregroundColor(Theme.text2)
+                        Text(vm.appLanguage == .arabic ? "تبديل القائمة" : (vm.appLanguage == .spanish ? "Cambiar lista" : (vm.appLanguage == .chinese ? "切换列表" : "Switch List"))).font(.system(size: 22, weight: .black)).foregroundColor(Theme.text0)
+                        Text(vm.appLanguage == .arabic ? "تظهر في علامة تبويب اليوم" : (vm.appLanguage == .spanish ? "Mostrando en la pestaña Hoy" : (vm.appLanguage == .chinese ? "显示在今天标签" : "Showing on Today tab"))).font(.system(size: 13)).foregroundColor(Theme.text2)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, Theme.s20).padding(.bottom, Theme.s20)
 
-                    let liveLists = vm.lists.filter { !$0.isArchived }
+                    let liveLists = vm.lists.filter { !$0.isArchived && !$0.isWeekly }
                     if liveLists.isEmpty {
                         EmptyDark(icon: "📋", title: vm.localized("No lists"), subtitle: vm.localized("Create a list first."))
                     } else {
@@ -1124,7 +1605,7 @@ struct ListSwitcherSheet: View {
                                             }
                                             VStack(alignment: .leading, spacing: 3) {
                                                 Text(list.name).font(.system(size: 15, weight: .semibold)).foregroundColor(Theme.text0)
-                                                Text("\(list.tasks.count) \(String(localized: "tasks", locale: vm.appLanguage.locale)) · \(list.completionPercentage)% \(String(localized: "today", locale: vm.appLanguage.locale))")
+                                                Text("\(list.tasks.count) \(vm.localized("tasks")) · \(list.completionPercentage)% \(vm.localized("today"))")
                                                     .font(.system(size: 12)).foregroundColor(Theme.text1)
                                             }
                                             Spacer()
@@ -1181,10 +1662,10 @@ struct SettingsSheet: View {
                     Button(action: { showClearConfirm = true }) {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(vm.appLanguage == .arabic ? "مسح سجل الإنجاز" : (vm.appLanguage == .spanish ? "Borrar historial de completado" : "Clear completion history"))
+                                Text(vm.appLanguage == .arabic ? "مسح سجل الإنجاز" : (vm.appLanguage == .spanish ? "Borrar historial de completado" : (vm.appLanguage == .chinese ? "清除完成记录" : "Clear completion history")))
                                     .font(.system(size: 15, weight: .medium))
                                     .foregroundColor(Theme.danger)
-                                Text(vm.appLanguage == .arabic ? "يحذف جميع اللقطات والنشاطات. يتم الاحتفاظ بالمهام." : (vm.appLanguage == .spanish ? "Borra todas las capturas y rachas. Las tareas se mantienen." : "Deletes all snapshots and streaks. Tasks are kept."))
+                                Text(vm.appLanguage == .arabic ? "يحذف جميع اللقطات والنشاطات. يتم الاحتفاظ بالمهام." : (vm.appLanguage == .spanish ? "Borra todas las capturas y rachas. Las tareas se mantienen." : (vm.appLanguage == .chinese ? "删除所有快照和连续记录，任务保留。" : "Deletes all snapshots and streaks. Tasks are kept.")))
                                     .font(.system(size: 12))
                                     .foregroundColor(Theme.text2)
                             }
@@ -1204,31 +1685,31 @@ struct SettingsSheet: View {
                         )
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Clear completion history")
-                    .accessibilityHint("Double tap to delete all habit snapshots and streaks")
+                    .accessibilityLabel(vm.localized("Clear completion history"))
+                    .accessibilityHint(vm.localized("Double tap to delete all habit snapshots and streaks"))
 
                     Spacer()
                 }
                 .padding(Theme.s16).padding(.top, 8)
             }
-            .navigationTitle(vm.appLanguage == .arabic ? "الإعدادات" : (vm.appLanguage == .spanish ? "Ajustes" : "Settings")).navigationBarTitleDisplayMode(.inline)
+            .navigationTitle(vm.appLanguage == .arabic ? "الإعدادات" : (vm.appLanguage == .spanish ? "Ajustes" : (vm.appLanguage == .chinese ? "设置" : "Settings"))).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(String(localized: "Done")) { dismiss() }.foregroundColor(Theme.accent).fontWeight(.semibold)
+                    Button(vm.localized("Done")) { dismiss() }.foregroundColor(Theme.accent).fontWeight(.semibold)
                 }
             }
             .confirmationDialog(
-                String(localized: "Clear all history?"),
+                vm.localized("Clear all history?"),
                 isPresented: $showClearConfirm,
                 titleVisibility: .visible
             ) {
-                Button(String(localized: "Clear History"), role: .destructive) {
+                Button(vm.localized("Clear History"), role: .destructive) {
                     vm.clearAllSnapshots()
                     dismiss()
                 }
-                Button(String(localized: "Cancel"), role: .cancel) {}
+                Button(vm.localized("Cancel"), role: .cancel) {}
             } message: {
-                Text(vm.appLanguage == .arabic ? "سيؤدي هذا إلى حذف جميع لقطات الإكمال والنشاطات بشكل دائم. لن تتأثر قوائمك ومهامك." : (vm.appLanguage == .spanish ? "Esto borra permanentemente todas las capturas y rachas. Tus listas y tareas no se verán afectadas." : "This permanently deletes all completion snapshots and streaks. Your lists and tasks are not affected."))
+                Text(vm.appLanguage == .arabic ? "سيؤدي هذا إلى حذف جميع لقطات الإكمال والنشاطات بشكل دائم. لن تتأثر قوائمك ومهامك." : (vm.appLanguage == .spanish ? "Esto borra permanentemente todas las capturas y rachas. Tus listas y tareas no se verán afectadas." : (vm.appLanguage == .chinese ? "这将永久删除所有完成快照和连续记录，列表和任务不受影响。" : "This permanently deletes all completion snapshots and streaks. Your lists and tasks are not affected.")))
             }
         }
     }
@@ -1267,12 +1748,14 @@ struct PlaceholderCalendarView: View {
             let cellByH = (availH - 15 - vSpacing * nRows) / nRows
             let cs = min(cellByW, cellByH) * 1.2
 
+
+
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
                     Text(currentMonth).font(.system(size: 11, weight: .semibold)).foregroundColor(Theme.text1)
                     Spacer()
                     HStack(spacing: 3) {
-                        Text(vm.appLanguage == .arabic ? "منخفض" : (vm.appLanguage == .spanish ? "Bajo" : "Low"))
+                        Text(vm.appLanguage == .arabic ? "منخفض" : (vm.appLanguage == .spanish ? "Bajo" : (vm.appLanguage == .chinese ? "低" : "Low")))
                             .font(.system(size: 7, weight: .medium))
                             .foregroundColor(Theme.text2)
                         HStack(spacing: 1) {
@@ -1282,7 +1765,7 @@ struct PlaceholderCalendarView: View {
                                     .frame(width: 7, height: 7)
                             }
                         }
-                        Text(vm.appLanguage == .arabic ? "الأفضل" : (vm.appLanguage == .spanish ? "Mejor" : "Best"))
+                        Text(vm.appLanguage == .arabic ? "الأفضل" : (vm.appLanguage == .spanish ? "Mejor" : (vm.appLanguage == .chinese ? "最佳" : "Best")))
                             .font(.system(size: 7, weight: .medium))
                             .foregroundColor(Theme.text2)
                     }
@@ -1343,3 +1826,60 @@ private extension Array {
 }
 
 #Preview { HomeView().environmentObject(AppViewModel()).environmentObject(ThemeManager.shared) }
+
+// MARK: - Tab Shape
+
+struct PlannerTabShape: Shape {
+    let waveOnTrailingEdge: Bool
+    
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let top = rect.minY
+        let bottom = rect.maxY
+        let mid = rect.midY
+        
+        if waveOnTrailingEdge {
+            path.move(to: CGPoint(x: rect.minX, y: bottom))
+            path.addLine(to: CGPoint(x: rect.minX, y: top + 6))
+            path.addCurve(
+                to: CGPoint(x: rect.minX + 14, y: top),
+                control1: CGPoint(x: rect.minX, y: top + 2),
+                control2: CGPoint(x: rect.minX + 4, y: top)
+            )
+            path.addLine(to: CGPoint(x: rect.maxX - 34, y: top))
+            path.addCurve(
+                to: CGPoint(x: rect.maxX - 8, y: mid - 4),
+                control1: CGPoint(x: rect.maxX - 18, y: top + 1),
+                control2: CGPoint(x: rect.maxX - 12, y: top + 7)
+            )
+            path.addCurve(
+                to: CGPoint(x: rect.maxX - 31, y: bottom),
+                control1: CGPoint(x: rect.maxX + 3, y: mid + 12),
+                control2: CGPoint(x: rect.maxX - 11, y: bottom - 1)
+            )
+            path.closeSubpath()
+        } else {
+            path.move(to: CGPoint(x: rect.maxX, y: top))
+            path.addLine(to: CGPoint(x: rect.maxX, y: bottom - 6))
+            path.addCurve(
+                to: CGPoint(x: rect.maxX - 14, y: bottom),
+                control1: CGPoint(x: rect.maxX, y: bottom - 2),
+                control2: CGPoint(x: rect.maxX - 4, y: bottom)
+            )
+            path.addLine(to: CGPoint(x: rect.minX + 34, y: bottom))
+            path.addCurve(
+                to: CGPoint(x: rect.minX + 8, y: mid + 4),
+                control1: CGPoint(x: rect.minX + 18, y: bottom - 1),
+                control2: CGPoint(x: rect.minX + 12, y: bottom - 7)
+            )
+            path.addCurve(
+                to: CGPoint(x: rect.minX + 31, y: top),
+                control1: CGPoint(x: rect.minX - 3, y: mid - 12),
+                control2: CGPoint(x: rect.minX + 11, y: top + 1)
+            )
+            path.closeSubpath()
+        }
+        
+        return path
+    }
+}

@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Sortyd</string>
+    <string name="widget_small_description">每日完成弧线和健康追踪槽</string>
+    <string name="widget_medium_description">仪表盘圆环和可交互任务标签</string>
+    <string name="widget_large_description">包含清单和健康圆盘的详细仪表盘</string>
+    <string name="widget_heatmap_description">习惯历史的月度气泡热力图</string>
+</resources>

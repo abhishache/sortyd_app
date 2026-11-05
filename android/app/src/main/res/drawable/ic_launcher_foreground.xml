@@ -1,0 +1,72 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:translateX="18"
+        android:translateY="18">
+        <!-- Top Bar -->
+        <path
+            android:pathData="M10,18 L50,18 C54.42,18 58,21.58 58,26 C58,30.42 54.42,34 50,34 L10,34 C5.58,34 2,30.42 2,26 C2,21.58 5.58,18 10,18 Z"
+            android:fillType="nonZero">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:startX="2"
+                    android:startY="26"
+                    android:endX="58"
+                    android:endY="26"
+                    android:type="linear">
+                    <item android:offset="0" android:color="#FF5E5CE6"/>
+                    <item android:offset="1" android:color="#FF00C7F2"/>
+                </gradient>
+            </aapt:attr>
+        </path>
+
+        <!-- Target on Top Bar -->
+        <path
+            android:pathData="M62,26m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0"
+            android:fillColor="#FFFFFF" />
+        <path
+            android:pathData="M62,26m-8,0a8,8 0,1 1,16 0a8,8 0,1 1,-16 0"
+            android:fillColor="#5E5CE6" />
+        <path
+            android:pathData="M62,26m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0"
+            android:fillColor="#00C7F2" />
+
+        <!-- Middle Bar -->
+        <path
+            android:pathData="M10,38 L42,38 C46.42,38 50,41.58 50,46 C50,50.42 46.42,54 42,54 L10,54 C5.58,54 2,50.42 2,46 C2,41.58 5.58,38 10,38 Z"
+            android:fillType="nonZero">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:startX="2"
+                    android:startY="46"
+                    android:endX="50"
+                    android:endY="46"
+                    android:type="linear">
+                    <item android:offset="0" android:color="#FF5E5CE6"/>
+                    <item android:offset="1" android:color="#FF00C7F2"/>
+                </gradient>
+            </aapt:attr>
+        </path>
+
+        <!-- Bottom Bar -->
+        <path
+            android:pathData="M10,58 L26,58 C30.42,58 34,61.58 34,66 C34,70.42 30.42,74 26,74 L10,74 C5.58,74 2,70.42 2,66 C2,61.58 5.58,58 10,58 Z"
+            android:fillType="nonZero">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:startX="2"
+                    android:startY="66"
+                    android:endX="34"
+                    android:endY="66"
+                    android:type="linear">
+                    <item android:offset="0" android:color="#FF5E5CE6"/>
+                    <item android:offset="1" android:color="#FF00C7F2"/>
+                </gradient>
+            </aapt:attr>
+        </path>
+    </group>
+</vector>

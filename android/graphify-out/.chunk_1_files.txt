@@ -1,0 +1,8 @@
+/Users/abhishek/Desktop/sortyd/android/build_log.txt
+/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/MainActivity.kt
+/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/viewmodel/SortydViewModel.kt
+/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/navigation/SortydNavigation.kt
+/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/screens/onboarding/OnboardingScreen.kt
+/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/screens/lists/AIStarterListScreen.kt
+/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/widget/SortydWidget.kt
+/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/services/HealthConnectManager.kt

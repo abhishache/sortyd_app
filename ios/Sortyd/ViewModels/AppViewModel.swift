@@ -28,10 +28,12 @@ final class AppViewModel: ObservableObject {
     @Published private(set) var lists: [TaskList] = []
     @Published private(set) var activeListID: UUID?
     @Published private(set) var snapshots: [DailySnapshot] = []
+    @Published var weeklyPlan: WeeklyPlan = WeeklyPlan(weekStartDate: WeeklyPlan.currentWeekStart())
     @Published private(set) var cachedBestStreak: Int = 0
+    @Published var dailyRecap: DailyRecapData? = nil
     @Published var selectedTab: Int = 0
     @Published var showReviewPrompt = false
-    private var reviewPromptCheckedThisLaunch = false
+    private var reviewPromptExposureRecorded = false
     private let sharedDefaults = UserDefaults(suiteName: "group.com.sortyd.sortyd") ?? UserDefaults.standard
 
     @Published var appLanguage: AppLanguage = .english {
@@ -56,7 +58,7 @@ final class AppViewModel: ObservableObject {
     /// Helper for resolving localized strings manually using the app's selected language.
     /// Used for TextFields, AI Prompts, and arrays where LocalizedStringKey isn't sufficient.
     func localized(_ key: String) -> String {
-        return String(localized: String.LocalizationValue(key), locale: appLanguage.locale)
+        AppLocalization.string(key, languageCode: appLanguage.rawValue)
     }
     
     var calendar: Calendar {
@@ -80,13 +82,33 @@ final class AppViewModel: ObservableObject {
     /// When true, appData.didSet skips syncPublished so callers
     /// can publish only the properties that actually changed.
     private var _skipSync = false
+    private var reminderRefresh: Task<Void, Never>?
+
+    private func refreshNotifications() {
+        NotificationManager.shared.updateTaskState(lists: appData.lists)
+        reminderRefresh?.cancel()
+        reminderRefresh = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 150_000_000)
+            guard !Task.isCancelled, let self else { return }
+            await NotificationManager.shared.resyncTaskReminders(lists: self.appData.lists)
+            guard !Task.isCancelled else { return }
+            await NotificationManager.shared.scheduleColdTaskNudgeIfPermitted(
+                lists: self.appData.lists, snapshots: self.appData.snapshots)
+        }
+    }
 
     // Sync all granular @Published properties from appData in one pass.
     // Called inside appData.didSet so views always see a consistent snapshot.
     private func syncPublished() {
-        lists        = appData.lists
-        activeListID = appData.activeListID
-        snapshots    = appData.snapshots
+        self.lists        = appData.lists
+        self.activeListID = appData.activeListID
+        self.snapshots    = appData.snapshots
+        if let plan = appData.weeklyPlan {
+            self.weeklyPlan = plan
+        }
+        
+        cachedBestStreak = computeBestStreak()
+        refreshNotifications()
     }
 
     // MARK: Init
@@ -125,16 +147,81 @@ final class AppViewModel: ObservableObject {
         }
 
         ensureTodoListExists()
+        ensureWeeklyListExists()
+        resetTasksIfNewDay()
         snapshotTodayIfNeeded()
+        checkForDailyRecap()
         cachedBestStreak = computeBestStreak()
+        WatchSessionManager.shared.onCompletion = { [weak self] message in
+            self?.applyWatchCompletion(message)
+        }
     }
 
     // MARK: - Computed
 
     var todoList: TaskList? { appData.lists.first(where: { $0.isTodo }) }
+    var weeklyList: TaskList? { appData.lists.first(where: { $0.isWeekly }) }
 
     var activeList: TaskList? {
         appData.activeList
+    }
+    
+    func updateWeeklyPlan(_ update: (inout WeeklyPlan) -> Void) {
+        var plan = weeklyPlan
+        update(&plan)
+        plan.mustDoTasks = Array((plan.mustDoTasks + ["", "", ""]).prefix(3))
+        plan.antiGoals = Array((plan.antiGoals + ["", ""]).prefix(2))
+        plan.recoveryDay = min(max(plan.recoveryDay, 1), 7)
+        weeklyPlan = plan
+        appData.weeklyPlan = plan
+        PersistenceManager.shared.save(appData)
+    }
+
+    private func checkForDailyRecap() {
+        let defaults = sharedDefaults
+        let lastRecap = defaults.object(forKey: "last_recap_date") as? Date ?? Date.distantPast
+        let calendar = Calendar.current
+        
+        if calendar.isDateInToday(lastRecap) { return }
+        
+        // Find yesterday's snapshot for the active regular list only.
+        // TO DO and Weekly Planner are planning surfaces, not habit-performance lists.
+        guard let activeList = appData.activeRegularList else { return }
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: Date()) ?? Date()
+        
+        if let snapshot = appData.snapshots.first(where: { 
+            $0.listID == activeList.id && calendar.isDate($0.date, inSameDayAs: yesterday)
+        }) {
+            let pct = snapshot.completionPercentage
+            let listName = activeList.name
+            
+            var msg = ""
+            var emoji = ""
+            
+            switch pct {
+            case 100:
+                msg = localized("Legendary! You crushed every single goal yesterday. Let's keep that momentum going today!")
+                emoji = "🏆"
+            case 80...99:
+                msg = localized("Strong work yesterday! You were so close to perfection. Today is the day you hit 100%!")
+                emoji = "💪"
+            case 50...79:
+                msg = localized("Good effort! You crossed the halfway mark yesterday. Let's aim even higher today!")
+                emoji = "✨"
+            case 1...49:
+                msg = localized("You made some progress yesterday. Every step counts! Let's build on that today.")
+                emoji = "🌱"
+            default:
+                msg = localized("A fresh start today! Yesterday didn't go as planned, but today is for growth. You've got this.")
+                emoji = "🎯"
+            }
+            
+            let dateLabel = dateFormatter(format: "EEEE, MMM d").string(from: yesterday)
+            
+            self.dailyRecap = DailyRecapData(percentage: pct, message: msg, emoji: emoji, listName: listName, dateLabel: dateLabel)
+            defaults.set(Date(), forKey: "last_recap_date")
+            defaults.synchronize()
+        }
     }
     
     
@@ -142,17 +229,44 @@ final class AppViewModel: ObservableObject {
     // MARK: - Task Actions
 
     func toggleTask(_ task: SortydTask) {
+        resetTasksIfNewDay()
         guard let listIdx = activeListIndex,
               let taskIdx = appData.lists[listIdx].tasks.firstIndex(where: { $0.id == task.id })
         else { return }
 
         appData.lists[listIdx].tasks[taskIdx].isCompleted.toggle()
         if appData.lists[listIdx].tasks[taskIdx].isCompleted {
-                Analytics.logEvent("task_completed", parameters: [
-                    "list_name": appData.lists[listIdx].name
-                ])
-            }
+            Analytics.logEvent("task_completed", parameters: nil)
+            checkReviewPromptAfterPositiveMoment()
+        }
         updateTodaySnapshot()
+        PersistenceManager.shared.saveImmediately(appData)
+    }
+
+    /// Watch writes are narrow, conditional operations, never whole-store replacement.
+    func applyWatchCompletion(_ message: [String: Any]) {
+        defer { WatchSessionManager.shared.pushToWatch(appData) }
+        guard let operationID = message["operationID"] as? String,
+              UUID(uuidString: operationID) != nil else { return }
+        var processed = sharedDefaults.stringArray(forKey: "watch_completion_operations") ?? []
+        guard !processed.contains(operationID) else { return }
+        processed.append(operationID)
+        sharedDefaults.set(Array(processed.suffix(1000)), forKey: "watch_completion_operations")
+        guard let rawID = message["taskID"] as? String, let id = UUID(uuidString: rawID),
+              let completed = message["completed"] as? Bool,
+              let expected = message["expectedCompleted"] as? Bool,
+              let sentAt = message["sentAt"] as? Date else { return }
+        resetTasksIfNewDay()
+        guard let li = appData.lists.firstIndex(where: { !$0.isArchived && $0.tasks.contains(where: { $0.id == id }) }),
+              let ti = appData.lists[li].tasks.firstIndex(where: { $0.id == id }),
+              ReminderPolicy.acceptsCompletion(current: appData.lists[li].tasks[ti].isCompleted,
+                  expected: expected, sentAt: sentAt) else { return }
+        appData.lists[li].tasks[ti].isCompleted = completed
+        appData.lists[li].tasks[ti].manuallyCompleted = completed
+        let list = appData.lists[li]
+        upsertSnapshot(DailySnapshot(id: UUID(), date: ReminderPolicy.dayStart(Date()),
+            listID: list.id, completionFraction: list.completionFraction,
+            completedTaskIDs: list.tasks.filter(\.isCompleted).map(\.id)))
         PersistenceManager.shared.saveImmediately(appData)
     }
 
@@ -167,36 +281,35 @@ final class AppViewModel: ObservableObject {
             guard let self else { return }
             for listIdx in self.appData.lists.indices {
                 for taskIdx in self.appData.lists[listIdx].tasks.indices {
-                        let task = self.appData.lists[listIdx].tasks[taskIdx]
-                        guard task.isHealthTask,
-                              !task.isCompleted,
-                              let htStr  = task.healthType,
-                              let ht     = HealthTaskType(rawValue: htStr),
-                              let target = task.healthTarget,
-                              target > 0
-                        else { continue }
-     
-                        let current: Double
-                        switch ht {
-                        case .steps:    current = steps
-                        case .calories: current = calories
-                        case .distance: current = distance
-                        case .none:     continue
-                        }
-     
-                    if current >= target {
+                    let task = self.appData.lists[listIdx].tasks[taskIdx]
+                    guard task.isHealthTask,
+                          let htStr  = task.healthType,
+                          let ht     = HealthTaskType(rawValue: htStr),
+                          let target = task.healthTarget,
+                          target > 0
+                    else { continue }
+
+                    let current: Double
+                    switch ht {
+                    case .steps:    current = steps
+                    case .calories: current = calories
+                    case .distance: current = distance
+                    case .none:     continue
+                    }
+
+                    if current >= target && !task.isCompleted {
                         self.appData.lists[listIdx].tasks[taskIdx].isCompleted = true
                         self.updateTodaySnapshot()
-                        self.syncPublished()  // ← add this line
+                        self.syncPublished()
                         PersistenceManager.shared.saveImmediately(self.appData)
 
                         let gen = UINotificationFeedbackGenerator()
                         gen.notificationOccurred(.success)
                     }
-                    }
                 }
             }
         }
+    }
     
     
     // MARK: - List Management
@@ -205,6 +318,23 @@ final class AppViewModel: ObservableObject {
         guard !appData.lists.contains(where: { $0.isTodo }) else { return }
         let todo = TaskList(name: "TO DO", emoji: "✅", isTodo: true)
         appData.lists.insert(todo, at: 0)
+        syncPublished()
+        PersistenceManager.shared.saveImmediately(appData)
+    }
+
+    private func ensureWeeklyListExists() {
+        if let idx = appData.lists.firstIndex(where: { $0.isWeekly || $0.name == "Weekly Planner" }) {
+            if !appData.lists[idx].isWeekly {
+                appData.lists[idx].isWeekly = true
+                appData.lists[idx].emoji = "📅"
+                syncPublished()
+                PersistenceManager.shared.saveImmediately(appData)
+            }
+            return
+        }
+        guard !appData.lists.contains(where: { $0.isWeekly }) else { return }
+        let weekly = TaskList(name: "Weekly Planner", emoji: "📅", isWeekly: true)
+        appData.lists.append(weekly)
         syncPublished()
         PersistenceManager.shared.saveImmediately(appData)
     }
@@ -380,10 +510,23 @@ final class AppViewModel: ObservableObject {
             cachedBestStreak = computeBestStreak()
         }
 
-        PersistenceManager.shared.save(appData)
+        PersistenceManager.shared.save(AppData(
+            lists: lists,
+            activeListID: activeListID,
+            snapshots: snapshots,
+            weeklyPlan: weeklyPlan
+        ))
     }
 
     func setActiveList(_ list: TaskList) {
+        guard !list.isWeekly else {
+            if let fallback = appData.activeRegularList ?? appData.lists.first(where: { $0.isTodo && !$0.isArchived }) {
+                appData.activeListID = fallback.id
+                cachedBestStreak = computeBestStreak()
+                PersistenceManager.shared.saveImmediately(appData)
+            }
+            return
+        }
         appData.activeListID = list.id
         cachedBestStreak = computeBestStreak()
         PersistenceManager.shared.saveImmediately(appData)
@@ -392,13 +535,21 @@ final class AppViewModel: ObservableObject {
     func handleURL(_ url: URL) {
         guard url.scheme == "sortyd" else { return }
         
-        // Handle sortyd://list/<UUID>
-        if url.host == "list", let listID = UUID(uuidString: url.lastPathComponent) {
-            if let list = lists.first(where: { $0.id == listID }) {
+        // Handle sortyd://list/<UUID> and sortyd://lists/<UUID>.
+        if (url.host == "list" || url.host == "lists"), let listID = UUID(uuidString: url.lastPathComponent) {
+            if let list = lists.first(where: { $0.id == listID && !$0.isWeekly }) {
                 setActiveList(list)
                 selectedTab = 0 // Switch to Today tab
-                Analytics.logEvent("widget_list_opened", parameters: ["list_name": list.name])
+                Analytics.logEvent("widget_list_opened", parameters: nil)
             }
+            return
+        }
+
+        switch url.host {
+        case "analytics": selectedTab = 2
+        case "coach": selectedTab = 3
+        case "open", "home", "quick-add": selectedTab = 0
+        default: break
         }
     }
 
@@ -426,11 +577,17 @@ final class AppViewModel: ObservableObject {
         let time: Date
     }
 
-    func findReminderConflict(hour: Int, minute: Int, in listID: UUID, excludingTaskID: UUID? = nil) -> ReminderConflictInfo? {
+    func findReminderConflict(hour: Int, minute: Int, in listID: UUID, excludingTaskID: UUID? = nil,
+                              date: Date? = nil, isOneTime: Bool = false) -> ReminderConflictInfo? {
         let cal = Calendar.current
-        for list in appData.lists {
+        for list in appData.lists where !list.isArchived {
             for task in list.tasks {
                 guard let rt = task.reminderTime else { continue }
+                let once = task.reminderIsOneTime || list.isTodo || list.isWeekly
+                guard ReminderPolicy.fireDate(reminder: rt, oneTime: once, weekly: list.isWeekly,
+                    archived: false, completed: task.isCompleted) != nil else { continue }
+                if once, let date, (isOneTime || appData.lists.first(where: { $0.id == listID })?.isTodo == true),
+                   !cal.isDate(rt, inSameDayAs: date) { continue }
                 if let excludeID = excludingTaskID, task.id == excludeID { continue }
                 if cal.component(.hour, from: rt) == hour && cal.component(.minute, from: rt) == minute {
                     return ReminderConflictInfo(
@@ -453,7 +610,7 @@ final class AppViewModel: ObservableObject {
         _skipSync = true
         var task = SortydTask(id: UUID(), title: title)
             task.reminderTime      = reminderTime
-            task.reminderIsOneTime = reminderIsOneTime
+            task.reminderIsOneTime = reminderIsOneTime || appData.lists[idx].isTodo || appData.lists[idx].isWeekly
             task.healthType        = healthType
             task.healthTarget      = healthTarget
         appData.lists[idx].tasks.append(task)
@@ -476,6 +633,39 @@ final class AppViewModel: ObservableObject {
             }
         }
 
+        PersistenceManager.shared.saveImmediately(appData)
+    }
+    func createTaskAtTime(title: String, date: Date, durationMinutes: Int? = nil, soundName: String? = nil, hexColor: String? = nil) {
+        ensureWeeklyListExists()
+        guard let listID = weeklyList?.id else { return }
+        
+        let newTask = SortydTask(
+            title: title,
+            reminderTime: date,
+            reminderIsOneTime: true,
+            soundName: soundName,
+            hexColor: hexColor,
+            durationMinutes: durationMinutes
+        )
+        
+        addTask(newTask, to: listID)
+        
+        Task {
+            let granted = await NotificationManager.shared.requestPermissionIfNeeded()
+            if granted, let list = lists.first(where: { $0.id == listID }) {
+                await NotificationManager.shared.scheduleReminder(for: newTask, in: list)
+            }
+        }
+    }
+
+
+    func addTask(_ task: SortydTask, to listID: UUID) {
+        guard let idx = appData.lists.firstIndex(where: { $0.id == listID }) else { return }
+        _skipSync = true
+        appData.lists[idx].tasks.append(task)
+        appData.lists[idx].recalculateWeights()
+        _skipSync = false
+        syncPublished()
         PersistenceManager.shared.saveImmediately(appData)
     }
 
@@ -527,6 +717,25 @@ final class AppViewModel: ObservableObject {
         }
         undoManager?.setActionName("Move Task")
     }
+    func updateTask(_ taskID: UUID, in listID: UUID, transform: (inout SortydTask) -> Void) {
+        guard let listIdx = appData.lists.firstIndex(where: { $0.id == listID }),
+              let taskIdx = appData.lists[listIdx].tasks.firstIndex(where: { $0.id == taskID })
+        else { return }
+        
+        transform(&appData.lists[listIdx].tasks[taskIdx])
+        
+        let updatedTask = appData.lists[listIdx].tasks[taskIdx]
+        let list = appData.lists[listIdx]
+        
+        if updatedTask.reminderTime != nil {
+            Task {
+                await NotificationManager.shared.scheduleReminder(for: updatedTask, in: list)
+            }
+        }
+        
+        PersistenceManager.shared.saveImmediately(appData)
+    }
+
 
     func updateTaskTitle(_ task: SortydTask, in listID: UUID, newTitle: String) {
         guard let listIdx = appData.lists.firstIndex(where: { $0.id == listID }),
@@ -557,10 +766,14 @@ final class AppViewModel: ObservableObject {
         // Batch the mutation and force an explicit syncPublished so the
         // @Published lists update fires immediately on the main actor,
         // not deferred across the async boundary.
+        // TO DO tasks must always use a one-time trigger — the canvas wipes at 4 AM and
+        // a repeating trigger would keep firing on tasks that no longer exist.
+        let effectiveOneTime = isOneTime || appData.lists[listIdx].isTodo
+
         Analytics.logEvent("reminder_set", parameters: nil)
         _skipSync = true
         appData.lists[listIdx].tasks[taskIdx].reminderTime      = time
-        appData.lists[listIdx].tasks[taskIdx].reminderIsOneTime = isOneTime
+        appData.lists[listIdx].tasks[taskIdx].reminderIsOneTime = effectiveOneTime
         _skipSync = false
         syncPublished()
         PersistenceManager.shared.saveImmediately(appData)
@@ -588,6 +801,13 @@ final class AppViewModel: ObservableObject {
 
     func cancelLegacyNotifications() {
         NotificationManager.shared.cancelLegacyTodoResetNotification()
+        // Immediately sweep any stale repeating TO DO notifications from before the fix.
+        let knownIDs = Set(appData.lists.flatMap { $0.tasks.map(\.id) })
+        let liveLists = appData.lists
+        Task {
+            await NotificationManager.shared.cancelOrphanedNotifications(knownTaskIDs: knownIDs)
+            await NotificationManager.shared.resyncTaskReminders(lists: liveLists)
+        }
     }
 
     // MARK: - Daily Reset
@@ -608,11 +828,12 @@ final class AppViewModel: ObservableObject {
         let lastReset = PersistenceManager.shared.loadLastResetDate()
         guard lastReset < resetBoundary else { return }
 
-        let yesterday = calendar.date(byAdding: .day, value: -1, to: calendar.startOfDay(for: now)) ?? calendar.startOfDay(for: now)
-        for list in appData.lists {
+        // State belongs to the last active logical day, not automatically yesterday.
+        let previousDay = ReminderPolicy.dayStart(lastReset)
+        for list in appData.lists where !list.isArchived && !list.isWeekly && lastReset != .distantPast {
             let snap = DailySnapshot(
                 id: UUID(),
-                date: yesterday,
+                date: previousDay,
                 listID: list.id,
                 completionFraction: list.completionFraction,
                 completedTaskIDs: list.tasks.filter(\.isCompleted).map(\.id)
@@ -626,9 +847,10 @@ final class AppViewModel: ObservableObject {
                 let taskIDs = appData.lists[listIdx].tasks.map(\.id)
                 NotificationManager.shared.cancelReminders(for: taskIDs)
                 appData.lists[listIdx].tasks = []
-            } else {
+            } else if !appData.lists[listIdx].isWeekly && !appData.lists[listIdx].isArchived {
                 for taskIdx in appData.lists[listIdx].tasks.indices {
                     appData.lists[listIdx].tasks[taskIdx].isCompleted = false
+                    appData.lists[listIdx].tasks[taskIdx].manuallyCompleted = false
                 }
             }
         }
@@ -639,15 +861,20 @@ final class AppViewModel: ObservableObject {
             appData.snapshots = appData.snapshots.filter { $0.date >= cutoff }
         }
 
-        PersistenceManager.shared.saveLastResetDate(now)
+        // Sweep any stale TO DO notifications that survived as repeating triggers
+        // from builds prior to the one-time-only fix.
+        let knownIDs = Set(appData.lists.flatMap { $0.tasks.map(\.id) })
+        Task { await NotificationManager.shared.cancelOrphanedNotifications(knownTaskIDs: knownIDs) }
+
         PersistenceManager.shared.saveImmediately(appData)
+        PersistenceManager.shared.saveLastResetDate(now)
         cachedBestStreak = computeBestStreak()
     }
 
     func updateTodaySnapshot() {
         guard let list = appData.activeList else { return }
         let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
+        let today = ReminderPolicy.dayStart(Date())
 
         let snapshot = DailySnapshot(
             id: UUID(),
@@ -670,7 +897,7 @@ final class AppViewModel: ObservableObject {
     private func snapshotTodayIfNeeded() {
         guard let list = appData.activeList else { return }
         let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
+        let today = ReminderPolicy.dayStart(Date())
         let hasToday = appData.snapshots.contains(where: {
             $0.listID == list.id && calendar.isDate($0.date, inSameDayAs: today)
         })
@@ -724,17 +951,7 @@ final class AppViewModel: ObservableObject {
     }
 
     private func computeBestStreak() -> Int {
-        let snaps = snapshotsForActiveList()
-        var best = 0, current = 0
-        for snap in snaps {
-            if snap.completionFraction >= 0.8 {
-                current += 1
-                best = max(best, current)
-            } else {
-                current = 0
-            }
-        }
-        return best
+        HistoryPolicy.bestStreak(snapshotsForActiveList().map { ($0.date, $0.completionFraction) })
     }
 
     /// Cached regex — compiled once at class load; avoids try! and repeated compilation.
@@ -797,28 +1014,42 @@ final class AppViewModel: ObservableObject {
 
     // MARK: - Review Prompt
 
-    /// Call once per foreground activation. Shows the prompt after a short delay
-    /// if the schedule says it's time. Guards against showing twice in one session.
-    func checkReviewPrompt() {
-        guard !reviewPromptCheckedThisLaunch else { return }
-        reviewPromptCheckedThisLaunch = true
+    /// A review ask belongs after a real win, never on launch.
+    func checkReviewPromptAfterPositiveMoment() {
+        guard !showReviewPrompt else { return }
         guard ReviewPromptManager.shared.shouldShowPrompt() else { return }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
             guard let self else { return }
-            ReviewPromptManager.shared.recordShown()
+            guard !self.showReviewPrompt, ReviewPromptManager.shared.shouldShowPrompt() else { return }
+            self.reviewPromptExposureRecorded = false
             showReviewPrompt = true
         }
     }
 
+    func recordReviewPromptDisplayed() {
+        guard showReviewPrompt, !reviewPromptExposureRecorded else { return }
+        reviewPromptExposureRecorded = true
+        ReviewPromptManager.shared.recordShown()
+        Analytics.logEvent("review_prompt_shown", parameters: ["trigger": "task_completed"])
+    }
+
     func handleReviewNow() {
         showReviewPrompt = false
-        ReviewPromptManager.shared.recordReviewed()
+        Analytics.logEvent("review_prompt_tapped", parameters: ["destination": "app_store"])
         if let url = ReviewPromptManager.reviewURL {
-            UIApplication.shared.open(url)
+            UIApplication.shared.open(url) { opened in
+                Task { @MainActor in
+                    if opened {
+                        ReviewPromptManager.shared.recordReviewLinkOpened()
+                    }
+                    Analytics.logEvent(opened ? "review_link_opened" : "review_link_failed", parameters: nil)
+                }
+            }
         }
     }
 
     func handleReviewRemindLater() {
         showReviewPrompt = false
+        Analytics.logEvent("review_prompt_deferred", parameters: nil)
     }
 }

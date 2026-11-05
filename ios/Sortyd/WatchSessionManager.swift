@@ -10,6 +10,14 @@ import WatchConnectivity
 final class WatchSessionManager: NSObject, ObservableObject {
 
     static let shared = WatchSessionManager()
+    var onCompletion: (([String: Any]) -> Void)? {
+        didSet {
+            guard let onCompletion else { return }
+            let pending = defaults.array(forKey: "watch_pending_completions") as? [[String: Any]] ?? []
+            defaults.removeObject(forKey: "watch_pending_completions")
+            pending.forEach(onCompletion)
+        }
+    }
 
     private let suiteName = "group.com.sortyd.sortyd"
     private let dataKey   = "sortyd_app_data_v3"
@@ -32,7 +40,10 @@ final class WatchSessionManager: NSObject, ObservableObject {
               let encoded = try? JSONEncoder().encode(data) else { return }
 
         // Use updateApplicationContext so Watch gets it on next wrist raise
-        try? WCSession.default.updateApplicationContext(["appData": encoded])
+        try? WCSession.default.updateApplicationContext([
+            "appData": encoded,
+            "appLanguage": UserDefaults.standard.string(forKey: "sortyd_app_language") ?? "en"
+        ])
 
         // Also send directly if reachable (Watch foregrounded)
         if WCSession.default.isReachable {
@@ -44,7 +55,9 @@ final class WatchSessionManager: NSObject, ObservableObject {
         guard WCSession.default.isPaired,
               WCSession.default.isWatchAppInstalled else { return }
 
-        try? WCSession.default.updateApplicationContext(["appLanguage": langCode])
+        var context = WCSession.default.applicationContext
+        context["appLanguage"] = langCode
+        try? WCSession.default.updateApplicationContext(context)
 
         if WCSession.default.isReachable {
             WCSession.default.sendMessage(["appLanguage": langCode], replyHandler: nil, errorHandler: nil)
@@ -59,10 +72,6 @@ final class WatchSessionManager: NSObject, ObservableObject {
         return decoded
     }
 
-    private func save(_ data: AppData) {
-        guard let encoded = try? JSONEncoder().encode(data) else { return }
-        defaults.set(encoded, forKey: dataKey)
-    }
 }
 
 // MARK: - WCSessionDelegate
@@ -98,28 +107,40 @@ extension WatchSessionManager: WCSessionDelegate {
     // Watch toggled a task while phone was foregrounded
     nonisolated func session(_ session: WCSession,
                              didReceiveMessage message: [String: Any]) {
-        guard let raw = message["appData"] as? Data else { return }
         Task { @MainActor in
-            if let decoded = try? JSONDecoder().decode(AppData.self, from: raw) {
-                self.save(decoded)
-                NotificationCenter.default.post(name: .watchDidUpdateAppData, object: nil)
-            }
+            self.receiveCompletion(message)
         }
     }
 
     // Watch toggled a task while phone was backgrounded — arrives via application context
     nonisolated func session(_ session: WCSession,
                              didReceiveApplicationContext context: [String: Any]) {
-        guard let raw = context["appData"] as? Data else { return }
         Task { @MainActor in
-            if let decoded = try? JSONDecoder().decode(AppData.self, from: raw) {
-                self.save(decoded)
-                NotificationCenter.default.post(name: .watchDidUpdateAppData, object: nil)
-            }
+            // Legacy Watch versions sent whole datasets. Never import these lossy copies.
+            self.pushToWatch(self.currentAppData())
+        }
+    }
+
+    nonisolated func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any]) {
+        Task { @MainActor in self.receiveCompletion(userInfo) }
+    }
+
+    private func receiveCompletion(_ message: [String: Any]) {
+        guard message["taskID"] is String else {
+            pushToWatch(currentAppData())
+            return
+        }
+        if let onCompletion {
+            onCompletion(message)
+        } else {
+            var pending = defaults.array(forKey: "watch_pending_completions") as? [[String: Any]] ?? []
+            pending.append(message)
+            defaults.set(Array(pending.suffix(100)), forKey: "watch_pending_completions")
         }
     }
 }
 
 extension Notification.Name {
     static let watchDidUpdateAppData = Notification.Name("watchDidUpdateAppData")
+    static let watchTaskCompletionRequested = Notification.Name("watchTaskCompletionRequested")
 }

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — Sortyd</title>
+  <meta name="description" content="Sortyd's privacy policy. No ads, no tracking, no account required. Your data stays on your device." />
+  <link rel="canonical" href="https://www.sortyd.com/privacy/" />
+<link rel="alternate" hreflang="en" href="https://www.sortyd.com/privacy/"/>
+<link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/privacy/"/>
+<link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/privacy/"/>
+<link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/privacy/"/>
+<link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/privacy/"/>
+  <meta name="robots" content="index, follow" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Sortyd" />
+  <meta property="og:title" content="Privacy Policy — Sortyd" />
+  <meta property="og:description" content="Sortyd's privacy policy. No ads, no tracking, no account required. Your data stays on your device." />
+  <meta property="og:url" content="https://www.sortyd.com/privacy/" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --v:    #7C6FFF;
+      --c:    #3ECFFF;
+      --bg:   #FAF8F4;
+      --bg2:  #F0EDE5;
+      --bg3:  #141424;
+      --ink:  #1A1520;
+      --mute: #B0AA9E;
+      --dim:  #5C5248;
+      --grad: linear-gradient(90deg, #7C6FFF, #3ECFFF);
+      --r:    16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 64px;
+      background: rgba(250, 248, 244, 0.88);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .nav-wordmark {
+      font-family: 'Space Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .nav-link {
+      color: var(--dim);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-link:hover { color: var(--ink); }
+
+    .nav-dl {
+      background: var(--grad);
+      border: none;
+      border-radius: 100px;
+      padding: 8px 20px;
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: opacity 0.2s;
+    }
+    .nav-dl:hover { opacity: 0.85; }
+
+    /* ── Page layout ── */
+    main {
+      flex: 1;
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 80px 24px 100px;
+    }
+
+    /* ── Hero ── */
+    .page-eyebrow {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: clamp(36px, 6vw, 52px);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+
+    .hero-meta {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      color: var(--mute);
+      margin-bottom: 20px;
+    }
+
+    .hero-sub {
+      font-size: 18px;
+      color: var(--mute);
+      line-height: 1.6;
+      margin-bottom: 56px;
+      max-width: 560px;
+    }
+
+    /* ── Commitment cards ── */
+    .commits {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 64px;
+    }
+
+    @media (max-width: 560px) {
+      .commits { grid-template-columns: 1fr; }
+    }
+
+    .commit-card {
+      background: var(--bg2);
+      border: 1px solid rgba(124, 111, 255, 0.15);
+      border-radius: var(--r);
+      padding: 20px;
+      text-align: center;
+    }
+
+    .commit-icon { font-size: 22px; margin-bottom: 8px; }
+
+    .commit-card strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .commit-card span {
+      font-size: 12px;
+      color: var(--mute);
+      line-height: 1.4;
+    }
+
+    /* ── Section ── */
+    .section {
+      margin-bottom: 52px;
+    }
+
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--dim);
+    }
+
+    p {
+      font-size: 15px;
+      color: var(--mute);
+      margin-bottom: 14px;
+      line-height: 1.75;
+    }
+
+    p:last-child { margin-bottom: 0; }
+
+    ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    li {
+      font-size: 15px;
+      color: var(--mute);
+      padding-left: 20px;
+      position: relative;
+      line-height: 1.65;
+    }
+
+    li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--v);
+      font-weight: 700;
+    }
+
+    strong { color: var(--ink); font-weight: 600; }
+
+    a { color: var(--c); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Highlight block ── */
+    .highlight {
+      background: var(--bg2);
+      border-left: 3px solid var(--v);
+      border-radius: 0 var(--r) var(--r) 0;
+      padding: 20px 24px;
+      margin: 20px 0;
+    }
+
+    .highlight p {
+      margin: 0;
+      color: var(--ink);
+      font-size: 15px;
+    }
+
+    /* ── Contact section ── */
+    .contact-section {
+      background: var(--bg2);
+      border: 1px solid rgba(124, 111, 255, 0.18);
+      border-radius: var(--r);
+      padding: 36px;
+      text-align: center;
+      margin-top: 64px;
+    }
+
+    .contact-section h2 {
+      border: none;
+      padding: 0;
+      margin-bottom: 8px;
+      font-size: 22px;
+    }
+
+    .contact-section p {
+      margin-bottom: 24px;
+    }
+
+    .contact-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--grad);
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px 28px;
+      border-radius: 100px;
+      transition: opacity 0.2s;
+    }
+    .contact-btn:hover { opacity: 0.85; text-decoration: none; }
+
+    /* ── Footer ── */
+    footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 28px 40px;
+      border-top: 1px solid rgba(0, 0, 0, 0.07);
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .footer-wordmark {
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .footer-div {
+      width: 1px;
+      height: 14px;
+      background: var(--dim);
+    }
+
+    .footer-tagline {
+      font-size: 13px;
+      color: var(--mute);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-links a {
+      font-size: 13px;
+      color: var(--mute);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--ink); }
+
+    .footer-copy {
+      font-size: 13px;
+      color: var(--dim);
+      width: 100%;
+      text-align: right;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 640px) {
+      nav { padding: 0 20px; }
+      footer { padding: 24px 20px; flex-direction: column; align-items: flex-start; }
+      .footer-copy { text-align: left; }
+    }
+  
+.lang-switcher { position: relative; display: flex; align-items: center; }
+.lang-select { appearance: none; -webkit-appearance: none; background: transparent; border: 1px solid rgba(124,111,255,.22); border-radius: 100px; padding: 6px 28px 6px 12px; font-family: 'Space Mono', monospace; font-size: .66rem; font-weight: 700; letter-spacing: .10em; color: #6B6B8A; cursor: pointer; transition: border-color .2s, color .2s; outline: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B6B8A' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+.lang-select:hover { border-color: #7C6FFF; color: #EEEEF5; }
+.lang-select option { background: #0D0E1A; }
+</style>
+</head>
+<body>
+
+  <!-- ── Nav ── -->
+  <nav>
+    <a class="nav-logo" href="https://www.sortyd.com">
+      <img src="/logo.png" alt="Sortyd Logo" style="height: 32px; width: auto; display: block;">
+    </a>
+    <div class="nav-right">
+      <a class="nav-link" href="https://www.sortyd.com#features">Features</a>
+      <a class="nav-link" href="https://www.sortyd.com#how">Process</a>
+          <div class="lang-switcher">
+      <select class="lang-select" id="langSelect" onchange="switchLang(this.value)" aria-label="Select language">
+        <option value="en" selected>EN</option selected>
+        <option value="es">ES</option>
+        <option value="ar">ع</option>
+        <option value="zh">中文</option>
+      </select>
+    </div>
+    <a class="nav-dl" href="https://apps.apple.com/in/app/sortyd/id6762193535">Download</a>
+    </div>
+  </nav>
+
+  <!-- ── Main ── -->
+  <main>
+
+    <p class="page-eyebrow">Privacy Policy</p>
+    <h1>Your data.<br>Your device.</h1>
+    <p class="hero-meta">Last updated: April 2026 · Effective immediately</p>
+    <p class="hero-sub">Sortyd is built on a simple principle: your habits are none of our business. No ads, no tracking, no selling your data. Ever.</p>
+
+    <!-- Three commitments -->
+    <div class="commits">
+      <div class="commit-card">
+        <div class="commit-icon">🔒</div>
+        <strong>Data stays on-device</strong>
+        <span>Tasks and lists never leave your phone</span>
+      </div>
+      <div class="commit-card">
+        <div class="commit-icon">🚫</div>
+        <strong>No ads. No profiling.</strong>
+        <span>No advertising SDKs or identity tracking</span>
+      </div>
+      <div class="commit-card">
+        <div class="commit-icon">🆓</div>
+        <strong>No account required</strong>
+        <span>We never ask for your email or name</span>
+      </div>
+    </div>
+
+    <!-- 1 -->
+    <div class="section">
+      <h2>1. Who we are</h2>
+      <p>Sortyd is an iOS habit tracking app built and operated by an independent developer. We can be reached at <a href="mailto:privacy@sortyd.com">privacy@sortyd.com</a>.</p>
+    </div>
+
+    <!-- 2 -->
+    <div class="section">
+      <h2>2. Data stored on your device</h2>
+      <p>All of your app data is stored locally on your device using iOS's UserDefaults and the App Group container shared with the Sortyd widget and Apple Watch app. This includes:</p>
+      <ul>
+        <li>Your task lists, task titles, and completion history</li>
+        <li>Daily snapshots used to calculate streaks and analytics</li>
+        <li>Reminder times you set for individual tasks</li>
+        <li>Your selected theme (dark/light mode preference)</li>
+      </ul>
+      <div class="highlight">
+        <p><strong>None of this data is transmitted to our servers.</strong> It lives on your device and is removed when you delete the app.</p>
+      </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="section">
+      <h2>3. AI Coach — what gets sent to the internet</h2>
+      <p>When you use the AI Coach or Analytics features, Sortyd sends a limited, anonymised summary to generate insights. This summary contains:</p>
+      <ul>
+        <li>Your task titles (e.g. "Morning Workout", "Drink Water")</li>
+        <li>Your completion rates per task over the past 7–14 days</li>
+        <li>Which days of the week tasks were completed or skipped</li>
+      </ul>
+      <p>This data is sent through a Cloudflare Worker proxy to <a href="https://groq.com" target="_blank" rel="noopener">Groq's API</a> to generate your coaching response. We do not log, store, or retain this data on our servers. Each request is independent — we have no way to link it back to you.</p>
+      <p><strong>Your health data, device identifiers, location, and any personal information are never included in these requests.</strong></p>
+    </div>
+
+    <!-- 4 -->
+    <div class="section">
+      <h2>4. Apple HealthKit</h2>
+      <p>If you connect Apple Health, Sortyd reads your step count and active calories burned in read-only mode. This data is used exclusively to auto-complete health tasks you've set (e.g. "Walk 10,000 steps").</p>
+      <ul>
+        <li>Health data is read locally from Apple's HealthKit framework</li>
+        <li>It is never uploaded to our servers or included in AI requests</li>
+        <li>It is never shared with third parties</li>
+        <li>You can revoke Health access at any time in iOS Settings → Health → Data Access</li>
+      </ul>
+    </div>
+
+    <!-- 5 -->
+    <div class="section">
+      <h2>5. Notifications</h2>
+      <p>Sortyd schedules daily task reminders and an optional evening summary notification. All notifications are processed entirely on-device using iOS's UserNotifications framework. No notification content is sent to our servers.</p>
+      <p>You can disable notifications at any time in iOS Settings → Notifications → Sortyd.</p>
+    </div>
+
+    <!-- 6 -->
+    <div class="section">
+      <h2>6. Analytics</h2>
+      <p>Sortyd uses <strong>Firebase Analytics</strong> (by Google) to collect anonymous, aggregated usage data. This helps us understand how the app is used so we can improve it. The data collected includes:</p>
+      <ul>
+        <li>Screen views (e.g. which tabs you visit)</li>
+        <li>Feature interactions (e.g. creating a list, completing a task, using AI Coach)</li>
+        <li>Basic device metadata (OS version, device model)</li>
+      </ul>
+      <p>This data is <strong>not linked to your identity</strong>, is <strong>not used for advertising</strong>, and is <strong>not used for cross-app tracking</strong>. Firebase Analytics assigns a per-installation identifier that resets if you delete and reinstall the app. We do not use advertising SDKs, crash reporters, or any other third-party analytics service.</p>
+    </div>
+
+    <!-- 7 -->
+    <div class="section">
+      <h2>7. Data sharing</h2>
+      <p>We do not sell, rent, trade, or share your personal data with any third party for commercial purposes. The external services that may receive data from Sortyd are:</p>
+      <ul>
+        <li><strong>Groq API</strong> — receives an anonymised task summary only when you explicitly trigger AI Coach or Analytics features (see Section 3)</li>
+        <li><strong>Google Firebase Analytics</strong> — receives anonymous usage events as described in Section 6. Governed by <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's Privacy Policy</a></li>
+      </ul>
+      <p>No other third party receives any data from Sortyd.</p>
+    </div>
+
+    <!-- 8 -->
+    <div class="section">
+      <h2>8. Children's privacy</h2>
+      <p>Sortyd is not directed at children under 13. We do not knowingly collect any data from children. The app is rated 4+ on the App Store. If you believe a child has used the app and you have concerns, contact us at <a href="mailto:privacy@sortyd.com">privacy@sortyd.com</a>.</p>
+    </div>
+
+    <!-- 9 -->
+    <div class="section">
+      <h2>9. Data retention and deletion</h2>
+      <p>Because all data is stored locally on your device, you are always in full control. To delete all Sortyd data: delete the app from your device. This removes everything — tasks, history, snapshots, preferences — permanently.</p>
+      <p>Snapshot history older than 730 days is automatically pruned within the app to keep storage usage minimal.</p>
+    </div>
+
+    <!-- 10 -->
+    <div class="section">
+      <h2>10. Changes to this policy</h2>
+      <p>If we make material changes to this privacy policy, we will update the "Last updated" date at the top of this page. Continued use of the app after changes constitutes acceptance of the updated policy. We will never make changes that reduce your privacy protections without clear notice.</p>
+    </div>
+
+    <!-- Contact -->
+    <div class="contact-section">
+      <h2>Questions about privacy?</h2>
+      <p>We're a small team and we read every email. Reach out any time.</p>
+      <a class="contact-btn" href="mailto:privacy@sortyd.com">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M2 4a1 1 0 011-1h10a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V4z" stroke="#fff" stroke-width="1.4"/>
+          <path d="M2 4l6 5 6-5" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>
+        </svg>
+        privacy@sortyd.com
+      </a>
+    </div>
+
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer>
+    <div class="footer-left">
+      <span class="footer-wordmark">sortyd</span>
+      <div class="footer-div"></div>
+      <span class="footer-tagline">AI Habit Tracker</span>
+    </div>
+    <div class="footer-links">
+      <a href="/privacy">Privacy</a>
+      <a href="/support">Support</a>
+      <a href="mailto:support@sortyd.com">Contact</a>
+    </div>
+    <span class="footer-copy">© 2026 Sortyd</span>
+  </footer>
+
+<script src="/i18n.js"></script>
+</body>
+</html>
+

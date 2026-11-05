@@ -299,6 +299,7 @@ struct SmartAddTaskSheet: View {
                 onGrant: { hk.fetchToday() },
                 onSkip:  {}
             )
+            .environmentObject(vm)
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
             .presentationCornerRadius(Theme.r32)
@@ -571,11 +572,11 @@ struct StarterListSheet: View {
     @State private var editableListName: String = ""
     @State private var isGenerating = false
     @State private var generationFailed = false
-    @State private var editableTasks: [String] = []
-    @State private var selectedIndices: Set<Int> = []
-    @State private var taskReminders: [Int: Date] = [:]
-    @State private var taskReminderIsOneTime: [Int: Bool] = [:]
-    @State private var editingReminderIndex: Int? = nil
+    @State private var editableTasks: [StarterTaskDraft] = []
+    @State private var selectedTaskIDs: Set<UUID> = []
+    @State private var taskReminders: [UUID: Date] = [:]
+    @State private var taskReminderIsOneTime: [UUID: Bool] = [:]
+    @State private var editingReminderID: UUID? = nil
     @State private var showHealthPermission = false
     @State private var detectedHealthTypeForPermission: HealthTaskType = .none
     @State private var starterConflictHealthType: HealthTaskType? = nil
@@ -583,10 +584,10 @@ struct StarterListSheet: View {
     @StateObject private var hk = HealthKitManager.shared
     @FocusState private var isFocused: Bool
 
-    // Editable health targets keyed by task index
+    // Editable health targets keyed by stable task identity
     // Steps default: 10000, Calories default: 500
-    @State private var healthTargets: [Int: String] = [:]
-    @State private var taskHealthTypes: [Int: HealthTaskType] = [:]
+    @State private var healthTargets: [UUID: String] = [:]
+    @State private var taskHealthTypes: [UUID: HealthTaskType] = [:]
 
     var body: some View {
         NavigationStack {
@@ -631,15 +632,16 @@ struct StarterListSheet: View {
         .presentationBackground(Theme.bg0)
         .onAppear { isFocused = true }
         .sheet(item: Binding(
-            get: { editingReminderIndex.map { StarterReminderEdit(index: $0) } },
-            set: { editingReminderIndex = $0?.index }
+            get: { editingReminderID.map { StarterReminderEdit(id: $0) } },
+            set: { editingReminderID = $0?.id }
         )) { item in
             ReminderPickerSheet(
-                selectedTime: taskReminders[item.index] ?? starterDefaultTime,
-                isOneTime: taskReminderIsOneTime[item.index] ?? false
+                selectedTime: taskReminders[item.id] ?? starterDefaultTime,
+                isOneTime: taskReminderIsOneTime[item.id] ?? false
             ) { time, oneTime in
-                taskReminders[item.index] = time
-                taskReminderIsOneTime[item.index] = oneTime
+                guard editableTasks.contains(where: { $0.id == item.id }) else { return }
+                taskReminders[item.id] = time
+                taskReminderIsOneTime[item.id] = oneTime
             }
         }
         .sheet(isPresented: $showHealthPermission, onDismiss: { dismiss() }) {
@@ -648,6 +650,7 @@ struct StarterListSheet: View {
                 onGrant: { hk.fetchToday() },
                 onSkip:  {}
             )
+            .environmentObject(vm)
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
             .presentationCornerRadius(Theme.r32)
@@ -748,7 +751,7 @@ struct StarterListSheet: View {
                             .font(.system(size: 18, weight: .black))
                             .foregroundColor(Theme.text0)
                         Text(String(format: vm.localized("%lld of %lld tasks selected"),
-                                    Int64(selectedIndices.count),
+                                    Int64(selectedTaskIDs.count),
                                     Int64(editableTasks.count)))
                             .font(.system(size: 12))
                             .foregroundColor(Theme.text2)
@@ -759,10 +762,12 @@ struct StarterListSheet: View {
                         goalInput = ""
                         editableListName = ""
                         editableTasks = []
-                        selectedIndices = []
+                        selectedTaskIDs = []
                         taskReminders = [:]
                         taskReminderIsOneTime = [:]
                         healthTargets = [:]
+                        taskHealthTypes = [:]
+                        editingReminderID = nil
                     }) {
                         Text(vm.localized("Redo"))
                             .font(.system(size: 13, weight: .semibold))
@@ -775,8 +780,9 @@ struct StarterListSheet: View {
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 8) {
-                        ForEach(editableTasks.indices, id: \.self) { idx in
-                            let isSelected = selectedIndices.contains(idx)
+                        ForEach(editableTasks) { task in
+                            let idx = task.id
+                            let isSelected = selectedTaskIDs.contains(idx)
                             let taskHealthType = taskHealthTypes[idx] ?? .none
 
                             HStack(spacing: 8) {
@@ -784,8 +790,8 @@ struct StarterListSheet: View {
                                     // ── Main task row ──
                                     HStack(spacing: 12) {
                                         Button {
-                                            if isSelected { selectedIndices.remove(idx) }
-                                            else { selectedIndices.insert(idx) }
+                                            if isSelected { selectedTaskIDs.remove(idx) }
+                                            else { selectedTaskIDs.insert(idx) }
                                         } label: {
                                             ZStack {
                                                 Circle()
@@ -802,7 +808,10 @@ struct StarterListSheet: View {
                                         .buttonStyle(.plain)
 
                                         VStack(alignment: .leading, spacing: 6) {
-                                            TextField(vm.localized("Task name"), text: $editableTasks[idx])
+                                            TextField(vm.localized("Task name"), text: Binding(
+                                                get: { editableTasks.first(where: { $0.id == idx })?.title ?? "" },
+                                                set: { editableTasks.updateDraftTitle(id: idx, title: $0) }
+                                            ))
                                                 .font(.system(size: 15, weight: .semibold))
                                                 .foregroundColor(Theme.text0)
 
@@ -894,7 +903,7 @@ struct StarterListSheet: View {
                                         .buttonStyle(.plain)
 
                                         Button {
-                                            editingReminderIndex = idx
+                                            editingReminderID = idx
                                         } label: {
                                             let hasTime = taskReminders[idx] != nil
                                             Image(systemName: hasTime ? "bell.fill" : "bell")
@@ -940,7 +949,7 @@ struct StarterListSheet: View {
                                 )
 
                                 // ── Delete button (Outside the task) ──
-                                Button { removeTask(at: idx) } label: {
+                                Button { removeTask(id: idx) } label: {
                                     Image(systemName: "xmark")
                                         .font(.system(size: 14, weight: .bold))
                                         .foregroundColor(Theme.text2.opacity(0.4))
@@ -958,9 +967,9 @@ struct StarterListSheet: View {
                 }
 
                 Button {
-                    let newIndex = editableTasks.count
-                    editableTasks.append("")
-                    selectedIndices.insert(newIndex)
+                    let draft = StarterTaskDraft(title: "")
+                    editableTasks.append(draft)
+                    selectedTaskIDs.insert(draft.id)
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "plus.circle.fill")
@@ -983,7 +992,7 @@ struct StarterListSheet: View {
                 }
 
                 Button(action: { createList(list) }) {
-                    let btnText = String(format: vm.localized("Create List with %lld Tasks"), Int64(selectedIndices.count))
+                    let btnText = String(format: vm.localized("Create List with %lld Tasks"), Int64(selectedTaskIDs.count))
                     Text(btnText)
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#0A1A0A") : .white)
@@ -991,20 +1000,21 @@ struct StarterListSheet: View {
                         .padding(.vertical, 18)
                         .background(
                             Capsule()
-                                .fill(selectedIndices.isEmpty ? Theme.bg3 : Theme.accent)
-                                .shadow(color: selectedIndices.isEmpty ? .clear : Theme.accent.opacity(0.4), radius: 12, x: 0, y: 6)
+                                .fill(selectedTaskIDs.isEmpty ? Theme.bg3 : Theme.accent)
+                                .shadow(color: selectedTaskIDs.isEmpty ? .clear : Theme.accent.opacity(0.4), radius: 12, x: 0, y: 6)
                         )
                 }
                 .buttonStyle(.plain)
-                .disabled(selectedIndices.isEmpty)
+                .disabled(selectedTaskIDs.isEmpty)
                 .padding(.horizontal, 20)
                 .padding(.bottom, 32)
             }
         }
     }
 
-    private func setHealthType(_ type: HealthTaskType, for idx: Int) {
+    private func setHealthType(_ type: HealthTaskType, for idx: UUID) {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            guard editableTasks.contains(where: { $0.id == idx }) else { return }
             taskHealthTypes[idx] = type
             if type == .steps && (healthTargets[idx] == nil || healthTargets[idx]!.isEmpty) {
                 healthTargets[idx] = "10000"
@@ -1016,10 +1026,10 @@ struct StarterListSheet: View {
         }
     }
 
-    private func isTypeBlocked(_ type: HealthTaskType, currentIdx: Int) -> Bool {
+    private func isTypeBlocked(_ type: HealthTaskType, currentIdx: UUID) -> Bool {
         guard type != .none else { return false }
         for (idx, t) in taskHealthTypes {
-            if idx != currentIdx && t == type && selectedIndices.contains(idx) {
+            if idx != currentIdx && t == type && selectedTaskIDs.contains(idx) {
                 return true
             }
         }
@@ -1073,42 +1083,20 @@ struct StarterListSheet: View {
         }
     }
 
-    private func removeTask(at idx: Int) {
+    private func removeTask(id: UUID) {
         withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
-            editableTasks.remove(at: idx)
-            selectedIndices = Set(selectedIndices.compactMap { i -> Int? in
-                if i == idx { return nil }
-                return i > idx ? i - 1 : i
-            })
-            var newReminders: [Int: Date] = [:]
-            var newOneTime: [Int: Bool] = [:]
-            var newTargets: [Int: String] = [:]
-            var newTypes: [Int: HealthTaskType] = [:]
-            for (i, d) in taskReminders {
-                if i == idx { continue }
-                newReminders[i > idx ? i - 1 : i] = d
-            }
-            for (i, v) in taskReminderIsOneTime {
-                if i == idx { continue }
-                newOneTime[i > idx ? i - 1 : i] = v
-            }
-            for (i, t) in healthTargets {
-                if i == idx { continue }
-                newTargets[i > idx ? i - 1 : i] = t
-            }
-            for (i, t) in taskHealthTypes {
-                if i == idx { continue }
-                newTypes[i > idx ? i - 1 : i] = t
-            }
-            taskReminders = newReminders
-            taskReminderIsOneTime = newOneTime
-            healthTargets = newTargets
-            taskHealthTypes = newTypes
+            editableTasks.removeDraft(id: id)
+            selectedTaskIDs.remove(id)
+            taskReminders.removeValue(forKey: id)
+            taskReminderIsOneTime.removeValue(forKey: id)
+            healthTargets.removeValue(forKey: id)
+            taskHealthTypes.removeValue(forKey: id)
+            if editingReminderID == id { editingReminderID = nil }
         }
     }
 
     private func generate() {
-        guard !goalInput.isEmpty else { return }
+        guard !goalInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !isGenerating else { return }
         isGenerating = true
         generationFailed = false
         Task {
@@ -1148,12 +1136,18 @@ struct StarterListSheet: View {
                         tasks: tasks
                     )
 
-                    editableTasks = tasks
-                    selectedIndices = Set(tasks.indices)
+                    editableTasks = tasks.map { StarterTaskDraft(title: $0) }
+                    selectedTaskIDs = Set(editableTasks.map(\.id))
+                    taskReminders = [:]
+                    taskReminderIsOneTime = [:]
+                    healthTargets = [:]
+                    taskHealthTypes = [:]
+                    editingReminderID = nil
 
-                    // Pre-fill health types
-                    for (idx, task) in tasks.enumerated() {
-                        let ht = HealthTaskType.detect(from: task)
+                    // Metadata follows stable task IDs when rows are removed or edited.
+                    for task in editableTasks {
+                        let idx = task.id
+                        let ht = HealthTaskType.detect(from: task.title)
                         taskHealthTypes[idx] = ht
                         if ht == .steps    { healthTargets[idx] = "10000" }
                         if ht == .calories { healthTargets[idx] = "500" }
@@ -1174,14 +1168,15 @@ struct StarterListSheet: View {
     // `extractNumericTarget` logic in AppViewModel picks them up cleanly.
     private func createList(_ starter: StarterList) {
         let dedupedTaskData: [(title: String, reminder: Date?, isOneTime: Bool, healthType: HealthTaskType?)] =
-            selectedIndices.sorted().compactMap { idx in
-                guard idx < editableTasks.count else { return nil }
-                var trimmed = editableTasks[idx].trimmingCharacters(in: .whitespaces)
+            editableTasks.filter { selectedTaskIDs.contains($0.id) }.compactMap { task in
+                let idx = task.id
+                var trimmed = task.title.trimmingCharacters(in: .whitespaces)
                 guard !trimmed.isEmpty else { return nil }
 
                 let ht = taskHealthTypes[idx] ?? .none
                 if ht != .none, let userTargetStr = healthTargets[idx],
-                   let userTarget = Double(userTargetStr), userTarget > 0 {
+                   let userTarget = Double(userTargetStr), userTarget.isFinite,
+                   userTarget > 0, userTarget < Double(Int.max) {
                     // Inject target into title if needed, or just let it be handled by addListWithTasks if I update it.
                     // Actually, addListWithTasks in AppViewModel doesn't take health info directly, it detects it.
                     // WAIT, I should check AppViewModel.addListWithTasks again.
@@ -1189,7 +1184,7 @@ struct StarterListSheet: View {
                     // So I MUST inject the number into the title.
                     
                     let detectedNum = AppViewModel.extractNumericTarget(from: trimmed, type: ht)
-                    if detectedNum > 0 {
+                    if detectedNum.isFinite, detectedNum > 0, detectedNum < Double(Int.max) {
                         let oldNum = String(Int(detectedNum))
                         let newNum = String(Int(userTarget))
                         trimmed = trimmed.replacingOccurrences(of: oldNum, with: newNum)
@@ -1305,8 +1300,7 @@ struct StarterListSheet: View {
 }
 
 private struct StarterReminderEdit: Identifiable {
-    let index: Int
-    var id: Int { index }
+    let id: UUID
 }
 
 private let starterTimeFormatter: DateFormatter = {

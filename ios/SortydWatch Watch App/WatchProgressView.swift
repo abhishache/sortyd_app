@@ -35,7 +35,7 @@ struct WatchProgressView: View {
                             .font(.title3)
                             .fontWeight(.bold)
                             .foregroundStyle(.white)
-                        Text(store.appLanguage == .arabic ? "تم" : (store.appLanguage == .spanish ? "hecho" : "done"))
+                        Text(store.appLanguage == .arabic ? "تم" : (store.appLanguage == .spanish ? "hecho" : (store.appLanguage == .chinese ? "完成" : "done")))
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
@@ -48,17 +48,17 @@ struct WatchProgressView: View {
                     .lineLimit(1)
 
                 // Done count
-                Text(store.appLanguage == .arabic ? "\(list.tasks.filter(\.isCompleted).count) من \(list.tasks.count) مهام" : (store.appLanguage == .spanish ? "\(list.tasks.filter(\.isCompleted).count) de \(list.tasks.count) tareas" : "\(list.tasks.filter(\.isCompleted).count) of \(list.tasks.count) tasks"))
+                Text(store.appLanguage == .arabic ? "\(list.tasks.filter(\.isCompleted).count) من \(list.tasks.count) مهام" : (store.appLanguage == .spanish ? "\(list.tasks.filter(\.isCompleted).count) de \(list.tasks.count) tareas" : (store.appLanguage == .chinese ? "\(list.tasks.filter(\.isCompleted).count)/\(list.tasks.count) 任务" : "\(list.tasks.filter(\.isCompleted).count) of \(list.tasks.count) tasks")))
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
 
                 // Motivational nudge
                 if list.completionFraction >= 1.0 {
-                    Label(store.appLanguage == .arabic ? "اكتمل الكل!" : (store.appLanguage == .spanish ? "¡Todo hecho!" : "All done!"), systemImage: "star.fill")
+                    Label(store.appLanguage == .arabic ? "اكتمل الكل!" : (store.appLanguage == .spanish ? "¡Todo hecho!" : (store.appLanguage == .chinese ? "全部完成！" : "All done!")), systemImage: "star.fill")
                         .font(.caption2)
                         .foregroundStyle(Color(hex: "3ECFFF"))
                 } else if list.completionFraction >= 0.5 {
-                    Label(store.appLanguage == .arabic ? "استمر!" : (store.appLanguage == .spanish ? "¡Sigue así!" : "Keep going!"), systemImage: "flame.fill")
+                    Label(store.appLanguage == .arabic ? "استمر!" : (store.appLanguage == .spanish ? "¡Sigue así!" : (store.appLanguage == .chinese ? "继续加油！" : "Keep going!")), systemImage: "flame.fill")
                         .font(.caption2)
                         .foregroundStyle(Color(hex: "7C6FFF"))
                 }

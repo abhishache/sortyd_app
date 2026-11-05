@@ -9,6 +9,7 @@ final class PersistenceManager {
 
     private let suiteName = "group.com.sortyd.sortyd"
     private let dataKey   = "sortyd_app_data_v3"
+    private let recoveryDataKey = "sortyd_app_data_recovery_v1"
     private let widgetKey = "sortyd_widget_data"
 
     private var defaults: UserDefaults {
@@ -19,6 +20,7 @@ final class PersistenceManager {
     private let ioQueue = DispatchQueue(label: "com.sortyd.persistence", qos: .utility)
 
     private var saveWorkItem: DispatchWorkItem?
+    private var pendingData: AppData?
     private let debounceInterval: TimeInterval = 0.4
 
     private var watchWorkItem: DispatchWorkItem?
@@ -32,30 +34,43 @@ final class PersistenceManager {
     // MARK: - Public API
 
     func save(_ data: AppData) {
-        saveWorkItem?.cancel()
-        let work = DispatchWorkItem { [weak self] in
-            self?.commitToDisk(data)
+        ioQueue.sync {
+            saveWorkItem?.cancel()
+            pendingData = data
+            let work = DispatchWorkItem { [weak self] in
+                guard let self, let latest = self.pendingData else { return }
+                self.pendingData = nil
+                self.commitToDisk(latest)
+            }
+            saveWorkItem = work
+            ioQueue.asyncAfter(deadline: .now() + debounceInterval, execute: work)
         }
-        saveWorkItem = work
-        ioQueue.asyncAfter(deadline: .now() + debounceInterval, execute: work)
     }
 
     func saveImmediately(_ data: AppData, reloadWidget: Bool = true) {
-        saveWorkItem?.cancel()
-        saveWorkItem = nil
-        ioQueue.async { [weak self] in
-            self?.commitToDisk(data, reloadWidget: reloadWidget)
+        ioQueue.sync {
+            saveWorkItem?.cancel()
+            saveWorkItem = nil
+            pendingData = nil
+            commitToDisk(data, reloadWidget: reloadWidget)
         }
     }
 
     func load() -> AppData {
-        guard
-            let raw     = defaults.data(forKey: dataKey),
-            let decoded = try? JSONDecoder().decode(AppData.self, from: raw)
-        else {
-            return AppData()
+        ioQueue.sync {
+        // A foreground refresh must not read behind an outstanding debounced edit.
+        if let latest = pendingData {
+            saveWorkItem?.cancel()
+            pendingData = nil
+            commitToDisk(latest)
         }
-        return decoded
+        guard let raw = defaults.data(forKey: dataKey) else { return AppData() }
+        if let decoded = try? JSONDecoder().decode(AppData.self, from: raw) { return decoded }
+
+        // Preserve unreadable user data before a clean state can be saved over it.
+        defaults.set(raw, forKey: recoveryDataKey)
+        return AppData()
+        }
     }
 
     func reset() { defaults.removeObject(forKey: dataKey) }
@@ -102,22 +117,27 @@ final class PersistenceManager {
                 let tasks = data.activeRegularList?.tasks ?? []
                 var caloriesGoal: Double? = nil
                 var stepGoal:     Double? = nil
+                var distanceGoal: Double? = nil
                 for task in tasks where task.isHealthTask {
                     guard let typeStr = task.healthType,
                           let target  = task.healthTarget, target > 0 else { continue }
                     if typeStr == HealthTaskType.calories.rawValue { caloriesGoal = target }
                     if typeStr == HealthTaskType.steps.rawValue    { stepGoal     = target }
+                    if typeStr == HealthTaskType.distance.rawValue { distanceGoal = target }
                 }
 
                 let caloriesBurned: Double? = caloriesGoal != nil ? hk.todayCalories : nil
                 let stepCount:      Double? = stepGoal     != nil ? hk.todaySteps    : nil
+                let distanceValue:  Double? = distanceGoal != nil ? hk.todayDistance : nil
 
                 self.writeWidgetSnapshot(
                     data,
                     caloriesBurned: caloriesBurned,
                     caloriesGoal:   caloriesGoal,
                     stepCount:      stepCount,
-                    stepGoal:       stepGoal
+                    stepGoal:       stepGoal,
+                    distanceValue:  distanceValue,
+                    distanceGoal:   distanceGoal
                 )
                 WidgetCenter.shared.reloadAllTimelines()
             }
@@ -132,7 +152,9 @@ final class PersistenceManager {
         caloriesBurned: Double? = nil,
         caloriesGoal:   Double? = nil,
         stepCount:      Double? = nil,
-        stepGoal:       Double? = nil
+        stepGoal:       Double? = nil,
+        distanceValue:  Double? = nil,
+        distanceGoal:   Double? = nil
     ) {
         guard let list = data.activeRegularList else { return }
 
@@ -141,11 +163,7 @@ final class PersistenceManager {
             .filter { $0.listID == list.id }
             .sorted { $0.date < $1.date }
 
-        var streak = 0, best = 0
-        for s in snaps {
-            if s.completionFraction >= 0.8 { streak += 1; best = max(best, streak) }
-            else { streak = 0 }
-        }
+        let best = HistoryPolicy.bestStreak(snaps.map { ($0.date, $0.completionFraction) })
 
         let df = DateFormatter()
         df.dateFormat = "yyyy-MM-dd"
@@ -154,12 +172,12 @@ final class PersistenceManager {
             monthlySnapshots[df.string(from: snap.date)] = snap.completionFraction
         }
 
-        let (lastCheckedID, prevCals, prevCalGoal, prevSteps, prevStepGoal): (UUID?, Double?, Double?, Double?, Double?) = {
+        let (lastCheckedID, prevCals, prevCalGoal, prevSteps, prevStepGoal, prevDist, prevDistGoal): (UUID?, Double?, Double?, Double?, Double?, Double?, Double?) = {
             if let raw = defaults.data(forKey: widgetKey),
                let prev = try? JSONDecoder().decode(WidgetData.self, from: raw) {
-                return (prev.lastCheckedTaskID, prev.caloriesBurned, prev.caloriesGoal, prev.stepCount, prev.stepGoal)
+                return (prev.lastCheckedTaskID, prev.caloriesBurned, prev.caloriesGoal, prev.stepCount, prev.stepGoal, prev.distanceValue, prev.distanceGoal)
             }
-            return (nil, nil, nil, nil, nil)
+            return (nil, nil, nil, nil, nil, nil, nil)
         }()
 
 
@@ -181,6 +199,8 @@ final class PersistenceManager {
             caloriesGoal:     caloriesGoal   ?? prevCalGoal,
             stepCount:        stepCount      ?? prevSteps,
             stepGoal:         stepGoal       ?? prevStepGoal,
+            distanceValue:    distanceValue  ?? prevDist,
+            distanceGoal:     distanceGoal   ?? prevDistGoal,
             lastCheckedTaskID: lastCheckedID,
             allLists: data.lists.filter { !$0.isArchived && !$0.isTodo }.map { l in
                 let listSnaps = data.snapshots.filter { $0.listID == l.id }

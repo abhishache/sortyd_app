@@ -39,3 +39,18 @@ Marcar una tarea como completada sienta bien, pero entender *por qué* tuviste �
 Las listas tradicionales solo te muestran lo que falta. Las herramientas de **análisis de rendimiento** de Sortyd te muestran tus rachas, promedios y tendencias. Cuando puedes ver que tu "tasa de cumplimiento de las 8 AM" es más alta que tu tasa nocturna, puedes **simplificar hábitos** para que coincidan con tus ciclos naturales de energía.
 
 Deja de adivinar y comienza a analizar. Con Sortyd, obtienes la información necesaria para alcanzar tu máximo rendimiento.
+
+---
+
+## 🇨🇳 Chinese (中文)
+**标题：** 超越待办清单：自我目标分析如何让你的进度翻十倍
+
+**关键词：** 自我目标分析，目标追踪，性能分析，生产力工具，Sortyd分析
+
+**内容：**
+勾选掉一项任务感觉很好，但理解你*为什么*成功（或失败）才是带来真正成长的方法。这个过程被称为**自我目标分析**，它是努力与成就之间的桥梁。
+
+传统的清单只显示剩余的事情。Sortyd 的**性能分析**工具向你显示你的连续记录、平均值和趋势。当你能看到自己的“上午8点完成率”高于晚间完成率时，你可以**优化习惯**以契合你天生的能量周期。
+
+停止猜测，开始分析。使用 Sortyd，你将获得达到巅峰状态所需的洞察力。
+

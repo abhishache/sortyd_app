@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>سياسة الخصوصية — Sortyd</title>
+  <meta name="description" content="سياسة خصوصية Sortyd. بدون إعلانات، بدون تتبع، لا حاجة لحساب. بياناتك تبقى على جهازك." />
+  <link rel="canonical" href="https://www.sortyd.com/ar/privacy/" />
+  <link rel="alternate" hreflang="en" href="https://www.sortyd.com/privacy/"/>
+  <link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/privacy/"/>
+  <link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/privacy/"/>
+  <link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/privacy/"/>
+  <link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/privacy/"/>
+  <meta name="robots" content="index, follow" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Sortyd" />
+  <meta property="og:title" content="سياسة الخصوصية — Sortyd" />
+  <meta property="og:description" content="سياسة خصوصية Sortyd. بدون إعلانات، بدون تتبع، لا حاجة لحساب. بياناتك تبقى على جهازك." />
+  <meta property="og:url" content="https://www.sortyd.com/ar/privacy/" />
+  <meta property="og:locale" content="ar_AR" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --v:    #7C6FFF;
+      --c:    #3ECFFF;
+      --bg:   #FAF8F4;
+      --bg2:  #F0EDE5;
+      --bg3:  #141424;
+      --ink:  #1A1520;
+      --mute: #B0AA9E;
+      --dim:  #5C5248;
+      --grad: linear-gradient(90deg, #7C6FFF, #3ECFFF);
+      --r:    16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 64px;
+      background: rgba(250, 248, 244, 0.88);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+
+    .nav-wordmark {
+      font-family: 'Space Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 28px; }
+
+    .nav-link { color: var(--dim); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+    .nav-link:hover { color: var(--ink); }
+
+    .nav-dl {
+      background: var(--grad);
+      border: none;
+      border-radius: 100px;
+      padding: 8px 20px;
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: opacity 0.2s;
+    }
+    .nav-dl:hover { opacity: 0.85; }
+
+    main {
+      flex: 1;
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 80px 24px 100px;
+    }
+
+    .page-eyebrow {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+
+    h1 { font-size: clamp(36px, 6vw, 52px); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 16px; }
+
+    .hero-meta { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--mute); margin-bottom: 20px; }
+
+    .hero-sub { font-size: 18px; color: var(--mute); line-height: 1.6; margin-bottom: 56px; max-width: 560px; }
+
+    .commits { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 64px; }
+
+    @media (max-width: 560px) { .commits { grid-template-columns: 1fr; } }
+
+    .commit-card { background: var(--bg2); border: 1px solid rgba(124, 111, 255, 0.15); border-radius: var(--r); padding: 20px; text-align: center; }
+    .commit-icon { font-size: 22px; margin-bottom: 8px; }
+    .commit-card strong { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .commit-card span { font-size: 12px; color: var(--mute); line-height: 1.4; }
+
+    .section { margin-bottom: 52px; }
+
+    h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--dim); }
+
+    p { font-size: 15px; color: var(--mute); margin-bottom: 14px; line-height: 1.75; }
+    p:last-child { margin-bottom: 0; }
+
+    ul { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+
+    li { font-size: 15px; color: var(--mute); padding-right: 20px; padding-left: 0; position: relative; line-height: 1.65; }
+    li::before { content: '—'; position: absolute; right: 0; left: auto; color: var(--v); font-weight: 700; }
+
+    strong { color: var(--ink); font-weight: 600; }
+    a { color: var(--c); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .highlight { background: var(--bg2); border-right: 3px solid var(--v); border-left: none; border-radius: var(--r) 0 0 var(--r); padding: 20px 24px; margin: 20px 0; }
+    .highlight p { margin: 0; color: var(--ink); font-size: 15px; }
+
+    .contact-section { background: var(--bg2); border: 1px solid rgba(124, 111, 255, 0.18); border-radius: var(--r); padding: 36px; text-align: center; margin-top: 64px; }
+    .contact-section h2 { border: none; padding: 0; margin-bottom: 8px; font-size: 22px; }
+    .contact-section p { margin-bottom: 24px; }
+
+    .contact-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--grad); color: #fff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 12px 28px; border-radius: 100px; transition: opacity 0.2s; }
+    .contact-btn:hover { opacity: 0.85; text-decoration: none; }
+
+    footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 28px 40px; border-top: 1px solid rgba(0, 0, 0, 0.07); }
+    .footer-left { display: flex; align-items: center; gap: 14px; }
+    .footer-wordmark { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .footer-div { width: 1px; height: 14px; background: var(--dim); }
+    .footer-tagline { font-size: 13px; color: var(--mute); }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { font-size: 13px; color: var(--mute); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--ink); }
+    .footer-copy { font-size: 13px; color: var(--dim); width: 100%; text-align: left; margin-top: 4px; }
+
+    @media (max-width: 640px) {
+      nav { padding: 0 20px; }
+      footer { padding: 24px 20px; flex-direction: column; align-items: flex-start; }
+      .footer-copy { text-align: right; }
+    }
+
+    .lang-switcher { position: relative; display: flex; align-items: center; }
+    .lang-select { appearance: none; -webkit-appearance: none; background: transparent; border: 1px solid rgba(124,111,255,.22); border-radius: 100px; padding: 6px 28px 6px 12px; font-family: 'Space Mono', monospace; font-size: .66rem; font-weight: 700; letter-spacing: .10em; color: #6B6B8A; cursor: pointer; transition: border-color .2s, color .2s; outline: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B6B8A' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+    .lang-select:hover { border-color: #7C6FFF; color: #EEEEF5; }
+    .lang-select option { background: #0D0E1A; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-logo" href="https://www.sortyd.com">
+      <img src="/logo.png" alt="Sortyd Logo" style="height: 32px; width: auto; display: block;">
+    </a>
+    <div class="nav-right">
+      <a class="nav-link" href="https://www.sortyd.com/ar/#features">الميزات</a>
+      <a class="nav-link" href="https://www.sortyd.com/ar/#how">الطريقة</a>
+      <div class="lang-switcher">
+        <select class="lang-select" id="langSelect" onchange="switchLang(this.value)" aria-label="اختر اللغة">
+          <option value="en">EN</option>
+          <option value="es">ES</option>
+          <option value="ar" selected>ع</option>
+          <option value="zh">中文</option>
+        </select>
+      </div>
+      <a class="nav-dl" href="https://apps.apple.com/in/app/sortyd/id6762193535">تحميل</a>
+    </div>
+  </nav>
+
+  <main>
+
+    <p class="page-eyebrow">سياسة الخصوصية</p>
+    <h1>بياناتك.<br>جهازك.</h1>
+    <p class="hero-meta">آخر تحديث: أبريل 2026 · سارية المفعول فورًا</p>
+    <p class="hero-sub">Sortyd مبني على مبدأ بسيط: عاداتك ليست شأننا. لا إعلانات، لا تتبع، لا بيع لبياناتك. أبدًا.</p>
+
+    <div class="commits">
+      <div class="commit-card">
+        <div class="commit-icon">🔒</div>
+        <strong>البيانات على جهازك</strong>
+        <span>المهام والقوائم لا تغادر هاتفك أبدًا</span>
+      </div>
+      <div class="commit-card">
+        <div class="commit-icon">🚫</div>
+        <strong>بلا إعلانات. بلا تتبع.</strong>
+        <span>لا SDKs إعلانية ولا تتبع للهوية</span>
+      </div>
+      <div class="commit-card">
+        <div class="commit-icon">🆓</div>
+        <strong>لا حاجة لحساب</strong>
+        <span>لن نطلب بريدك الإلكتروني أو اسمك أبدًا</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>١. من نحن</h2>
+      <p>Sortyd تطبيق iOS لتتبع العادات، تم تطويره وتشغيله من قِبل مطور مستقل. يمكنك التواصل معنا على <a href="mailto:privacy@sortyd.com">privacy@sortyd.com</a>.</p>
+    </div>
+
+    <div class="section">
+      <h2>٢. البيانات المخزنة على جهازك</h2>
+      <p>جميع بيانات التطبيق تُخزَّن محليًا على جهازك باستخدام UserDefaults في iOS وحاوية App Group المشتركة مع ودجت Sortyd وتطبيق Apple Watch. يشمل ذلك:</p>
+      <ul>
+        <li>قوائم مهامك وعناوين المهام وسجل الإنجاز</li>
+        <li>اللقطات اليومية المستخدمة لحساب السلاسل والتحليلات</li>
+        <li>أوقات التذكير التي تضبطها لكل مهمة</li>
+        <li>السمة المحددة لديك (تفضيل الوضع الداكن/الفاتح)</li>
+      </ul>
+      <div class="highlight">
+        <p><strong>لا يُرسَل أيٌّ من هذه البيانات إلى خوادمنا.</strong> تبقى على جهازك وتُحذف عند حذف التطبيق.</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>٣. مدرب الذكاء الاصطناعي — ما يُرسَل إلى الإنترنت</h2>
+      <p>عند استخدام ميزات مدرب الذكاء الاصطناعي أو التحليلات، يرسل Sortyd ملخصًا محدودًا ومجهول الهوية لتوليد الرؤى. يحتوي هذا الملخص على:</p>
+      <ul>
+        <li>عناوين مهامك (مثل "تمرين صباحي"، "شرب الماء")</li>
+        <li>معدلات إنجازك لكل مهمة خلال الـ 7–14 يومًا الماضية</li>
+        <li>أيام الأسبوع التي أُنجزت فيها المهام أو أُهملت</li>
+      </ul>
+      <p>تُرسَل هذه البيانات عبر وكيل Cloudflare Worker إلى <a href="https://groq.com" target="_blank" rel="noopener">واجهة API لـ Groq</a> لتوليد استجابة التدريب. لا نسجّل هذه البيانات أو نخزنها على خوادمنا. كل طلب مستقل — ليس لدينا طريقة لربطه بك.</p>
+      <p><strong>بيانات صحتك ومعرّفات جهازك وموقعك وأي معلومات شخصية لا تُدرَج أبدًا في هذه الطلبات.</strong></p>
+    </div>
+
+    <div class="section">
+      <h2>٤. Apple HealthKit</h2>
+      <p>إذا ربطت Apple Health، يقرأ Sortyd عدد خطواتك والسعرات الحرارية النشطة المحروقة في وضع القراءة فقط. تُستخدم هذه البيانات حصرًا لإكمال مهام الصحة التي حددتها تلقائيًا (مثل "المشي 10,000 خطوة").</p>
+      <ul>
+        <li>تُقرأ بيانات الصحة محليًا من إطار عمل HealthKit من Apple</li>
+        <li>لا تُرفَع أبدًا إلى خوادمنا أو تُدرَج في طلبات الذكاء الاصطناعي</li>
+        <li>لا تُشارَك أبدًا مع أطراف ثالثة</li>
+        <li>يمكنك إلغاء الوصول إلى الصحة في أي وقت من إعدادات iOS ← الصحة ← الوصول إلى البيانات</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>٥. الإشعارات</h2>
+      <p>يجدول Sortyd تذكيرات يومية للمهام وإشعار ملخص مسائي اختياري. تعمل جميع الإشعارات كليًا على الجهاز باستخدام إطار عمل UserNotifications في iOS. لا يُرسَل محتوى الإشعارات إلى خوادمنا.</p>
+      <p>يمكنك تعطيل الإشعارات في أي وقت من إعدادات iOS ← الإشعارات ← Sortyd.</p>
+    </div>
+
+    <div class="section">
+      <h2>٦. التحليلات</h2>
+      <p>يستخدم Sortyd <strong>Firebase Analytics</strong> (من Google) لجمع بيانات استخدام مجهولة ومجمّعة. يساعدنا ذلك على فهم كيفية استخدام التطبيق لتحسينه. تشمل البيانات المجمَّعة:</p>
+      <ul>
+        <li>مشاهدات الشاشة (مثل التبويبات التي تزورها)</li>
+        <li>تفاعلات الميزات (مثل إنشاء قائمة، إكمال مهمة، استخدام مدرب الذكاء الاصطناعي)</li>
+        <li>البيانات الوصفية الأساسية للجهاز (إصدار نظام التشغيل، طراز الجهاز)</li>
+      </ul>
+      <p>هذه البيانات <strong>غير مرتبطة بهويتك</strong>، <strong>لا تُستخدم للإعلانات</strong>، و<strong>لا تُستخدم لتتبع التطبيقات المتقاطع</strong>.</p>
+    </div>
+
+    <div class="section">
+      <h2>٧. مشاركة البيانات</h2>
+      <p>لا نبيع أو نؤجر أو نتداول أو نشارك بياناتك الشخصية مع أي طرف ثالث لأغراض تجارية. الخدمات الخارجية التي قد تستلم بيانات من Sortyd هي:</p>
+      <ul>
+        <li><strong>واجهة API لـ Groq</strong> — تستلم ملخصًا مجهول الهوية للمهام فقط عند تفعيل مدرب الذكاء الاصطناعي أو ميزات التحليلات صراحةً (انظر القسم ٣)</li>
+        <li><strong>Google Firebase Analytics</strong> — تستلم أحداث استخدام مجهولة كما هو موضح في القسم ٦. خاضعة لـ <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">سياسة خصوصية Google</a></li>
+      </ul>
+      <p>لا يستلم أي طرف ثالث آخر أي بيانات من Sortyd.</p>
+    </div>
+
+    <div class="section">
+      <h2>٨. خصوصية الأطفال</h2>
+      <p>لا يستهدف Sortyd الأطفال دون سن 13 عامًا. لا نجمع عن علم أي بيانات من الأطفال. التطبيق مصنّف 4+ في App Store. إذا كنت تعتقد أن طفلًا استخدم التطبيق ولديك مخاوف، تواصل معنا على <a href="mailto:privacy@sortyd.com">privacy@sortyd.com</a>.</p>
+    </div>
+
+    <div class="section">
+      <h2>٩. الاحتفاظ بالبيانات وحذفها</h2>
+      <p>نظرًا لتخزين جميع البيانات محليًا على جهازك، فأنت دائمًا في سيطرة كاملة. لحذف جميع بيانات Sortyd: احذف التطبيق من جهازك. سيؤدي ذلك إلى حذف كل شيء — المهام والسجل واللقطات والتفضيلات — بشكل دائم.</p>
+      <p>يُحذف سجل اللقطات الأقدم من 730 يومًا تلقائيًا داخل التطبيق للحفاظ على الحد الأدنى من استخدام التخزين.</p>
+    </div>
+
+    <div class="section">
+      <h2>١٠. التغييرات على هذه السياسة</h2>
+      <p>إذا أجرينا تغييرات جوهرية على سياسة الخصوصية هذه، سنحدّث تاريخ "آخر تحديث" في أعلى هذه الصفحة. الاستمرار في استخدام التطبيق بعد التغييرات يُعدّ قبولًا للسياسة المحدّثة.</p>
+    </div>
+
+    <div class="contact-section">
+      <h2>أسئلة حول الخصوصية؟</h2>
+      <p>نحن فريق صغير ونقرأ كل رسالة. تواصل معنا في أي وقت.</p>
+      <a class="contact-btn" href="mailto:privacy@sortyd.com">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M2 4a1 1 0 011-1h10a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V4z" stroke="#fff" stroke-width="1.4"/>
+          <path d="M2 4l6 5 6-5" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>
+        </svg>
+        privacy@sortyd.com
+      </a>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="footer-left">
+      <span class="footer-wordmark">sortyd</span>
+      <div class="footer-div"></div>
+      <span class="footer-tagline">متتبع العادات بالذكاء الاصطناعي</span>
+    </div>
+    <div class="footer-links">
+      <a href="/ar/privacy/">الخصوصية</a>
+      <a href="/ar/support/">الدعم</a>
+      <a href="mailto:support@sortyd.com">التواصل</a>
+    </div>
+    <span class="footer-copy">© 2026 Sortyd</span>
+  </footer>
+
+<script src="/i18n.js"></script>
+</body>
+</html>

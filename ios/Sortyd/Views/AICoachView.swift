@@ -18,14 +18,20 @@ struct AICoachView: View {
     @State private var analysisState: AnalysisState = .idle
     @State private var isSpinning = false
     @State private var lastAnalysedListID: UUID? = nil
+    @State private var analysisRequestID = UUID()
     @State private var showAbout = false
     @State private var headerAppeared = false
+    @State private var failurePulse = false
+    @State private var timeoutOrbit = false
+    @State private var timeoutTapCount = 0
+    @State private var timeoutCoreTilt = false
     
     // FIX: separate rotation state from isSpinning
     // isSpinning drives the animation trigger; spinAngle accumulates cleanly
     @State private var spinAngle: Double = 0
     
     enum AnalysisState { case idle, loading, done, failed }
+    private enum CoachFailureKind { case offline, timeout, quota, generic }
     
     var body: some View {
         ZStack {
@@ -62,11 +68,11 @@ struct AICoachView: View {
                     
                     Spacer(minLength: 110)
                 }
+                .frame(maxWidth: 800)
+                .frame(maxWidth: .infinity)
             }
             .refreshable {
-                if let list = selectedList {
-                    await runAnalysis(for: list)
-                }
+                if let list = selectedList { await runAnalysis(for: list) }
             }
         }
         .onAppear {
@@ -78,10 +84,12 @@ struct AICoachView: View {
                 headerAppeared = true
             }
         }
-        .task {
-            let liveLists = vm.lists.filter { !$0.isArchived }
+        .onDisappear { isSpinning = false }
+        .task(id: vm.appLanguage) {
+            lastAnalysedListID = nil
+            let liveLists = vm.lists.filter { !$0.isArchived && !$0.isTodo && !$0.isWeekly }
             if lastAnalysedListID == nil {
-                let defaultList = vm.activeList ?? liveLists.first
+                let defaultList = liveLists.first(where: { $0.id == vm.activeListID }) ?? liveLists.first
                 if let list = defaultList {
                     selectedList = list
                     await runAnalysis(for: list)
@@ -97,11 +105,11 @@ struct AICoachView: View {
     private var header: some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(vm.appLanguage == .arabic ? "مدرب الذكاء الاصطناعي" : (vm.appLanguage == .spanish ? "ENTRENADOR IA" : "AI COACH"))
+                Text(vm.localized("AI COACH"))
                     .font(.system(size: 9, weight: .black))
                     .tracking(2.5)
                     .foregroundColor(Theme.accent)
-                Text(vm.appLanguage == .arabic ? "تحليل العادات" : (vm.appLanguage == .spanish ? "Análisis de hábitos" : "Habit Analysis"))
+                Text(vm.localized("Habit Analysis"))
                     .font(.system(size: 24, weight: .heavy, design: .rounded))
                     .foregroundColor(Theme.text0)
             }
@@ -123,8 +131,8 @@ struct AICoachView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(isSpinning)
-                .accessibilityLabel("Run habit analysis")                           // ← add here
-                .accessibilityHint("Double tap to analyse your habit data with AI") // ← add here
+                .accessibilityLabel(vm.localized("Run habit analysis"))
+                .accessibilityHint(vm.localized("Double tap to analyse your habit data with AI"))
             }
         }
     }
@@ -191,7 +199,7 @@ struct AICoachView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
                 Spacer(minLength: 20)
-                ForEach(vm.lists.filter { !$0.isArchived }) { list in
+                ForEach(vm.lists.filter { !$0.isArchived && !$0.isTodo && !$0.isWeekly }) { list in
                     let isSelected = selectedList?.id == list.id
                     Button(action: {
                         guard selectedList?.id != list.id else { return }
@@ -233,10 +241,10 @@ struct AICoachView: View {
             Text("🧠")
                 .font(.system(size: 36))
             VStack(spacing: 5) {
-                Text(vm.appLanguage == .arabic ? "لا توجد قوائم بعد" : (vm.appLanguage == .spanish ? "No hay listas aún" : "No lists yet"))
+                Text(vm.localized("No lists yet"))
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(Theme.text0)
-                Text(vm.appLanguage == .arabic ? "أضف مهام لفتح التحليل." : (vm.appLanguage == .spanish ? "Añade tareas para desbloquear el análisis." : "Add tasks to unlock analysis."))
+                Text(vm.localized("Add tasks to unlock analysis."))
                     .font(.system(size: 13))
                     .foregroundColor(Theme.text2)
             }
@@ -249,21 +257,125 @@ struct AICoachView: View {
     
     private var failedView: some View {
         let message = AICoach.shared.errorMessage
-        let isQuotaHit = message?.contains("limit") == true || message?.contains("Resets") == true
-        let isOffline  = message?.contains("internet") == true
+        let kind = failureKind(from: message)
 
-        return VStack(spacing: 16) {
+        return Group {
+            switch kind {
+            case .offline:
+                offlineFailureView
+            case .timeout:
+                timeoutFailureView
+            case .quota, .generic:
+                standardFailureView(message: message, isQuotaHit: kind == .quota)
+            }
+        }
+        .onAppear {
+            failurePulse = true
+            timeoutOrbit = true
+            timeoutCoreTilt = true
+        }
+    }
+
+    private func failureKind(from message: String?) -> CoachFailureKind {
+        let text = (message ?? "").lowercased()
+        if text.contains("limit") || text.contains("resets") { return .quota }
+        if text.contains("timed out")
+            || text.contains("timeout")
+            || text.contains("taking too long")
+            || text.contains("temporarily unavailable")
+            || text.contains("http 429")
+            || text.contains("http 5") {
+            return .timeout
+        }
+        if text.contains("internet") || text.contains("connection") || text.contains("offline") || text.contains("network") { return .offline }
+        return .generic
+    }
+
+    private var offlineFailureView: some View {
+        VStack(spacing: 18) {
+            ZStack {
+                ForEach(0..<3, id: \.self) { index in
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(Theme.accent.opacity(failurePulse ? 0.03 : 0.18), lineWidth: 1.2)
+                        .frame(width: 58 + CGFloat(index * 28), height: 42 + CGFloat(index * 18))
+                        .scaleEffect(failurePulse ? 1.08 + CGFloat(index) * 0.03 : 0.94)
+                        .animation(.easeInOut(duration: 1.45).repeatForever(autoreverses: true).delay(Double(index) * 0.12), value: failurePulse)
+                }
+
+                Image(systemName: "wifi.slash")
+                    .font(.system(size: 25, weight: .black))
+                    .foregroundColor(Theme.accent)
+                    .shadow(color: Theme.accent.opacity(0.4), radius: 12)
+            }
+            .frame(height: 88)
+
+            VStack(spacing: 6) {
+                Text(vm.localized("Signal drift"))
+                    .font(.system(size: 20, weight: .black, design: .rounded))
+                    .foregroundColor(Theme.text0)
+
+                Text(vm.localized("Your coach is listening, but this device is off the grid. Reconnect and the insight stream will come back online."))
+                    .font(.system(size: 13, weight: .medium))
+                    .lineSpacing(2)
+                    .foregroundColor(Theme.text2)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 34)
+        .background(cardBG())
+        .cardShadow()
+    }
+
+    private var timeoutFailureView: some View {
+        VStack(spacing: 18) {
+            Button(action: triggerTimeoutRetryGame) {
+                CoachSignalCore(
+                    orbiting: timeoutOrbit,
+                    tilted: timeoutCoreTilt,
+                    tapCount: timeoutTapCount
+                )
+                .frame(height: 154)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(CoachScaleStyle())
+            .accessibilityLabel(vm.localized("Retry AI Coach"))
+
+            VStack(spacing: 6) {
+                Text(vm.localized("Server blinked"))
+                    .font(.system(size: 20, weight: .black, design: .rounded))
+                    .foregroundColor(Theme.text0)
+
+                Text(vm.localized("Tap the pulse to send a fresh ping. If the coach answers, your insight appears right here."))
+                    .font(.system(size: 13, weight: .medium))
+                    .lineSpacing(2)
+                    .foregroundColor(Theme.text2)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 28)
+        .background(cardBG())
+        .cardShadow()
+    }
+
+    private func standardFailureView(message: String?, isQuotaHit: Bool) -> some View {
+        VStack(spacing: 16) {
             ZStack {
                 Circle()
-                    .fill((isOffline ? Theme.danger : Theme.accent).opacity(0.08))
+                    .fill(Theme.accent.opacity(0.08))
                     .frame(width: 60, height: 60)
-                Image(systemName: isOffline ? "wifi.slash" : isQuotaHit ? "clock.badge.exclamationmark" : "exclamationmark.triangle")
+                Image(systemName: isQuotaHit ? "clock.badge.exclamationmark" : "exclamationmark.triangle")
                     .font(.system(size: 22, weight: .medium))
-                    .foregroundColor(isOffline ? Theme.danger : Theme.accent)
+                    .foregroundColor(Theme.accent)
             }
 
             VStack(spacing: 4) {
-                Text(isQuotaHit ? vm.localized("Daily limit reached") : isOffline ? vm.localized("No connection") : vm.localized("Analysis failed"))
+                Text(isQuotaHit ? vm.localized("Daily limit reached") : vm.localized("Analysis failed"))
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(Theme.text0)
                 Text(message ?? vm.localized("Something went wrong. Tap retry to try again."))
@@ -272,11 +384,8 @@ struct AICoachView: View {
                     .multilineTextAlignment(.center)
             }
 
-            Button(action: {
-                guard let list = selectedList else { return }
-                Task { await runAnalysis(for: list) }
-            }) {
-                Text(vm.appLanguage == .arabic ? "إعادة المحاولة" : (vm.appLanguage == .spanish ? "Reintentar" : "Retry"))
+            Button(action: retrySelectedList) {
+                Text(vm.localized("Retry"))
                     .font(.system(size: 13, weight: .bold))
                     .foregroundColor(Theme.bg0)
                     .padding(.horizontal, 24)
@@ -284,12 +393,26 @@ struct AICoachView: View {
                     .background(Capsule().fill(isQuotaHit ? Theme.text2 : Theme.accent))
             }
             .buttonStyle(CoachScaleStyle())
-            // Always allow retry — transient issues or user desire to check again
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 40)
         .background(cardBG())
         .cardShadow()
+    }
+
+    private func retrySelectedList() {
+        guard let list = selectedList else { return }
+        Task { await runAnalysis(for: list) }
+    }
+
+    private func triggerTimeoutRetryGame() {
+        withAnimation(.spring(response: 0.34, dampingFraction: 0.58)) {
+            timeoutTapCount += 1
+            timeoutCoreTilt.toggle()
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
+            retrySelectedList()
+        }
     }
     
     private var loadingView: some View {
@@ -304,6 +427,26 @@ struct AICoachView: View {
     @ViewBuilder
     private func doneContent(analysis: BehaviouralAnalysis) -> some View {
         VStack(spacing: 12) {
+            if let cacheAge = coach.cacheAge {
+                let timeString = timeAgoString(from: cacheAge)
+                let isStale = cacheAge.timeIntervalSinceNow < -86400
+                HStack(spacing: 5) {
+                    Image(systemName: isStale ? "exclamationmark.triangle.fill" : "clock")
+                        .font(.system(size: 10))
+                        .foregroundColor(isStale ? Color.orange : Theme.text2)
+                    Text(String(format: vm.localized(isStale ? "Stale cache: updated %1$@ ago" : "Updated %1$@ ago"), timeString))
+                        .font(Theme.font(size: 10, weight: .medium))
+                        .foregroundColor(isStale ? Color.orange : Theme.text2)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(
+                    Capsule()
+                        .fill(isStale ? Color.orange.opacity(0.12) : Theme.bg2)
+                )
+                .padding(.horizontal, 20)
+            }
+
             if let recap = coach.weeklyRecap {
                 WeeklyGradeBanner(recap: recap)
                     .padding(.horizontal, 20)
@@ -353,10 +496,10 @@ struct AICoachView: View {
         let total       = analysis.pillars.count
         
         return HStack(spacing: 8) {
-            pillStat(value: "\(strongCount)", label: vm.appLanguage == .arabic ? "قوي" : (vm.appLanguage == .spanish ? "Fuerte" : "Strong"),    color: Theme.success)
-            pillStat(value: "\(weakCount)",   label: weakCount == 0 ? (vm.appLanguage == .arabic ? "الكل بخير" : (vm.appLanguage == .spanish ? "Todo bien" : "All good")) : (vm.appLanguage == .arabic ? "يحتاج عمل" : (vm.appLanguage == .spanish ? "Necesita trabajo" : "Need work")),
+            pillStat(value: "\(strongCount)", label: "Strong",    color: Theme.success)
+            pillStat(value: "\(weakCount)",   label: weakCount == 0 ? "All good" : "Need work",
                      color: weakCount == 0 ? Theme.success : Theme.warning)
-            pillStat(value: "\(total)",       label: vm.appLanguage == .arabic ? "أركان" : (vm.appLanguage == .spanish ? "Pilares" : "Pillars"),   color: Theme.text1)
+            pillStat(value: "\(total)",       label: "Pillars",   color: Theme.text1)
         }
     }
     
@@ -384,18 +527,43 @@ struct AICoachView: View {
     // MARK: Actions
     
     private func runAnalysis(for list: TaskList) async {
-        analysisState = .loading
-        isSpinning = true
+        let startedAt = Date()
+        let requestID = UUID()
+        analysisRequestID = requestID
+        isSpinning = false
         lastAnalysedListID = list.id
-        coach.behaviouralAnalysis = nil
-        coach.weeklyRecap = nil
-        
-        Analytics.logEvent("ai_coach_used", parameters: [  // ← added
-            "list_name": list.name
-                                                        ])
-        
-        // FIX: drive rotation by incrementing angle in a tight loop — no repeatForever
-        // This gives smooth spin without the bounce/reset artifact
+
+        // Try load best available cache (valid or stale)
+        let cacheResult = AICoach.shared.loadBestAvailableCache(for: list.id)
+        if cacheResult.found {
+            AppTelemetry.aiResult(feature: "coach", outcome: cacheResult.isStale ? "stale_cache" : "cache", startedAt: startedAt)
+            await MainActor.run {
+                analysisState = .done
+            }
+            
+            // Check if it's stale; if it is stale, run a batch fetch silently in the background
+            if cacheResult.isStale {
+                Task {
+                    let liveLists = vm.lists.filter { !$0.isArchived && !$0.isTodo && !$0.isWeekly }
+                    await AICoach.shared.fetchAllListsBatch(lists: liveLists, snapshots: vm.snapshots, force: false)
+                    guard analysisRequestID == requestID, !Task.isCancelled else { return }
+                    _ = AICoach.shared.loadBestAvailableCache(for: list.id)
+                }
+            }
+            return
+        }
+
+        // Cache miss — show spinner and fetch
+        await MainActor.run {
+            analysisState = .loading
+            isSpinning = true
+            coach.behaviouralAnalysis = nil
+            coach.weeklyRecap = nil
+        }
+
+        Analytics.logEvent("ai_coach_used", parameters: nil)
+
+        // Spinner animation loop
         Task { @MainActor in
             while isSpinning {
                 withAnimation(.linear(duration: 0.7)) {
@@ -404,17 +572,26 @@ struct AICoachView: View {
                 try? await Task.sleep(nanoseconds: 700_000_000)
             }
         }
-        
-        await withTaskGroup(of: Void.self) { group in
-            group.addTask { await AICoach.shared.analyseBehaviouralPillars(lists: [list], snapshots: vm.snapshots) }
-            group.addTask { await AICoach.shared.generateWeeklyRecap(lists: [list], snapshots: vm.snapshots) }
-            group.addTask { await AICoach.shared.detectProcrastination(lists: [list], snapshots: vm.snapshots) }
-        }
-        
+
+        // Fetch batch for all lists in one session
+        let liveLists = vm.lists.filter { !$0.isArchived && !$0.isTodo && !$0.isWeekly }
+        await AICoach.shared.fetchAllListsBatch(lists: liveLists, snapshots: vm.snapshots, force: false)
+
+        guard analysisRequestID == requestID, !Task.isCancelled else { return }
+        let reloaded = AICoach.shared.loadBestAvailableCache(for: list.id)
+        AppTelemetry.aiResult(feature: "coach", outcome: reloaded.found ? "success" : "failed", startedAt: startedAt)
+
         await MainActor.run {
             isSpinning = false
-            analysisState = coach.behaviouralAnalysis == nil ? .failed : .done
+            analysisState = reloaded.found ? .done : .failed
         }
+    }
+
+    private func timeAgoString(from date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        formatter.locale = vm.appLanguage.locale
+        return formatter.localizedString(for: date, relativeTo: Date())
     }
     
     // MARK: Helpers
@@ -451,7 +628,7 @@ struct WeeklyGradeBanner: View {
                 Text(recap.grade)
                     .font(.system(size: 30, weight: .black, design: .rounded))
                     .foregroundColor(gradeColor)
-                Text(vm.appLanguage == .arabic ? "أسبوع" : (vm.appLanguage == .spanish ? "SEMANA" : "WEEK"))
+                Text(vm.localized("WEEK"))
                     .font(.system(size: 7, weight: .black))
                     .tracking(1.8)
                     .foregroundColor(gradeColor.opacity(0.45))
@@ -570,7 +747,7 @@ struct BracketCard: View {
                                     .font(.system(size: 14, weight: .bold))
                                     .foregroundColor(Theme.text0)
                                 if isCritical {
-                                    Text(vm.appLanguage == .arabic ? "تركيز" : (vm.appLanguage == .spanish ? "ENFOQUE" : "FOCUS"))
+                                    Text(vm.localized("FOCUS"))
                                         .font(.system(size: 7, weight: .black))
                                         .tracking(0.8)
                                         .foregroundColor(Theme.warning)
@@ -579,7 +756,7 @@ struct BracketCard: View {
                                         .background(Capsule().fill(Theme.warning.opacity(0.10)))
                                 }
                             }
-                            Text(pillar.status)
+                            Text(localizedPillarStatus)
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor(scoreColor.opacity(0.75))
                         }
@@ -630,7 +807,7 @@ struct BracketCard: View {
                         DrillSection(
                             icon: "eye.fill",
                             iconColor: scoreColor,
-                            title: vm.appLanguage == .arabic ? "ماذا يحدث" : (vm.appLanguage == .spanish ? "Qué está pasando" : "What's happening"),
+                            title: vm.localized("What's happening"),
                             bullets: insightBullets
                         )
 
@@ -641,7 +818,7 @@ struct BracketCard: View {
                         DrillSection(
                             icon: "arrow.right.circle.fill",
                             iconColor: Theme.accent,
-                            title: vm.appLanguage == .arabic ? "الخطوات التالية" : (vm.appLanguage == .spanish ? "Próximos pasos" : "Next steps"),
+                            title: vm.localized("Next steps"),
                             bullets: adviceBullets,
                             bulletStyle: .fix
                         )
@@ -672,6 +849,35 @@ struct BracketCard: View {
                 }
             }
         }
+    }
+
+    private var localizedPillarStatus: String {
+        let cleaned = pillar.status.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalized = cleaned
+            .lowercased()
+            .replacingOccurrences(of: "_", with: " ")
+            .replacingOccurrences(of: "-", with: " ")
+
+        switch normalized {
+        case "strong", "strength", "healthy", "good", "excellent", "fuerte", "قوي", "强项":
+            return vm.localized("Strong")
+        case "developing", "building", "improving", "moderate", "need work", "needs work", "en desarrollo", "قيد التطوير", "发展中":
+            return vm.localized("Developing")
+        case "struggling", "strugglong", "strugling", "struggle", "weak", "critical", "low", "poor", "con dificultades", "متعثر", "需改善", "挣扎中":
+            return vm.localized("Struggling")
+        default:
+            if vm.appLanguage != .english,
+               normalized.range(of: #"[a-z]"#, options: .regularExpression) != nil {
+                return scoreBasedStatus
+            }
+            return cleaned.isEmpty ? scoreBasedStatus : cleaned
+        }
+    }
+
+    private var scoreBasedStatus: String {
+        if pillar.score >= 75 { return vm.localized("Strong") }
+        if pillar.score >= 45 { return vm.localized("Developing") }
+        return vm.localized("Struggling")
     }
 }
 
@@ -795,7 +1001,7 @@ struct OverallInsightBanner: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(vm.appLanguage == .arabic ? "النمط العام" : (vm.appLanguage == .spanish ? "PATRÓN GENERAL" : "OVERALL PATTERN"))
+            Text(vm.appLanguage == .arabic ? "النمط العام" : (vm.appLanguage == .spanish ? "PATRÓN GENERAL" : (vm.appLanguage == .chinese ? "总体规律" : "OVERALL PATTERN")))
                 .font(.system(size: 8.5, weight: .bold))
                 .tracking(1.4)
                 .foregroundColor(Theme.text2)
@@ -837,7 +1043,7 @@ struct SkippedTasksSection: View {
                         Image(systemName: "exclamationmark")
                             .font(.system(size: 10, weight: .black))
                             .foregroundColor(Theme.warning)
-                        Text(vm.appLanguage == .arabic ? "متخطى" : (vm.appLanguage == .spanish ? "SALTADO" : "SKIPPED"))
+                        Text(vm.appLanguage == .arabic ? "متخطى" : (vm.appLanguage == .spanish ? "SALTADO" : (vm.appLanguage == .chinese ? "已跳过" : "SKIPPED")))
                             .font(.system(size: 10, weight: .bold))
                             .tracking(1.4)
                             .foregroundColor(Theme.text1)
@@ -979,8 +1185,144 @@ private extension View {
 private struct CoachScaleStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed ? 0.94 : 1.0)
-            .animation(.spring(response: 0.22, dampingFraction: 0.65), value: configuration.isPressed)
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+    }
+}
+
+private struct CoachSignalCore: View {
+    let orbiting: Bool
+    let tilted: Bool
+    let tapCount: Int
+
+    private var coreScale: CGFloat {
+        1 + CGFloat(min(tapCount, 4)) * 0.025
+    }
+
+    var body: some View {
+        ZStack {
+            ForEach(0..<3, id: \.self) { index in
+                RoundedRectangle(cornerRadius: 34, style: .continuous)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                Theme.accent.opacity(0.26 - Double(index) * 0.055),
+                                Theme.coral.opacity(0.12)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1.1
+                    )
+                    .frame(width: 124 + CGFloat(index * 20), height: 88 + CGFloat(index * 14))
+                    .rotation3DEffect(
+                        .degrees(tilted ? 58 : 48),
+                        axis: (x: 1, y: 0, z: 0),
+                        perspective: 0.64
+                    )
+                    .rotationEffect(.degrees(orbiting ? 360 : 0))
+                    .animation(
+                        .linear(duration: 4.2 + Double(index) * 0.65).repeatForever(autoreverses: false),
+                        value: orbiting
+                    )
+                    .opacity(0.75 - Double(index) * 0.14)
+            }
+
+            ForEach(0..<4, id: \.self) { index in
+                orbitNode(index: index)
+                    .offset(y: -46)
+                    .rotationEffect(.degrees(Double(index) * 90 + (orbiting ? 360 : 0)))
+                    .animation(
+                        .linear(duration: 2.5).repeatForever(autoreverses: false),
+                        value: orbiting
+                    )
+                    .rotation3DEffect(.degrees(tilted ? 54 : 44), axis: (x: 1, y: 0, z: 0), perspective: 0.7)
+            }
+
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Theme.accent.opacity(0.32),
+                                Theme.accent.opacity(0.08),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 60
+                        )
+                    )
+                    .frame(width: 118, height: 118)
+                    .blur(radius: 2)
+                    .scaleEffect(orbiting ? 1.08 : 0.92)
+                    .animation(.easeInOut(duration: 1.3).repeatForever(autoreverses: true), value: orbiting)
+
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Theme.bg2.opacity(0.96),
+                                Theme.accent.opacity(0.16),
+                                Theme.bg1.opacity(0.98)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 28, style: .continuous)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [Theme.accent.opacity(0.65), Theme.coral.opacity(0.22)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1.1
+                            )
+                    )
+                    .frame(width: 88, height: 88)
+                    .shadow(color: Theme.accent.opacity(0.28), radius: 18, x: 0, y: 8)
+
+                Image(systemName: "brain.head.profile")
+                    .font(.system(size: 32, weight: .black))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Theme.accent, Theme.coral.opacity(0.78)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .shadow(color: Theme.accent.opacity(0.42), radius: 10)
+
+                VStack(spacing: 3) {
+                    Spacer()
+                    HStack(spacing: 4) {
+                        ForEach(0..<4, id: \.self) { index in
+                            Capsule()
+                                .fill(index <= tapCount % 4 ? Theme.accent : Theme.border)
+                                .frame(width: index == tapCount % 4 ? 18 : 7, height: 4)
+                                .animation(.spring(response: 0.25, dampingFraction: 0.7), value: tapCount)
+                        }
+                    }
+                    .padding(.bottom, 14)
+                }
+                .frame(width: 88, height: 88)
+            }
+            .scaleEffect(coreScale)
+            .rotation3DEffect(.degrees(tilted ? -13 : 13), axis: (x: 0.4, y: 1, z: 0), perspective: 0.72)
+            .animation(.easeInOut(duration: 1.45).repeatForever(autoreverses: true), value: tilted)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func orbitNode(index: Int) -> some View {
+        let active = index <= tapCount % 4
+        return Circle()
+            .fill(active ? Theme.accent : Theme.border)
+            .frame(width: active ? 9 : 6, height: active ? 9 : 6)
+            .shadow(color: active ? Theme.accent.opacity(0.7) : .clear, radius: 8)
+            .animation(.spring(response: 0.25, dampingFraction: 0.68), value: tapCount)
     }
 }
 
@@ -1038,57 +1380,68 @@ private struct AboutPrivacySheet: View {
             "AI Coaching": [
                 .english: "AI Coaching",
                 .spanish: "Coaching por IA",
-                .arabic: "توجيه الذكاء الاصطناعي"
+                .arabic: "توجيه الذكاء الاصطناعي",
+                .chinese: "AI 教练"
             ],
             "AI_Coaching_Desc": [
                 .english: "AI-powered analysis of your habit data. Task titles and completion rates are sent to generate insights.",
                 .spanish: "Análisis impulsado por IA de tus datos de hábitos. Se envían los títulos de las tareas y las tasas de finalización para generar información.",
-                .arabic: "تحليل مدعوم بالذكاء الاصطناعي لبيانات عاداتك. يتم إرسال عناوين المهام ومعدلات الإنجاز لتوليد رؤى."
+                .arabic: "تحليل مدعوم بالذكاء الاصطناعي لبيانات عاداتك. يتم إرسال عناوين المهام ومعدلات الإنجاز لتوليد رؤى.",
+                .chinese: "AI 驱动的习惯数据分析。系统会发送任务标题和完成率以生成洞察。"
             ],
             "Privacy": [
                 .english: "Privacy",
                 .spanish: "Privacidad",
-                .arabic: "الخصوصية"
+                .arabic: "الخصوصية",
+                .chinese: "隐私"
             ],
             "Privacy_Desc": [
                 .english: "Your data is never sold or shared for advertising. Health data stays on your device.",
                 .spanish: "Tus datos nunca se venden ni se comparten para publicidad. Los datos de salud permanecen en tu dispositivo.",
-                .arabic: "لا يتم بيع بياناتك أو مشاركتها للإعلانات. تبقى بيانات الصحة على جهازك."
+                .arabic: "لا يتم بيع بياناتك أو مشاركتها للإعلانات. تبقى بيانات الصحة على جهازك.",
+                .chinese: "你的数据绝不会被出售或用于广告。健康数据保留在设备上。"
             ],
             "Apple Health": [
                 .english: "Apple Health",
                 .spanish: "Apple Health",
-                .arabic: "Apple Health"
+                .arabic: "Apple Health",
+                .chinese: "Apple Health"
             ],
             "Apple_Health_Desc": [
                 .english: "Reads step count and active calories only. Sortyd never writes to Health.",
                 .spanish: "Lee solo el recuento de pasos y las calorías activas. Sortyd nunca escribe en Salud.",
-                .arabic: "يقرأ عدد الخطوات والسعرات الحرارية النشطة فقط. لا يكتب تطبيق Sortyd أبدًا إلى تطبيق الصحة."
+                .arabic: "يقرأ عدد الخطوات والسعرات الحرارية النشطة فقط. لا يكتب تطبيق Sortyd أبدًا إلى تطبيق الصحة.",
+                .chinese: "仅读取步数和活动卡路里。Sortyd 从不写入健康数据。"
             ],
             "Notifications": [
                 .english: "Notifications",
                 .spanish: "Notificaciones",
-                .arabic: "الإشعارات"
+                .arabic: "الإشعارات",
+                .chinese: "通知"
             ],
             "Notifications_Desc": [
                 .english: "Reminders are scheduled locally. Permission requested on first reminder only.",
                 .spanish: "Los recordatorios se programan localmente. El permiso se solicita solo en el primer recordatorio.",
-                .arabic: "تتم جدولة التذكيرات محليًا. يُطلب الإذن عند أول تذكير فقط."
+                .arabic: "تتم جدولة التذكيرات محليًا. يُطلب الإذن عند أول تذكير فقط.",
+                .chinese: "提醒在本地安排。仅在第一次提醒时请求权限。"
             ],
             "Privacy Policy": [
                 .english: "Privacy Policy",
                 .spanish: "Política de privacidad",
-                .arabic: "سياسة الخصوصية"
+                .arabic: "سياسة الخصوصية",
+                .chinese: "隐私政策"
             ],
             "About & Privacy": [
                 .english: "About & Privacy",
                 .spanish: "Acerca de y Privacidad",
-                .arabic: "حول والخصوصية"
+                .arabic: "حول والخصوصية",
+                .chinese: "关于与隐私"
             ],
             "Done": [
                 .english: "Done",
                 .spanish: "Hecho",
-                .arabic: "تم"
+                .arabic: "تم",
+                .chinese: "完成"
             ]
         ]
         return strings[key]?[currentLanguage] ?? key
@@ -1130,7 +1483,7 @@ private struct AboutPrivacySheet: View {
                         }
                         .buttonStyle(.plain)
 
-                        Text("Sortyd v1.0")
+                        Text("Sortyd v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.7.3")")
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(Theme.text2)
                             .frame(maxWidth: .infinity, alignment: .center)

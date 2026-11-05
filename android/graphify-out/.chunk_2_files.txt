@@ -1,0 +1,16 @@
+/Users/abhishek/Desktop/sortyd/android/app/src/main/ic_launcher-playstore.png
+/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-hdpi/ic_launcher.webp
+/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.webp
+/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-hdpi/ic_launcher_round.webp
+/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-mdpi/ic_launcher.webp
+/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.webp
+/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-mdpi/ic_launcher_round.webp
+/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-xhdpi/ic_launcher.webp
+/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.webp
+/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.webp
+/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.webp
+/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.webp
+/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.webp
+/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp
+/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.webp
+/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp

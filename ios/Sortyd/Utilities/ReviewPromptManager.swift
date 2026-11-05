@@ -2,16 +2,15 @@
 // Sortyd — App Store review prompt scheduler
 //
 // Schedule:
-//   Day 7  → first prompt
-//   Day 14 → second prompt (if deferred at day 7)
-//   Monthly thereafter (30-day intervals)
-//   Once the user taps "Review Now" → never shown again.
+//   Day 7 → first prompt, then at most once every 7 days if deferred.
+//   Once the App Store review link opens → stop automatic requests.
+//   Opening the link does not establish that a review was submitted.
 
 import Foundation
 
 final class ReviewPromptManager {
     static let shared = ReviewPromptManager()
-    private init() {}
+    init(defaults: UserDefaults = .standard) { self.defaults = defaults }
 
     // Replace with Sortyd's numeric App Store ID once the listing is live.
     static let appStoreID = "6762193535"
@@ -22,17 +21,18 @@ final class ReviewPromptManager {
 
     // MARK: - Persistence Keys
 
-    private let defaults             = UserDefaults.standard
+    private let defaults: UserDefaults
     private let keyInstallDate       = "sortyd.review.installDate"
     private let keyPromptCount       = "sortyd.review.promptCount"
     private let keyLastPromptDate    = "sortyd.review.lastPromptDate"
     private let keyHasReviewed       = "sortyd.review.hasReviewed"
+    private let keyReviewLinkOpened  = "sortyd.review.linkOpened"
 
     // MARK: - State
 
-    var hasReviewed: Bool {
-        get { defaults.bool(forKey: keyHasReviewed) }
-        set { defaults.set(newValue, forKey: keyHasReviewed) }
+    var hasOpenedReviewLink: Bool {
+        // Preserve the suppression promised to people who used older releases.
+        defaults.bool(forKey: keyReviewLinkOpened) || defaults.bool(forKey: keyHasReviewed)
     }
 
     // Set once on first access; never changed afterwards.
@@ -55,35 +55,27 @@ final class ReviewPromptManager {
 
     // MARK: - Decision
 
-    func shouldShowPrompt() -> Bool {
-        guard !hasReviewed else { return false }
+    func shouldShowPrompt(now: Date = Date()) -> Bool {
+        guard !hasOpenedReviewLink else { return false }
 
-        let now = Date()
         let daysSinceInstall = daysBetween(installDate, and: now)
 
-        switch promptCount {
-        case 0:
-            return daysSinceInstall >= 7
-        case 1:
-            guard let last = lastPromptDate else { return daysSinceInstall >= 14 }
-            return daysBetween(last, and: now) >= 7
-        default:
-            guard let last = lastPromptDate else { return false }
-            return daysBetween(last, and: now) >= 30
-        }
+        guard daysSinceInstall >= 7 else { return false }
+        guard let last = lastPromptDate else { return true }
+        return daysBetween(last, and: now) >= 7
     }
 
     // MARK: - Actions
 
     /// Call when the card is actually displayed to the user.
-    func recordShown() {
+    func recordShown(now: Date = Date()) {
         promptCount += 1
-        lastPromptDate = Date()
+        lastPromptDate = now
     }
 
-    /// Call when "Review Now" is tapped.
-    func recordReviewed() {
-        hasReviewed = true
+    /// Only call after the operating system confirms that the review link opened.
+    func recordReviewLinkOpened() {
+        defaults.set(true, forKey: keyReviewLinkOpened)
     }
 
     // MARK: - Private

@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>帮助与支持 — Sortyd</title>
+  <meta name="description" content="获取 Sortyd 的帮助 — AI 习惯追踪器。查找常见问题的解答或直接联系我们的团队。" />
+  <link rel="canonical" href="https://www.sortyd.com/zh/support" />
+  <link rel="alternate" hreflang="en" href="https://www.sortyd.com/support"/>
+  <link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/support"/>
+  <link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/support"/>
+  <link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/support"/>
+  <link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/support"/>
+  <meta name="robots" content="index, follow" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Sortyd" />
+  <meta property="og:title" content="帮助与支持 — Sortyd" />
+  <meta property="og:description" content="获取 Sortyd 的帮助 — AI 习惯追踪器。查找常见问题的解答或直接联系我们的团队。" />
+  <meta property="og:url" content="https://www.sortyd.com/zh/support" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --v:    #7C6FFF;
+      --c:    #3ECFFF;
+      --bg:   #FAF8F4;
+      --bg2:  #F0EDE5;
+      --bg3:  #141424;
+      --ink:  #1A1520;
+      --mute: #B0AA9E;
+      --dim:  #5C5248;
+      --grad: linear-gradient(90deg, #7C6FFF, #3ECFFF);
+      --r:    16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 64px;
+      background: rgba(250, 248, 244, 0.88);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .nav-wordmark {
+      font-family: 'Space Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .nav-link {
+      color: var(--dim);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-link:hover { color: var(--ink); }
+
+    .nav-dl {
+      background: var(--grad);
+      border: none;
+      border-radius: 100px;
+      padding: 8px 20px;
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: opacity 0.2s;
+    }
+    .nav-dl:hover { opacity: 0.85; }
+
+    /* ── Page layout ── */
+    main {
+      flex: 1;
+      max-width: 760px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 80px 24px 100px;
+    }
+
+    /* ── Hero ── */
+    .page-eyebrow {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+
+    .hero-sub {
+      font-size: 18px;
+      color: var(--mute);
+      line-height: 1.6;
+      margin-bottom: 48px;
+      max-width: 560px;
+    }
+
+    /* ── Contact card ── */
+    .contact-card {
+      background: var(--bg2);
+      border: 1px solid rgba(124, 111, 255, 0.18);
+      border-radius: var(--r);
+      padding: 32px;
+      margin-bottom: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .contact-card-left h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .contact-card-left p {
+      font-size: 15px;
+      color: var(--mute);
+    }
+
+    .email-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--grad);
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px 24px;
+      border-radius: 100px;
+      white-space: nowrap;
+      transition: opacity 0.2s;
+      flex-shrink: 0;
+    }
+    .email-btn:hover { opacity: 0.85; }
+
+    /* ── Section label ── */
+    .section-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.20em;
+      text-transform: uppercase;
+      color: var(--mute);
+      margin-bottom: 24px;
+    }
+
+    /* ── FAQ ── */
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-bottom: 64px;
+    }
+
+    details {
+      background: var(--bg2);
+      border: 1px solid var(--dim);
+      border-radius: var(--r);
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    details[open] { border-color: rgba(124, 111, 255, 0.35); }
+
+    summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      gap: 16px;
+    }
+    summary::-webkit-details-marker { display: none; }
+
+    .faq-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1.5px solid var(--dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+      color: var(--mute);
+      transition: all 0.2s;
+    }
+    details[open] .faq-icon {
+      background: var(--v);
+      border-color: var(--v);
+      color: #fff;
+    }
+
+    .faq-body {
+      padding: 0 24px 20px;
+      font-size: 15px;
+      color: var(--mute);
+      line-height: 1.7;
+    }
+
+    .faq-body a { color: var(--c); text-decoration: none; }
+    .faq-body a:hover { text-decoration: underline; }
+
+    /* ── Tips grid ── */
+    .tips-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 64px;
+    }
+
+    @media (max-width: 560px) {
+      .tips-grid { grid-template-columns: 1fr; }
+    }
+
+    .tip-card {
+      background: var(--bg2);
+      border: 1px solid var(--dim);
+      border-radius: var(--r);
+      padding: 24px;
+    }
+
+    .tip-icon {
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+
+    .tip-card h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .tip-card p {
+      font-size: 14px;
+      color: var(--mute);
+      line-height: 1.6;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      height: 1px;
+      background: var(--dim);
+      margin: 56px 0;
+      opacity: 0.4;
+    }
+
+    /* ── Footer ── */
+    footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 28px 40px;
+      border-top: 1px solid rgba(0, 0, 0, 0.07);
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .footer-wordmark {
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .footer-div {
+      width: 1px;
+      height: 14px;
+      background: var(--dim);
+    }
+
+    .footer-tagline {
+      font-size: 13px;
+      color: var(--mute);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-links a {
+      font-size: 13px;
+      color: var(--mute);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--ink); }
+
+    .footer-copy {
+      font-size: 13px;
+      color: var(--dim);
+      width: 100%;
+      text-align: right;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 640px) {
+      nav { padding: 0 20px; }
+      .nav-right { gap: 16px; }
+      footer { padding: 24px 20px; flex-direction: column; align-items: flex-start; }
+      .footer-copy { text-align: left; }
+      .contact-card { flex-direction: column; align-items: flex-start; }
+    }
+  
+/* ═══ LANGUAGE SWITCHER ═══ */
+.lang-switcher { position: relative; display: flex; align-items: center; }
+.lang-select { appearance: none; -webkit-appearance: none; background: transparent; border: 1px solid rgba(0,0,0,.14); border-radius: 100px; padding: 6px 28px 6px 12px; font-family: 'Space Mono', monospace; font-size: .66rem; font-weight: 700; letter-spacing: .10em; color: var(--dim); cursor: pointer; transition: border-color .2s, color .2s; outline: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235C5248' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+.lang-select:hover { border-color: var(--v); color: var(--ink); }
+</style>
+</head>
+<body>
+
+  <!-- ── Nav ── -->
+  <nav>
+    <a class="nav-logo" href="https://www.sortyd.com/zh/">
+      <img src="/logo.png" alt="Sortyd Logo" style="height: 32px; width: auto; display: block;">
+    </a>
+    <div class="nav-right">
+      <a class="nav-link" href="https://www.sortyd.com/zh/#features">功能</a>
+      <a class="nav-link" href="https://www.sortyd.com/zh/#how">使用流程</a>
+      <div class="lang-switcher">
+        <select class="lang-select" id="langSelect" onchange="switchLang(this.value)" aria-label="Select language">
+          <option value="en">EN</option>
+          <option value="es">ES</option>
+          <option value="ar">ع</option>
+          <option value="zh" selected>中文</option>
+        </select>
+      </div>
+      <a class="nav-dl" href="https://apps.apple.com/in/app/sortyd/id6762193535">下载</a>
+    </div>
+  </nav>
+
+  <!-- ── Main ── -->
+  <main>
+
+    <p class="page-eyebrow">帮助与支持</p>
+    <h1>我们能为您<br>做什么？</h1>
+    <p class="hero-sub">在下方查找常见问题的解答，或直接联系我们 — 我们通常会在 24 小时内给您答复。</p>
+
+    <!-- Contact card -->
+    <div class="contact-card">
+      <div class="contact-card-left">
+        <h2>邮件支持</h2>
+        <p>如有任何疑问、反馈或错误报告 — 我们会认真阅读每一条消息。</p>
+      </div>
+      <a class="email-btn" href="mailto:support@sortyd.com">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M2 4a1 1 0 011-1h10a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V4z" stroke="#fff" stroke-width="1.4"/>
+          <path d="M2 4l6 5 6-5" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>
+        </svg>
+        support@sortyd.com
+      </a>
+    </div>
+
+    <!-- FAQ -->
+    <p class="section-label">常见问题</p>
+    <div class="faq-list">
+
+      <details>
+        <summary>
+          Sortyd 真的是免费的吗？
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          是的 — 完全免费，而且永久免费。没有订阅费，没有高级版本，没有隐藏费用。应用内的所有功能都向每位用户免费开放，始终如此。
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          使用 Sortyd 需要注册账户吗？
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          不需要。Sortyd 完全支持离线运行。您的数据保存在本地设备上 — 我们绝不会向您索取邮箱地址或密码。
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          AI 习惯生成器是如何工作的？
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          点击“AI 初始清单”按钮，描述您的目标（例如“健身”或“早晨例程”），Sortyd 就会围绕该目标自动生成一份完整、结构化的每日习惯清单 — 通常包含 4-6 个具体、可执行的任务。清单创建后，您可以随时编辑或删除任何任务。
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          AI 教练会将哪些数据发送到网络？
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          当您使用 AI 教练或分析功能时，只有您的任务标题和完成率（例如“早晨锻炼：7 天中完成了 5 天”）会被发送到我们的 AI 代理。绝不会传输任何个人信息、健康数据或设备识别码。请参阅我们的 <a href="/zh/privacy">隐私政策</a> 了解完整详情。
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          与 Apple Health 的同步是如何工作的？
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          当您添加健康任务（例如“步行 10,000 步”）时，Sortyd 会以只读模式从 Apple Health 中读取您的步数和活跃卡路里。当您达到目标时，任务将自动完成。您的健康数据绝不会离开您的设备 — 绝不会被发送到我们的服务器。
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          我的连续记录（Streak）消失了 — 这是怎么回事？
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          连续记录是根据您完成了 80% 或更多任务的天数来计算的。如果某天您的完成率低于该阈值，连续记录就会重置。查看“分析”标签页可以了解您每天的完成历史，并找出记录断开的原因。
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          如何删除清单或任务？
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          删除任务：在“今天”标签页上向左滑动该任务。删除或归档清单：转到“清单”标签页，向左滑动清单，然后选择“删除”或“归档”。归档的清单会被隐藏，但其历史记录仍会保留在“分析”中。
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          小组件没有更新 — 该如何修复？
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          小组件是根据 iOS 系统自身的调度进行刷新的（通常在几分钟内）。要强制刷新：打开 Sortyd App，完成或取消完成某项任务，然后返回主屏幕。如果 10 分钟后小组件仍显示旧数据，请尝试从主屏幕小组件库中删除并重新添加它。
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          如何设置 Apple Watch App？
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          在您的 iPhone 上安装 Sortyd，然后打开 iPhone 上的 Watch App，在“可用应用”部分安装 Sortyd。您的当前清单将通过 WatchConnectivity 自动同步 — 无需额外设置。
+        </div>
+      </details>
+
+      <details>
+        <summary>
+          如果发现 Bug 或有功能建议，该如何联系你们？
+          <span class="faq-icon">+</span>
+        </summary>
+        <div class="faq-body">
+          请发送电子邮件至 <a href="mailto:support@sortyd.com">support@sortyd.com</a> 并描述您遇到的问题或想法。若为 Bug，请附带您的 iOS 版本和发生的简要描述 — 我们致力于在 24 小时内回复。
+        </div>
+      </details>
+
+    </div>
+
+    <!-- Quick tips -->
+    <p class="section-label">快捷技巧</p>
+    <div class="tips-grid">
+
+      <div class="tip-card">
+        <div class="tip-icon">🎯</div>
+        <h3>保持清单简短</h3>
+        <p>每个清单 4-6 个任务是黄金比例。超过 8 个任务往往会导致完成率下降。</p>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-icon">🔔</div>
+        <h3>为每个任务设置一个提醒</h3>
+        <p>点击任何任务上的时钟图标即可设置每日提醒。具体时间比模糊的意图更有效。</p>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-icon">🤖</div>
+        <h3>每周使用 AI 教练</h3>
+        <p>“教练”标签页随数据增多而变得更精准。在您的前 7 天后查看，即可获得您的首个真实洞察。</p>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-icon">📊</div>
+        <h3>检查您最薄弱的一天</h3>
+        <p>分析会显示您在一周中哪一天的掉队率最高。这是您最先需要解决的习惯漏洞。</p>
+      </div>
+
+    </div>
+
+    <div class="divider"></div>
+
+    <p style="font-size:15px; color: var(--mute); text-align:center;">
+      仍然遇到问题？发送电子邮件至 <a href="mailto:support@sortyd.com" style="color:var(--c); text-decoration:none;">support@sortyd.com</a> — 我们是一个小团队，我们真的会认真阅读每一条消息。
+    </p>
+
+  </main>
+
+  <!-- ── Footer ── -->
+  <footer>
+    <div class="footer-left">
+      <span class="footer-wordmark">sortyd</span>
+      <div class="footer-div"></div>
+      <span class="footer-tagline">AI 习惯追踪器</span>
+    </div>
+    <div class="footer-links">
+      <a href="/zh/privacy">隐私</a>
+      <a href="/zh/support">支持</a>
+      <a href="mailto:support@sortyd.com">联系我们</a>
+    </div>
+    <span class="footer-copy">© 2026 Sortyd</span>
+  </footer>
+
+<script src="/i18n.js"></script>
+</body>
+</html>

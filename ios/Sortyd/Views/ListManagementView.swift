@@ -1543,6 +1543,7 @@ struct AddTaskSheet: View {
                                                onRequestPermission: { showHealthPermSheet = true })
                             .sheet(isPresented: $showHealthPermSheet) {
                                 HealthPermissionSheet(taskType: detectedHealthType, onGrant: {}, onSkip: {})
+                                .environmentObject(vm)
                             }
                         }
                         if showConflictToast, let ct = conflictHealthType {
@@ -1586,6 +1587,7 @@ struct AddTaskSheet: View {
         }
         .sheet(isPresented: $showHealthPermSheet) {
             HealthPermissionSheet(taskType: detectedHealthType, onGrant: { hk.fetchToday() }, onSkip: {})
+            .environmentObject(vm)
                 .presentationDetents([.large]).presentationCornerRadius(Theme.r32).presentationBackground(Theme.bg0)
         }
         .alert(vm.localized("Notifications Disabled"), isPresented: $showDeniedAlert) {
@@ -1676,7 +1678,7 @@ struct AddTaskSheet: View {
             let cal = Calendar.current
             if let conflict = vm.findReminderConflict(hour: cal.component(.hour, from: time),
                                                        minute: cal.component(.minute, from: time),
-                                                       in: listID) {
+                                                       in: listID, date: time, isOneTime: reminderIsOneTime) {
                 reminderConflict = conflict
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { showReminderConflictToast = true }
                 UINotificationFeedbackGenerator().notificationOccurred(.warning)
@@ -1842,7 +1844,8 @@ struct EditTaskSheet: View {
             let cal = Calendar.current
             if let conflict = vm.findReminderConflict(hour: cal.component(.hour, from: time),
                                                        minute: cal.component(.minute, from: time),
-                                                       in: listID, excludingTaskID: task.id) {
+                                                       in: listID, excludingTaskID: task.id,
+                                                       date: time, isOneTime: reminderIsOneTime) {
                 reminderConflict = conflict
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { showReminderConflictToast = true }
                 UINotificationFeedbackGenerator().notificationOccurred(.warning)

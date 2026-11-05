@@ -2,13 +2,13 @@
 // Sortyd v4 — Root (Theme-Aware Tab Bar) + AI Coach Tab
 
 import SwiftUI
+import FirebaseAnalytics
 
 struct ContentView: View {
     @EnvironmentObject var vm: AppViewModel
     @EnvironmentObject var themeManager: ThemeManager
     @AppStorage("sortyd_has_seen_onboarding") private var hasSeenOnboarding = false
     @State private var showOnboarding = false
-    @State private var showSplash = true
 
     init() {
         updateAppearance()
@@ -19,25 +19,25 @@ struct ContentView: View {
             HomeView()
                 .environmentObject(vm)
                 .environmentObject(ThemeManager.shared)
-                .tabItem { Label("Today", systemImage: vm.selectedTab == 0 ? "checkmark.circle.fill" : "checkmark.circle") }
+                .tabItem { Label(vm.localized("Today"), systemImage: vm.selectedTab == 0 ? "checkmark.circle.fill" : "checkmark.circle") }
                 .tag(0)
 
             ListManagementView()
                 .environmentObject(vm)
                 .environmentObject(ThemeManager.shared)
-                .tabItem { Label("Lists", systemImage: vm.selectedTab == 1 ? "list.bullet.circle.fill" : "list.bullet.circle") }
+                .tabItem { Label(vm.localized("Lists"), systemImage: vm.selectedTab == 1 ? "list.bullet.circle.fill" : "list.bullet.circle") }
                 .tag(1)
 
             AnalyticsView()
                 .environmentObject(vm)
                 .environmentObject(ThemeManager.shared)
-                .tabItem { Label("Analytics", systemImage: vm.selectedTab == 2 ? "chart.line.uptrend.xyaxis.circle.fill" : "chart.line.uptrend.xyaxis.circle") }
+                .tabItem { Label(vm.localized("Analytics"), systemImage: vm.selectedTab == 2 ? "chart.line.uptrend.xyaxis.circle.fill" : "chart.line.uptrend.xyaxis.circle") }
                 .tag(2)
 
             AICoachView()
                 .environmentObject(vm)
                 .environmentObject(ThemeManager.shared)
-                .tabItem { Label("Coach", systemImage: vm.selectedTab == 3 ? "brain.head.profile" : "brain.head.profile") }
+                .tabItem { Label(vm.localized("Coach"), systemImage: vm.selectedTab == 3 ? "brain.head.profile" : "brain.head.profile") }
                 .tag(3)
         }
         .tint(Theme.accent)
@@ -54,23 +54,10 @@ struct ContentView: View {
                         showOnboarding = false
                     }
                     hasSeenOnboarding = true
+                    Analytics.logEvent("onboarding_completed", parameters: nil)
                     vm.selectedTab = 0
                 }
                 .transition(.opacity)
-            }
-        }
-        .overlay {
-            if showSplash {
-                LaunchBufferView()
-                    .ignoresSafeArea()
-                    .transition(.opacity)
-                    .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
-                            withAnimation(.easeOut(duration: 0.45)) {
-                                showSplash = false
-                            }
-                        }
-                    }
             }
         }
     }

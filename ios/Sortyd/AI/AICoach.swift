@@ -1,12 +1,11 @@
 // MARK: - AICoach.swift
-// Sortyd — AI Coach powered by Cerebras
+// Sortyd — AI Coach using the Cloudflare inference proxy
 // Handles: Weekly Recap, Procrastination Detection, List Health,
 //          Behavioural Pillars, NL Task Entry, Starter Lists
 
 import Foundation
 import Combine
 import SwiftUI
-import CryptoKit
 
 // MARK: - Response Models
 
@@ -45,6 +44,35 @@ struct StarterList: Codable {
     let emoji: String
     let listName: String
     let tasks: [String]
+}
+
+struct CachedListAnalysis: Codable {
+    var cachedAt: Date
+    var weeklyRecap: WeeklyRecap?
+    var procrastinationFlags: [ProcrastinationFlag]
+    var behaviouralAnalysis: BehaviouralAnalysis?
+}
+
+struct BatchBehaviouralItem: Codable {
+    let listId: String
+    let pillars: [BehaviouralPillar]
+    let overallInsight: String
+    let criticalPillar: String
+}
+
+struct BatchWeeklyRecapItem: Codable {
+    let listId: String
+    let headline: String
+    let summary: String
+    let highlight: String
+    let nudge: String
+    let grade: String
+    let gradeReason: String
+}
+
+struct BatchProcrastinationItem: Codable {
+    let listId: String
+    let flags: [ProcrastinationFlag]
 }
 
 // MARK: - Behavioural Pillar Models
@@ -100,42 +128,35 @@ final class AICoach: ObservableObject {
     @Published var isLoading = false
     @Published var isBehaviourLoading = false
     @Published var errorMessage: String?
+    @Published var cacheAge: Date? = nil
 
-    // ─── Cerebras config ──────────────────────────────────────────────────────
-    // Security: No secret is stored in the client binary.
-    // Each request is authenticated by a HMAC-SHA256 signature over the
-    // request body + a Unix timestamp, using a salt derived at build time
-    // from public app metadata. The Cloudflare Worker recomputes the same
-    // HMAC and rejects requests where the signature doesn't match or the
-    // timestamp is stale (> 60 s). This makes replayed or forged requests
-    // impossible without knowing the salt, which is never transmitted.
-    //
-    // To rotate: change hmacSalt here and update SORTYD_HMAC_SALT in the
-    // Cloudflare Worker secret store. Both must match.
-
+    // The Worker selects the Cloudflare model and enforces request limits.
     private let model  = "llama3.1-8b"
-    private let apiURL = URL(string: "https://sortyd-proxy.abhishek918.workers.dev/api/ai") ?? URL(string: "about:blank")!
+    private let apiURL = URL(string: "https://sortyd-proxy.abhishek918.workers.dev/api/ai")!
 
-    // This is NOT a secret — it is a public HMAC salt derived from your
-    // bundle ID + app name. It prevents trivial replay attacks but is not
-    // a substitute for server-side rate limiting. The actual Cerebras API key
-    // lives only in the Cloudflare Worker environment variable CEREBRAS_API_KEY.
-    private let hmacSalt = "com.sortyd.sortyd|Sortyd|v1"
-    // ─────────────────────────────────────────────────────────────────────────
+    private let installationDefaults: UserDefaults
+    private var observedHistoryStart: Date?
+    private let requestSession: URLSession
+    private var batchRequests: [String: Task<Void, Never>] = [:]
 
-    private init() {}
+    init(defaults: UserDefaults? = nil, session: URLSession = .shared) {
+        cacheDefaults = defaults ?? UserDefaults(suiteName: "group.com.sortyd.sortyd") ?? .standard
+        installationDefaults = defaults ?? .standard
+        requestSession = session
+    }
 
     // MARK: - Weekly Recap
 
     func generateWeeklyRecap(lists: [TaskList], snapshots: [DailySnapshot]) async {
+        observeHistory(lists: lists, snapshots: snapshots)
         isLoading = true
         errorMessage = nil
 
         let summary = buildWeekSummary(lists: lists, snapshots: snapshots)
         let windowDays = min(7, daysSinceInstall + 1)
-        let groupDefaults = UserDefaults(suiteName: "group.com.sortyd.sortyd")
+        let groupDefaults: UserDefaults? = cacheDefaults
         let language = AppLanguage(rawValue: groupDefaults?.string(forKey: "sortyd_app_language") ?? "en") ?? .english
-        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : "English")
+        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : (language == .chinese ? "Chinese" : "English"))
         let langNote = "IMPORTANT: You MUST respond in \(langName). Every single text value in the JSON must be written in fluent \(langName). Do not use English."
 
         let prompt = """
@@ -166,7 +187,7 @@ final class AICoach: ObservableObject {
         }
         """
 
-        if let result: WeeklyRecap = await callGroq(prompt: prompt, maxTokens: 500) {
+        if let result: WeeklyRecap = await callCerebras(prompt: prompt, maxTokens: 1500) {
             weeklyRecap = result
         } else if errorMessage == nil {
             // Network succeeded but response couldn't be parsed — show a clear message
@@ -179,6 +200,7 @@ final class AICoach: ObservableObject {
     // MARK: - Procrastination Detection
 
     func detectProcrastination(lists: [TaskList], snapshots: [DailySnapshot]) async {
+        observeHistory(lists: lists, snapshots: snapshots)
         isLoading = true
         errorMessage = nil
 
@@ -190,9 +212,9 @@ final class AICoach: ObservableObject {
         }
 
         let procWindow = min(14, daysSinceInstall + 1)
-        let groupDefaults = UserDefaults(suiteName: "group.com.sortyd.sortyd")
+        let groupDefaults: UserDefaults? = cacheDefaults
         let language = AppLanguage(rawValue: groupDefaults?.string(forKey: "sortyd_app_language") ?? "en") ?? .english
-        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : "English")
+        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : (language == .chinese ? "Chinese" : "English"))
         let langNote = "IMPORTANT: You MUST respond in \(langName). All JSON text values including taskTitle and suggestion must be in fluent \(langName)."
 
         let prompt = """
@@ -223,7 +245,7 @@ final class AICoach: ObservableObject {
         Max 6 items.
         """
 
-        if let result: [ProcrastinationFlag] = await callGroqArray(prompt: prompt, maxTokens: 400) {
+        if let result: [ProcrastinationFlag] = await callCerebrasArray(prompt: prompt, maxTokens: 1500) {
             procrastinationFlags = result
         } else if errorMessage == nil {
             errorMessage = "Couldn't read the AI response. Try again in a moment."
@@ -241,9 +263,9 @@ final class AICoach: ObservableObject {
         let recentCompletedIDs = Set(recentSnaps.flatMap(\.completedTaskIDs))
         let neverDoneTasks = list.tasks.filter { !recentCompletedIDs.contains($0.id) }.map(\.title)
 
-        let groupDefaults = UserDefaults(suiteName: "group.com.sortyd.sortyd")
+        let groupDefaults: UserDefaults? = cacheDefaults
         let language = AppLanguage(rawValue: groupDefaults?.string(forKey: "sortyd_app_language") ?? "en") ?? .english
-        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : "English")
+        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : (language == .chinese ? "Chinese" : "English"))
         let langNote = "IMPORTANT: You MUST respond in \(langName). Every single text value in the JSON must be written in fluent \(langName). Do not use English."
 
         let prompt = """
@@ -252,7 +274,7 @@ final class AICoach: ObservableObject {
 
         List: "\(list.name)"
         Total tasks: \(list.tasks.count)
-        Avg completion (30 days): \(Int(avgCompletion * 100))%
+        Avg completion (30 days): \(CompletionPolicy.percentage(avgCompletion))%
         Tasks NEVER completed in 30 days: \(neverDoneTasks.isEmpty ? "none" : neverDoneTasks.joined(separator: ", "))
 
         DIAGNOSIS RULES:
@@ -271,12 +293,13 @@ final class AICoach: ObservableObject {
         }
         """
 
-        return await callGroq(prompt: prompt, maxTokens: 300)
+        return await callCerebras(prompt: prompt, maxTokens: 1200)
     }
 
     // MARK: - Behavioural Pillar Analysis
 
     func analyseBehaviouralPillars(lists: [TaskList], snapshots: [DailySnapshot]) async {
+        observeHistory(lists: lists, snapshots: snapshots)
         isBehaviourLoading = true
         behaviouralAnalysis = nil
 
@@ -286,10 +309,21 @@ final class AICoach: ObservableObject {
             return
         }
 
-        let groupDefaults = UserDefaults(suiteName: "group.com.sortyd.sortyd")
+        let groupDefaults: UserDefaults? = cacheDefaults
         let language = AppLanguage(rawValue: groupDefaults?.string(forKey: "sortyd_app_language") ?? "en") ?? .english
-        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : "English")
-        let langNote = "IMPORTANT: You MUST respond in \(langName). All JSON text values including pillar names, insights, and advice must be in fluent \(langName)."
+        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : (language == .chinese ? "Chinese" : "English"))
+        let statusValues: String
+        switch language {
+        case .english:
+            statusValues = "Strong, Developing, Struggling"
+        case .spanish:
+            statusValues = "Fuerte, En desarrollo, Con dificultades"
+        case .arabic:
+            statusValues = "قوي، قيد التطوير، متعثر"
+        case .chinese:
+            statusValues = "强项、发展中、需改善"
+        }
+        let langNote = "IMPORTANT: You MUST respond in \(langName). All JSON text values including pillar names, status, insights, and advice must be in fluent \(langName). For status, use ONLY one of these values: \(statusValues). Do not use English status words unless the language is English."
 
         let prompt = """
         You are a habit coach who finds the real patterns. Use "you", never "the user".
@@ -315,18 +349,18 @@ final class AICoach: ObservableObject {
               "name": "Pillar name (Translate into \(langName))",
               "emoji": "<single emoji>",
               "score": <0-100 based on actual completion data>,
-              "status": "Translate 'Strong' or 'Developing' or 'Struggling' into \(langName)",
-              "insight": "Name specific tasks and numbers. e.g. 'You do Workout 80% on weekdays but 0% on weekends. The routine breaks when structure disappears.'",
+              "status": "One of: \(statusValues)",
+              "insight": "Name exact tasks and quote only statistics explicitly present in DATA. If uncertain, describe the pattern without numbers.",
               "tasks": ["exact task title 1", "exact task title 2"],
               "advice": "Target the weakest task in this pillar. e.g. 'Do [task] right after [strongest task] to piggyback the habit.' Under 15 words."
             }
           ],
-          "overallInsight": "Name THE pattern. e.g. 'Your weekdays are strong but weekends erase the progress. 3 tasks hit 0% on Sat-Sun.' 2 sentences max.",
+          "overallInsight": "Describe the largest pattern supported by DATA in at most two sentences. Never introduce example statistics.",
           "criticalPillar": "Name of the pillar needing most attention"
         }
         """
 
-        if let result: BehaviouralAnalysis = await callGroq(prompt: prompt, maxTokens: 900) {
+        if let result: BehaviouralAnalysis = await callCerebras(prompt: prompt, maxTokens: 2800) {
             behaviouralAnalysis = result
         } else if errorMessage == nil {
             errorMessage = "Couldn't read the AI response. Try again in a moment."
@@ -337,9 +371,9 @@ final class AICoach: ObservableObject {
     // MARK: - Natural Language Task Parsing
 
     func parseNaturalLanguageTask(_ input: String) async -> ParsedTask? {
-        let groupDefaults = UserDefaults(suiteName: "group.com.sortyd.sortyd")
+        let groupDefaults: UserDefaults? = cacheDefaults
         let language = AppLanguage(rawValue: groupDefaults?.string(forKey: "sortyd_app_language") ?? "en") ?? .english
-        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : "English")
+        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : (language == .chinese ? "Chinese" : "English"))
         let langNote = "IMPORTANT: You MUST respond in \(langName). The parsed 'title' must be in \(langName)."
 
         let examples: String
@@ -357,6 +391,13 @@ final class AICoach: ObservableObject {
             "salir a correr" → {"title":"Salir a correr","hasReminder":false,"reminderHour":null,"reminderMinute":null}
             "reunión de equipo 9:30am" → {"title":"Reunión de equipo","hasReminder":true,"reminderHour":9,"reminderMinute":30}
             "call mom at 6pm" → {"title":"Llamar a mamá","hasReminder":true,"reminderHour":18,"reminderMinute":0}
+            """
+        case .chinese:
+            examples = """
+            "晚上6点给妈妈打电话" → {"title":"给妈妈打电话","hasReminder":true,"reminderHour":18,"reminderMinute":0}
+            "去跑步" → {"title":"去跑步","hasReminder":false,"reminderHour":null,"reminderMinute":null}
+            "上午9点30分团队会议" → {"title":"团队会议","hasReminder":true,"reminderHour":9,"reminderMinute":30}
+            "call mom at 6pm" → {"title":"给妈妈打电话","hasReminder":true,"reminderHour":18,"reminderMinute":0}
             """
         default:
             examples = """
@@ -384,15 +425,17 @@ final class AICoach: ObservableObject {
         \(examples)
         """
 
-        return await callGroq(prompt: prompt, maxTokens: 150)
+        return await callCerebras(prompt: prompt, maxTokens: 900)
     }
 
     // MARK: - Daily Summary (one-liner for 10 PM notification)
 
     /// Returns a single punchy sentence summarising today's performance on the active list.
     func generateDailySummary(for list: TaskList, snapshots: [DailySnapshot]) async -> String? {
+        guard !list.isArchived, !list.isTodo, !list.isWeekly else { return nil }
+
         let cal = Calendar.current
-        let today = cal.startOfDay(for: Date())
+        let today = ReminderPolicy.dayStart(Date(), calendar: cal)
         let todaySnap = snapshots.first(where: {
             $0.listID == list.id && cal.isDate($0.date, inSameDayAs: today)
         })
@@ -405,9 +448,9 @@ final class AICoach: ObservableObject {
         let completedTitles = list.tasks.filter {  completedIDs.contains($0.id) }.map(\.title)
         let missedTitles    = list.tasks.filter { !completedIDs.contains($0.id) }.map(\.title)
 
-        let groupDefaults = UserDefaults(suiteName: "group.com.sortyd.sortyd")
+        let groupDefaults: UserDefaults? = cacheDefaults
         let language = AppLanguage(rawValue: groupDefaults?.string(forKey: "sortyd_app_language") ?? "en") ?? .english
-        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : "English")
+        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : (language == .chinese ? "Chinese" : "English"))
         let langNote = "IMPORTANT: You MUST respond in \(langName). Output ONLY the single sentence in \(langName)."
 
         let prompt = """
@@ -429,7 +472,7 @@ final class AICoach: ObservableObject {
         - Output ONLY the sentence. No quotes, no JSON, no explanation.
        """
 
-        guard let data = await postToGroqUnthrottled(prompt: prompt, maxTokens: 80) else { return nil }
+        guard let data = await executeRequest(prompt: prompt, maxTokens: 900) else { return nil }
         return extractText(from: data)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .components(separatedBy: "\n").first
@@ -438,9 +481,11 @@ final class AICoach: ObservableObject {
     /// MARK: - Starter List Generation
     
     func generateStarterList(goal: String) async -> StarterList? {
-        let groupDefaults = UserDefaults(suiteName: "group.com.sortyd.sortyd")
+        let startedAt = Date()
+        errorMessage = nil
+        let groupDefaults: UserDefaults? = cacheDefaults
         let language = AppLanguage(rawValue: groupDefaults?.string(forKey: "sortyd_app_language") ?? "en") ?? .english
-        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : "English")
+        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : (language == .chinese ? "Chinese" : "English"))
         let langNote = "IMPORTANT: You MUST respond in \(langName). The listName and every task in the tasks array must be in fluent \(langName)."
 
         let prompt = """
@@ -448,12 +493,13 @@ final class AICoach: ObservableObject {
         Their goal: "\(goal)"
         \(langNote)
 
-        YOUR JOB: Generate a complete, well-structured daily habit list that covers ALL dimensions of this goal.
+        YOUR JOB: Generate a complete, well-structured daily habit list that covers the goal the user actually asked for.
 
         TASK COUNT RULES — this is critical:
         - ALWAYS generate between 4 and 6 tasks. Never fewer than 4. Never more than 6.
         - If the goal is broad, find distinct daily actions that build that lifestyle.
-        - If the goal is narrow, expand it into supporting habits (hydration, sleep, prep).
+        - If the goal is narrow, expand into directly related actions only.
+        - Do not add generic wellness, fitness, hydration, sleep, or exercise tasks unless the user's goal is clearly about health, fitness, body, recovery, sleep, or phone usage.
         - Think in SYSTEMS, not single tasks.
 
         TASK QUALITY RULES:
@@ -462,17 +508,10 @@ final class AICoach: ObservableObject {
         - For Arabic: Use natural, modern phrasing.
         - For Spanish: Use direct, actionable verbs.
 
-        HEALTH TASK INTEGRATION — extremely important:
-        - If the goal involves fitness, weight, gym, cardio, running, health, or activity, you MUST include:
-          1. ONE steps task (e.g., "10,000 steps").
-          2. ONE calories task (e.g., "Burn 500 kcal").
-          3. ONE running/distance task (e.g., "Run 5km").
-        - For these 3 tasks, you MUST shuffle/randomize the numeric targets slightly around these baselines:
-          - Steps: baseline 10,000 (randomize between 6,000 and 12,000).
-          - Calories: baseline 500 (randomize between 300 and 700).
-          - Distance: baseline 5 (randomize between 3 and 10).
-        - Example Distance task: "Run 5km", "Daily 3km run", "5km jog".
-        - For non-health goals, DO NOT include these special tracking tasks.
+        Stay strictly within the stated goal. Do not introduce exercise, calorie, step, sleep,
+        or hydration tasks for learning, financial, creative, career, or household goals.
+        For an explicitly fitness-related goal, make safe, achievable movement tasks appropriate
+        to the goal, without prescribing aggressive calorie or exercise targets.
 
         CRITICAL — listName rules (violations will break the UI):
         - Return ONLY the core 1–3 word name. No emojis.
@@ -491,82 +530,437 @@ final class AICoach: ObservableObject {
         }
         """
 
-        return await callGroq(prompt: prompt, maxTokens: 700)
+        let result: StarterList? = await callCerebras(prompt: prompt, maxTokens: 1800)
+        AppTelemetry.aiResult(feature: "starter_list", outcome: result == nil ? "failed" : "success", startedAt: startedAt)
+        return result
     }
 
-    // MARK: - Private: Groq API
+    // MARK: - Private: Cerebras API
 
-    private func callGroq<T: Decodable>(prompt: String, maxTokens: Int = 800) async -> T? {
-        guard let responseData = await postToGroq(prompt: prompt, maxTokens: maxTokens) else { return nil }
+    private func callCerebras<T: Decodable>(prompt: String, maxTokens: Int = 800) async -> T? {
+        guard let responseData = await postToCerebras(prompt: prompt, maxTokens: maxTokens) else { return nil }
         return parseResponse(responseData)
     }
 
-    private func callGroqArray<T: Decodable>(prompt: String, maxTokens: Int = 800) async -> [T]? {
-        guard let responseData = await postToGroq(prompt: prompt, maxTokens: maxTokens) else { return nil }
+    private func callCerebrasArray<T: Decodable>(prompt: String, maxTokens: Int = 800) async -> [T]? {
+        guard let responseData = await postToCerebras(prompt: prompt, maxTokens: maxTokens) else { return nil }
         return parseArrayResponse(responseData)
     }
 
-    // MARK: - HMAC request signing
-
-    /// Signs the request body with HMAC-SHA256 using hmacSalt + current Unix timestamp.
-    /// The Worker validates the signature and rejects requests older than 60 seconds.
-    /// No secret leaves the server; the salt is public but makes blind replay impossible.
-    private func signedRequest(body: Data) -> URLRequest {
-        let timestamp = String(Int(Date().timeIntervalSince1970))
-        let message   = timestamp + "." + (String(data: body, encoding: .utf8) ?? "")
-        let signature = hmac(message: message, key: hmacSalt)
-
+    private func aiRequest(body: Data) -> URLRequest {
         var request = URLRequest(url: apiURL)
         request.httpMethod    = "POST"
-        request.timeoutInterval = 120
+        request.timeoutInterval = 30
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(timestamp,  forHTTPHeaderField: "x-sortyd-ts")
-        request.setValue(signature,  forHTTPHeaderField: "x-sortyd-sig")
         request.httpBody = body
         return request
     }
 
-    /// HMAC-SHA256 using CryptoKit — available on iOS 13+.
-    private func hmac(message: String, key: String) -> String {
-        let keyData  = SymmetricKey(data: Data(key.utf8))
-        let mac      = HMAC<SHA256>.authenticationCode(for: Data(message.utf8), using: keyData)
-        return Data(mac).map { String(format: "%02x", $0) }.joined()
+    // MARK: - Caching (24h per list)
+
+    private var cacheKey: String {
+        let language = cacheDefaults.string(forKey: "sortyd_app_language") ?? "en"
+        return "sortyd_ai_cache_v2_\(language)"
+    }
+    private let cacheDefaults: UserDefaults
+
+    private func loadCache() -> [String: CachedListAnalysis] {
+        guard let data = cacheDefaults.data(forKey: cacheKey),
+              let decoded = try? JSONDecoder().decode([String: CachedListAnalysis].self, from: data) else {
+            return [:]
+        }
+        return decoded
+    }
+
+    private func saveCache(_ cache: [String: CachedListAnalysis]) {
+        if let encoded = try? JSONEncoder().encode(cache) {
+            cacheDefaults.set(encoded, forKey: cacheKey)
+        }
+    }
+
+    private func isCacheValid(for entry: CachedListAnalysis) -> Bool {
+        entry.behaviouralAnalysis != nil && entry.weeklyRecap != nil &&
+        ReminderPolicy.dayStart(entry.cachedAt) == ReminderPolicy.dayStart(Date())
+    }
+
+    func loadFromCache(for listID: UUID) -> Bool {
+        let cache = loadCache()
+        let key = listID.uuidString
+        guard let entry = cache[key], isCacheValid(for: entry) else { return false }
+        weeklyRecap = entry.weeklyRecap
+        procrastinationFlags = entry.procrastinationFlags
+        behaviouralAnalysis = entry.behaviouralAnalysis
+        cacheAge = entry.cachedAt
+        return true
+    }
+
+    func loadBestAvailableCache(for listID: UUID) -> (found: Bool, isStale: Bool) {
+        let cache = loadCache()
+        let key = listID.uuidString
+        guard let entry = cache[key] else {
+            weeklyRecap = nil
+            procrastinationFlags = []
+            behaviouralAnalysis = nil
+            cacheAge = nil
+            return (false, false)
+        }
+        weeklyRecap = entry.weeklyRecap
+        procrastinationFlags = entry.procrastinationFlags
+        behaviouralAnalysis = entry.behaviouralAnalysis
+        cacheAge = entry.cachedAt
+        let isValid = isCacheValid(for: entry)
+        return (entry.behaviouralAnalysis != nil, !isValid)
+    }
+
+    func fetchAndCache(list: TaskList, snapshots: [DailySnapshot], force: Bool = false) async {
+        if !force && loadFromCache(for: list.id) {
+            return
+        }
+
+        var cache = loadCache()
+        let listKey = list.id.uuidString
+        var entry = cache[listKey] ?? CachedListAnalysis(cachedAt: Date(), weeklyRecap: nil, procrastinationFlags: [], behaviouralAnalysis: nil)
+
+        await analyseBehaviouralPillars(lists: [list], snapshots: snapshots)
+        entry.behaviouralAnalysis = behaviouralAnalysis
+
+        await generateWeeklyRecap(lists: [list], snapshots: snapshots)
+        entry.weeklyRecap = weeklyRecap
+
+        await detectProcrastination(lists: [list], snapshots: snapshots)
+        entry.procrastinationFlags = procrastinationFlags
+
+        entry.cachedAt = Date()
+        cache[listKey] = entry
+        saveCache(cache)
+    }
+
+    // MARK: - Batch Analysis Methods
+
+    func fetchAllListsBatch(lists: [TaskList], snapshots: [DailySnapshot], force: Bool = false) async {
+        let requestKey = cacheKey + lists.map { $0.id.uuidString }.sorted().joined()
+        if let existing = batchRequests[requestKey] {
+            await existing.value
+            return
+        }
+        let work = Task { await self.performBatch(lists: lists, snapshots: snapshots, force: force) }
+        batchRequests[requestKey] = work
+        await work.value
+        batchRequests.removeValue(forKey: requestKey)
+    }
+
+    private func performBatch(lists: [TaskList], snapshots: [DailySnapshot], force: Bool) async {
+        let requestedCacheKey = cacheKey
+        isLoading = true
+        isBehaviourLoading = true
+        errorMessage = nil
+
+        let cache = loadCache()
+        
+        let listsToFetch: [TaskList]
+        if force {
+            listsToFetch = lists
+        } else {
+            listsToFetch = lists.filter { list in
+                guard let entry = cache[list.id.uuidString] else { return true }
+                return !isCacheValid(for: entry)
+            }
+        }
+
+        guard !listsToFetch.isEmpty else {
+            isLoading = false
+            isBehaviourLoading = false
+            return
+        }
+
+        async let behaviouralResult = batchAnalyseBehaviouralPillars(lists: listsToFetch, snapshots: snapshots)
+        async let weeklyResult = batchGenerateWeeklyRecap(lists: listsToFetch, snapshots: snapshots)
+        async let procrastinationResult = batchDetectProcrastination(lists: listsToFetch, snapshots: snapshots)
+
+        let (behaviours, recaps, procrastinations) = await (behaviouralResult, weeklyResult, procrastinationResult)
+
+        // A language switch while requests are running must not overwrite the new language's cache.
+        guard requestedCacheKey == cacheKey else {
+            isLoading = false
+            isBehaviourLoading = false
+            return
+        }
+        var updatedCache = loadCache()
+        let fetchTime = Date()
+
+        for list in listsToFetch {
+            let listKey = list.id.uuidString
+            var entry = updatedCache[listKey] ?? CachedListAnalysis(cachedAt: .distantPast, weeklyRecap: nil, procrastinationFlags: [], behaviouralAnalysis: nil)
+
+            if let behaviour = behaviours[listKey] {
+                entry.behaviouralAnalysis = behaviour
+            }
+            if let recap = recaps[listKey] {
+                entry.weeklyRecap = recap
+            }
+            if !procrastinations.isEmpty {
+                entry.procrastinationFlags = procrastinations[listKey] ?? []
+            } else if entry.procrastinationFlags.isEmpty {
+                entry.procrastinationFlags = []
+            }
+
+            if behaviours[listKey] != nil || recaps[listKey] != nil || procrastinations[listKey] != nil {
+                // Partial results remain retryable instead of hiding a failed coach for a day.
+                if behaviours[listKey] != nil && recaps[listKey] != nil { entry.cachedAt = fetchTime }
+                updatedCache[listKey] = entry
+            }
+        }
+
+        saveCache(updatedCache)
+
+        isLoading = false
+        isBehaviourLoading = false
+    }
+
+    func batchAnalyseBehaviouralPillars(lists: [TaskList], snapshots: [DailySnapshot]) async -> [String: BehaviouralAnalysis] {
+        observeHistory(lists: lists, snapshots: snapshots)
+        let taskData = buildTaskCompletionData(lists: lists, snapshots: snapshots)
+        guard !taskData.isEmpty else {
+            return [:]
+        }
+
+        let groupDefaults: UserDefaults? = cacheDefaults
+        let language = AppLanguage(rawValue: groupDefaults?.string(forKey: "sortyd_app_language") ?? "en") ?? .english
+        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : (language == .chinese ? "Chinese" : "English"))
+        let statusValues: String
+        switch language {
+        case .english:
+            statusValues = "Strong, Developing, Struggling"
+        case .spanish:
+            statusValues = "Fuerte, En desarrollo, Con dificultades"
+        case .arabic:
+            statusValues = "قوي، قيد التطوير، متعثر"
+        case .chinese:
+            statusValues = "强项、发展中、需改善"
+        }
+        let langNote = "IMPORTANT: You MUST respond in \(langName). All JSON text values including pillar names, status, insights, and advice must be in fluent \(langName). For status, use ONLY one of these values: \(statusValues). Do not use English status words unless the language is English."
+
+        let prompt = """
+        You are a habit coach who finds the real patterns. Use "you", never "the user".
+        Be specific — name tasks, name days, name numbers.
+        \(langNote)
+
+        You are analyzing multiple lists at once. You must provide a separate analysis for each list.
+        Each list is identified by its ID in the input data. Do not mix tasks or coaching between different lists.
+
+        DATA (per task: completion rate, weekday vs weekend split, trend, current streak):
+        \(taskData)
+
+        ANALYSIS INSTRUCTIONS:
+        For each list:
+        - Group tasks into 2–4 behavioural pillars (Health, Discipline, Mindset, Learning, etc.)
+        - The pillar score = average completion of its tasks. Don't inflate it.
+        - Look at weekday vs weekend rates — if weekend drops >20%, call it out
+        - Look at trends — DECLINING tasks are red flags, IMPROVING tasks are wins
+        - Look at streaks – a 0-day streak on a daily task means it just broke
+        - The overallInsight MUST name the single biggest pattern (e.g. "weekends", "one task dragging everything down", "steady improvement")
+
+        Respond ONLY with a valid JSON array of objects (no markdown, no backticks, no wrapping other than the array):
+        [
+          {
+            "listId": "<exact UUID string of the list from the input>",
+            "pillars": [
+              {
+                "id": "<UUID string>",
+                "name": "Pillar name (Translate into \(langName))",
+                "emoji": "<single emoji>",
+                "score": <0-100 based on actual completion data>,
+                "status": "One of: \(statusValues)",
+                "insight": "Name exact tasks and quote only statistics explicitly present in DATA. If uncertain, describe the pattern without numbers.",
+                "tasks": ["exact task title 1", "exact task title 2"],
+                "advice": "Target the weakest task in this pillar. e.g. 'Do [task] right after [strongest task] to piggyback the habit.' Under 15 words."
+              }
+            ],
+            "overallInsight": "Describe the largest pattern supported by DATA in at most two sentences. Never introduce example statistics.",
+            "criticalPillar": "Name of the pillar needing most attention"
+          }
+        ]
+        """
+
+        if let result: [BatchBehaviouralItem] = await callCerebrasArray(prompt: prompt, maxTokens: 8000) {
+            var dict: [String: BehaviouralAnalysis] = [:]
+            for item in result {
+                dict[item.listId] = BehaviouralAnalysis(pillars: item.pillars, overallInsight: item.overallInsight, criticalPillar: item.criticalPillar)
+            }
+            return dict
+        }
+        return [:]
+    }
+
+    func batchGenerateWeeklyRecap(lists: [TaskList], snapshots: [DailySnapshot]) async -> [String: WeeklyRecap] {
+        observeHistory(lists: lists, snapshots: snapshots)
+        let summary = buildWeekSummary(lists: lists, snapshots: snapshots)
+        let windowDays = min(7, daysSinceInstall + 1)
+        let groupDefaults: UserDefaults? = cacheDefaults
+        let language = AppLanguage(rawValue: groupDefaults?.string(forKey: "sortyd_app_language") ?? "en") ?? .english
+        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : (language == .chinese ? "Chinese" : "English"))
+        let langNote = "IMPORTANT: You MUST respond in \(langName). Every single text value in the JSON must be written in fluent \(langName). Do not use English."
+
+        let prompt = """
+        You are a sharp, no-BS habit coach. You see patterns others miss.
+        Rules: Use "you", never "the user". Name SPECIFIC tasks. Short punchy sentences. No fluff.
+        \(langNote)
+        \(newUserNote)
+
+        You are analyzing multiple lists at once. You must provide a separate weekly recap for each list.
+        Each list is identified by its ID in the input data. Do not mix tasks or recaps between different lists.
+
+        DATA (\(windowDays) days, per-task daily breakdown):
+        \(summary)
+
+        ANALYSIS INSTRUCTIONS:
+        For each list:
+        - Look at which specific tasks were skipped and on which days.
+        - Identify the weakest task (lowest completion) and the strongest.
+        - Notice day-of-week patterns (e.g., weekends drop, Mondays strong).
+        - Check if streaks are building or breaking.
+        - The headline should reference a SPECIFIC pattern you found.
+        - For Arabic: Ensure the tone is professional yet direct.
+        - For Spanish: Use an encouraging but firm "tú" tone.
+
+        Respond ONLY with a valid JSON array of objects (no markdown, no backticks, no wrapping other than the array):
+        [
+          {
+            "listId": "<exact UUID string of the list from the input>",
+            "headline": "Max 6 words + 1 emoji. Reference a specific finding.",
+            "summary": "2 sentences. Name the weakest task and strongest task BY NAME. State the specific pattern.",
+            "highlight": "Name ONE specific task + what they did well.",
+            "nudge": "ONE specific action targeting their weakest task. Verb-first, under 15 words.",
+            "grade": "Letter grade: A, A-, B+, B, B-, C+, C, or D",
+            "gradeReason": "Reference the data explicitly."
+          }
+        ]
+        """
+
+        if let result: [BatchWeeklyRecapItem] = await callCerebrasArray(prompt: prompt, maxTokens: 5000) {
+            var dict: [String: WeeklyRecap] = [:]
+            for item in result {
+                dict[item.listId] = WeeklyRecap(
+                    headline: item.headline,
+                    summary: item.summary,
+                    highlight: item.highlight,
+                    nudge: item.nudge,
+                    grade: item.grade,
+                    gradeReason: item.gradeReason
+                )
+            }
+            return dict
+        }
+        return [:]
+    }
+
+    func batchDetectProcrastination(lists: [TaskList], snapshots: [DailySnapshot]) async -> [String: [ProcrastinationFlag]] {
+        observeHistory(lists: lists, snapshots: snapshots)
+        let flagData = buildProcrastinationData(lists: lists, snapshots: snapshots)
+        guard !flagData.isEmpty else {
+            return [:]
+        }
+
+        let procWindow = min(14, daysSinceInstall + 1)
+        let groupDefaults: UserDefaults? = cacheDefaults
+        let language = AppLanguage(rawValue: groupDefaults?.string(forKey: "sortyd_app_language") ?? "en") ?? .english
+        let langName = language == .arabic ? "Arabic" : (language == .spanish ? "Spanish" : (language == .chinese ? "Chinese" : "English"))
+        let langNote = "IMPORTANT: You MUST respond in \(langName). All JSON fields suggestion and actionLabel must be in fluent \(langName)."
+
+        let prompt = """
+        You detect chronic avoidance and call it what it is. Be direct but action-focused.
+        \(langNote)
+        \(procNewNote)
+
+        You are analyzing multiple lists at once. You must provide procrastination flags for each list.
+        Each task entry in the input data has a "listId". Group the procrastination flags by their respective "listId".
+
+        DATA (avoided tasks over \(procWindow) days):
+        \(flagData)
+
+        INSTRUCTIONS:
+        For each flagged task:
+        - Diagnose why they might be avoiding it.
+        - Give a hyper-specific, micro-action recommendation to get started.
+        - The actionLabel should be a button label that starts with a verb, e.g. "Do 2 min" or "Reset target".
+        - The suggestion must name the task and be under 12 words.
+
+        Respond ONLY with a valid JSON array of objects (no markdown, no backticks, no wrapping other than the array):
+        [
+          {
+            "listId": "<exact UUID string of the list containing the task>",
+            "flags": [
+              {
+                "id": "<UUID string of task from prompt data>",
+                "taskTitle": "exact task title",
+                "daysSkipped": <number of days skipped>,
+                "suggestion": "sharp action advice. max 12 words.",
+                "actionLabel": "Verby label. max 3 words."
+              }
+            ]
+          }
+        ]
+        """
+
+        if let result: [BatchProcrastinationItem] = await callCerebrasArray(prompt: prompt, maxTokens: 5000) {
+            var dict: [String: [ProcrastinationFlag]] = [:]
+            for item in result {
+                dict[item.listId] = item.flags
+            }
+            return dict
+        }
+        return [:]
     }
 
     // MARK: - Network calls
 
-    private func postToGroq(prompt: String, maxTokens: Int = 800) async -> Data? {
-        await executeRequest(prompt: prompt, maxTokens: maxTokens)
+    private func postToCerebras(prompt: String, maxTokens: Int = 800) async -> Data? {
+        let groundedPrompt = prompt + "\nFor coaching based on history: use only the supplied metrics. Never invent completion rates, missed days, or trends. Do not copy example findings unless the data supports them. With fewer than seven observed days, explain that weekly patterns are not established."
+        return await executeRequest(prompt: groundedPrompt, maxTokens: maxTokens)
     }
 
-    private func postToGroqUnthrottled(prompt: String, maxTokens: Int = 800) async -> Data? {
-        await executeRequest(prompt: prompt, maxTokens: maxTokens)
-    }
-
-    private func executeRequest(prompt: String, maxTokens: Int = 800) async -> Data? {
+    private func executeRequest(prompt: String, maxTokens: Int = 800, attempt: Int = 0) async -> Data? {
         let body: [String: Any] = [
             "model": model,
             "messages": [["role": "user", "content": prompt]],
             "max_tokens": maxTokens,
-            "temperature": 0.7
+            "temperature": 0.7,
+            "reasoning_effort": "low",
+            "reasoning_format": "hidden"
         ]
         guard let data = try? JSONSerialization.data(withJSONObject: body) else {
             errorMessage = "Failed to prepare request."
             return nil
         }
 
-        let request = signedRequest(body: data)
+        let request = aiRequest(body: data)
 
         do {
-            let (responseData, response) = try await URLSession.shared.data(for: request)
-            // Check for Groq error in body regardless of HTTP status
-            // (the proxy forwards Groq errors with status 200)
+            let (responseData, response) = try await requestSession.data(for: request)
+            // Check for a Cerebras error in the body regardless of HTTP status
+            // (the proxy forwards Cerebras errors with status 200). The error may
+            // be nested under "error" OR at the top level (e.g. the per-minute
+            // rate-limit error: {"message":...,"code":"request_quota_exceeded"}).
             if let json = try? JSONSerialization.jsonObject(with: responseData) as? [String: Any],
-               let errObj = json["error"] as? [String: Any],
-               let msg = errObj["message"] as? String {
-                if msg.contains("rate_limit") || msg.contains("Rate limit") || msg.contains("tokens per day") {
+               json["choices"] == nil,
+               let msg = (json["error"] as? [String: Any])?["message"] as? String ?? json["message"] as? String {
+                let lower = msg.lowercased()
+                let code  = ((json["error"] as? [String: Any])?["code"] as? String ?? json["code"] as? String)?.lowercased() ?? ""
+
+                let isPerMinute = lower.contains("per minute") || lower.contains("requests per") || code == "request_quota_exceeded" || lower.contains("too many requests")
+                let isDaily     = lower.contains("per day") || lower.contains("tokens per day") || lower.contains("daily")
+
+                if isPerMinute && !isDaily {
+                    // Transient — the free tier caps requests per minute. Back off
+                    // and retry a couple of times before giving up.
+                    if attempt < 2 {
+                        try? await Task.sleep(nanoseconds: UInt64(1_500_000_000 * (attempt + 1)))
+                        return await executeRequest(prompt: prompt, maxTokens: maxTokens, attempt: attempt + 1)
+                    }
+                    errorMessage = "AI is busy right now. Tap the pulse to retry in a moment."
+                } else if isDaily {
                     errorMessage = "Daily AI limit reached. Resets at midnight — try again later."
-                } else if msg.contains("model") && msg.contains("not found") {
+                } else if lower.contains("model") && lower.contains("not found") {
                     errorMessage = "AI model unavailable. Try again later."
                 } else {
                     errorMessage = "AI service error: \(msg.prefix(80))."
@@ -574,15 +968,34 @@ final class AICoach: ObservableObject {
                 return nil
             }
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
-                errorMessage = "AI service temporarily unavailable (HTTP \(httpResponse.statusCode))."
+                // 429 from the proxy/edge is also a transient rate limit — retry.
+                if httpResponse.statusCode == 429, attempt < 2 {
+                    try? await Task.sleep(nanoseconds: UInt64(1_500_000_000 * (attempt + 1)))
+                    return await executeRequest(prompt: prompt, maxTokens: maxTokens, attempt: attempt + 1)
+                }
+                if httpResponse.statusCode == 429 || (500...599).contains(httpResponse.statusCode) {
+                    errorMessage = "AI service temporarily unavailable (HTTP \(httpResponse.statusCode)). Tap the pulse to retry."
+                } else {
+                    errorMessage = "AI service temporarily unavailable (HTTP \(httpResponse.statusCode))."
+                }
                 return nil
             }
             return responseData
-        } catch let error as URLError where error.code == .notConnectedToInternet {
-            errorMessage = "No internet connection. Connect and try again."
+        } catch let error as URLError where [
+            .notConnectedToInternet,
+            .networkConnectionLost,
+            .cannotFindHost,
+            .cannotConnectToHost,
+            .dnsLookupFailed,
+            .dataNotAllowed,
+            .internationalRoamingOff
+        ].contains(error.code) {
+            errorMessage = "No internet connection. Reconnect and try again."
+            return nil
+        } catch let error as URLError where error.code == .cancelled {
             return nil
         } catch let error as URLError where error.code == .timedOut {
-            errorMessage = "Request is taking too long — still trying. Please wait."
+            errorMessage = "Request timed out. Tap the pulse to retry."
             return nil
         } catch {
             errorMessage = "Something went wrong. Please try again."
@@ -633,11 +1046,15 @@ final class AICoach: ObservableObject {
 
     // MARK: - Private: Install Date
 
+    private func observeHistory(lists: [TaskList], snapshots: [DailySnapshot]) {
+        let earliest = (lists.map(\.createdAt) + snapshots.map(\.date)).min()
+        if let earliest { observedHistoryStart = min(observedHistoryStart ?? earliest, earliest) }
+    }
+
     private var installDate: Date {
-        let key = "sortyd_install_date"
-        let cal = Calendar.current
-        if let d = UserDefaults.standard.object(forKey: key) as? Date { return cal.startOfDay(for: d) }
-        return cal.startOfDay(for: Date())
+        let stored = installationDefaults.object(forKey: "sortyd_install_date") as? Date
+        let earliest = [stored, observedHistoryStart].compactMap { $0 }.min() ?? Date()
+        return Calendar.current.startOfDay(for: earliest)
     }
 
     private var daysSinceInstall: Int {
@@ -666,21 +1083,21 @@ final class AICoach: ObservableObject {
     /// Rich weekly summary with per-task daily breakdown, streaks, and best/worst days.
     private func buildWeekSummary(lists: [TaskList], snapshots: [DailySnapshot]) -> String {
         let cal = Calendar.current
-        let today = cal.startOfDay(for: Date())
+        let today = ReminderPolicy.dayStart(Date(), calendar: cal)
         // Clamp window to days since install so pre-install zeros don't pollute the data.
         let windowDays = min(7, daysSinceInstall + 1)
         var sections: [String] = []
 
         for list in lists {
             let listSnaps = snapshots.filter { $0.listID == list.id }
-            var section = "LIST: \(list.emoji) \(list.name) (\(list.tasks.count) tasks)\n"
+            var section = "LIST: \(list.emoji) \(list.name) (ID: \(list.id.uuidString)) (\(list.tasks.count) tasks)\n"
 
             // Daily overview
             var dailyPcts: [(day: String, pct: Int)] = []
             for dayOffset in (0..<windowDays).reversed() {
                 guard let date = cal.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
                 let snap = listSnaps.first(where: { cal.isDate($0.date, inSameDayAs: date) })
-                let pct = snap.map { Int($0.completionFraction * 100) } ?? 0
+                let pct = snap.map { CompletionPolicy.percentage($0.completionFraction) } ?? 0
                 let dayName = cal.shortWeekdaySymbols[cal.component(.weekday, from: date) - 1]
                 dailyPcts.append((dayName, pct))
             }
@@ -740,7 +1157,7 @@ final class AICoach: ObservableObject {
     /// Rich procrastination data — catches sporadic skippers, includes day-of-week patterns.
     private func buildProcrastinationData(lists: [TaskList], snapshots: [DailySnapshot]) -> String {
         let cal = Calendar.current
-        let today = cal.startOfDay(for: Date())
+        let today = ReminderPolicy.dayStart(Date(), calendar: cal)
         // Only consider days since install — pre-install zeros would falsely inflate skip counts.
         let days = min(14, daysSinceInstall + 1)
 
@@ -748,6 +1165,7 @@ final class AICoach: ObservableObject {
             let id: UUID
             let title: String
             let listName: String
+            let listId: String
             let doneCount: Int
             let totalDays: Int
             let skippedWeekdays: [String]  // e.g. ["Mon", "Tue", "Fri"]
@@ -780,7 +1198,7 @@ final class AICoach: ObservableObject {
                 let rate = Double(doneCount) / Double(days)
                 if rate < 0.5 {
                     flags.append(TaskFlag(
-                        id: task.id, title: task.title, listName: list.name,
+                        id: task.id, title: task.title, listName: list.name, listId: list.id.uuidString,
                         doneCount: doneCount, totalDays: days,
                         skippedWeekdays: skippedDayNames, lastDoneAgo: lastDoneOffset
                     ))
@@ -799,7 +1217,7 @@ final class AICoach: ObservableObject {
             let dayCounts = Dictionary(f.skippedWeekdays.map { ($0, 1) }, uniquingKeysWith: +)
             let worstDay = dayCounts.max(by: { $0.value < $1.value })?.key ?? "?"
             return """
-            {"id":"\(f.id.uuidString)","taskTitle":"\(f.title)","listName":"\(f.listName)","done":\(f.doneCount),"outOf":\(f.totalDays),"lastDone":"\(lastDone)","mostSkippedDay":"\(worstDay)"}
+            {"id":"\(f.id.uuidString)","taskTitle":"\(f.title)","listName":"\(f.listName)","listId":"\(f.listId)","done":\(f.doneCount),"outOf":\(f.totalDays),"lastDone":"\(lastDone)","mostSkippedDay":"\(worstDay)"}
             """
         }.joined(separator: "\n")
     }
@@ -807,13 +1225,13 @@ final class AICoach: ObservableObject {
     /// Rich task completion data with streaks, weekday/weekend split, and trend direction.
     private func buildTaskCompletionData(lists: [TaskList], snapshots: [DailySnapshot]) -> String {
         let cal = Calendar.current
-        let today = cal.startOfDay(for: Date())
+        let today = ReminderPolicy.dayStart(Date(), calendar: cal)
         let days = min(14, daysSinceInstall + 1)
         var sections: [String] = []
 
         for list in lists {
             let listSnaps = snapshots.filter { $0.listID == list.id }
-            var section = "LIST: \(list.emoji) \(list.name)\n"
+            var section = "LIST: \(list.emoji) \(list.name) (ID: \(list.id.uuidString))\n"
 
             // Build day-by-day data
             var dayData: [(date: Date, weekday: Int, completedIDs: Set<UUID>)] = []

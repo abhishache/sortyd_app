@@ -1,4 +1,10 @@
 User-agent: *
 Allow: /
 
+Disallow: /api/
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /cdn-cgi/
+Disallow: /*?*
+
 Sitemap: https://www.sortyd.com/sitemap.xml

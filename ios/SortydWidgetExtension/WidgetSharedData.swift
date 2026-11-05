@@ -39,6 +39,8 @@ struct WidgetData: Codable {
     var caloriesGoal:   Double?
     var stepCount:      Double?
     var stepGoal:       Double?
+    var distanceValue:  Double?
+    var distanceGoal:   Double?
     /// The ID of the most recently checked (completed) task — kept visible so the user can uncheck it.
     var lastCheckedTaskID: UUID?
     
@@ -87,6 +89,8 @@ struct WidgetData: Codable {
             caloriesGoal: nil,
             stepCount: nil,
             stepGoal: nil,
+            distanceValue: nil,
+            distanceGoal: nil,
             lastCheckedTaskID: nil,
             allLists: [
                 MultiListEntry(id: UUID(), name: "Morning", emoji: "🌅", completionFraction: 0.8, grade: "A-"),

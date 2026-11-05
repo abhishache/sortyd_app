@@ -3,6 +3,8 @@
 
 import SwiftUI
 import Firebase
+import FirebaseCrashlytics
+import Clarity
 
 @main
 struct SortydApp: App {
@@ -12,45 +14,70 @@ struct SortydApp: App {
 
     init() {
         FirebaseApp.configure()
+        Crashlytics.crashlytics().log("Application configured")
+        _ = ReviewPromptManager.shared.installDate
+
+        // Clarity records interaction paths while the UI is masked below.
+        ClaritySDK.initialize(config: ClarityConfig(projectId: "ybfdycps9e"))
     }
 
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(ThemeManager.shared)
-                .environmentObject(vm)
-                .preferredColorScheme(ThemeManager.shared.colorScheme)
-                .environment(\.locale, vm.appLanguage.locale)
-                .environment(\.layoutDirection, vm.appLanguage.isRTL ? .rightToLeft : .leftToRight)
+                .clarityMask()
                 .onAppear {
+                    #if DEBUG
+                    // Explicit local QA modes. Neither entry point exists in release builds.
+                    if let languageArgument = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix("--qa-language=") }),
+                       let language = AppLanguage(rawValue: String(languageArgument.dropFirst("--qa-language=".count))) {
+                        vm.setLanguage(language)
+                    }
+                    if ProcessInfo.processInfo.arguments.contains("--qa-review-prompt") {
+                        vm.showReviewPrompt = true
+                    }
+                    if ProcessInfo.processInfo.arguments.contains("--qa-crashlytics") {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                            fatalError("Sortyd diagnostic integration test")
+                        }
+                    }
+                    #endif
                     _ = WatchSessionManager.shared
-                    vm.setupHealthAutoComplete()
                     vm.cancelLegacyNotifications()
 
-                    // Schedule the 5:30 PM daily performance summary.
-                    // Passes live lists + snapshots so the notification body
-                    // reflects today's real progress, not generic placeholder text.
-                    // Silent — only fires if the user has already granted permission.
-                    let lists     = vm.lists
-                    let snapshots = vm.snapshots
+                    // Let the first screen render before non-urgent startup work.
                     Task {
+                        try? await Task.sleep(nanoseconds: 350_000_000)
+                        await MainActor.run {
+                            vm.setupHealthAutoComplete()
+                        }
+
+                        let lists = vm.lists
+                        let snapshots = vm.snapshots
                         await NotificationManager.shared.scheduleDailySummaryIfPermitted(
-                            lists:     lists,
+                            lists: lists,
+                            snapshots: snapshots
+                        )
+                        await NotificationManager.shared.scheduleColdTaskNudgeIfPermitted(
+                            lists: lists,
                             snapshots: snapshots
                         )
                     }
                 }
-                // FIX: resetTasksIfNewDay is called here ONLY — not in AppViewModel.init().
-                // On cold launch scenePhase transitions to .active immediately, so the
-                // init() call and this handler were both firing in the same RunLoop tick.
-                // That caused a double daily-reset: snapshots written twice for yesterday,
-                // and in rare cases the tasks were cleared then a stale snapshot was written
-                // on top of it. Now init() does not call reset; only this handler does.
-                .onChange(of: scenePhase) { newPhase in
+                // Init resets before taking snapshots. This idempotent foreground check
+                // also handles a new logical day after suspension.
+                .onChange(of: scenePhase) { _, newPhase in
                     if newPhase == .active {
                         vm.reloadFromDisk()      // re-sync widget/intent writes before reset
                         vm.resetTasksIfNewDay()
-                        vm.checkReviewPrompt()
+
+                        let lists     = vm.lists
+                        let snapshots = vm.snapshots
+                        Task {
+                            await NotificationManager.shared.scheduleColdTaskNudgeIfPermitted(
+                                lists:     lists,
+                                snapshots: snapshots
+                            )
+                        }
                     }
                     if newPhase == .background {
                         vm.flushToDisk()         // force write before iOS suspends
@@ -67,6 +94,7 @@ struct SortydApp: App {
                             onReviewTapped: { vm.handleReviewNow() },
                             onDismissed:    { vm.handleReviewRemindLater() }
                         )
+                        .onAppear { vm.recordReviewPromptDisplayed() }
                         .transition(
                             .asymmetric(
                                 insertion: .scale(scale: 0.9).combined(with: .opacity),
@@ -98,6 +126,12 @@ struct SortydApp: App {
                         vm.handleURL(url)
                     }
                 }
+                // These values must cover the complete tree, including the review overlay.
+                .environmentObject(themeManager)
+                .environmentObject(vm)
+                .preferredColorScheme(themeManager.colorScheme)
+                .environment(\.locale, vm.appLanguage.locale)
+                .environment(\.layoutDirection, vm.appLanguage.isRTL ? .rightToLeft : .leftToRight)
         }
     }
 }

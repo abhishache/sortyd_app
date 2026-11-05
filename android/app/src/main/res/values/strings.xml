@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Sortyd</string>
+    <string name="widget_small_description">Daily completion arc with health tracking tanks</string>
+    <string name="widget_medium_description">Dashboard rings and interactive task pills</string>
+    <string name="widget_large_description">Detailed dashboard with interactive list and health dials</string>
+    <string name="widget_heatmap_description">Monthly bubble heatmap of your habit history</string>
+</resources>

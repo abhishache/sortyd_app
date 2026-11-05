@@ -12,8 +12,8 @@ struct AnalyticsView: View {
 
     private var resolvedListID: UUID {
         selectedListID
-            ?? vm.lists.first(where: { $0.id == vm.activeListID && !$0.isTodo })?.id
-            ?? vm.lists.first(where: { !$0.isArchived && !$0.isTodo })?.id
+            ?? vm.lists.first(where: { $0.id == vm.activeListID && !$0.isTodo && !$0.isWeekly })?.id
+            ?? vm.lists.first(where: { !$0.isArchived && !$0.isTodo && !$0.isWeekly })?.id
             ?? UUID()
     }
 
@@ -26,43 +26,39 @@ struct AnalyticsView: View {
     private var installDate: Date {
         let key = "sortyd_install_date"
         let cal = Calendar.current
-        if let d = UserDefaults.standard.object(forKey: key) as? Date { return cal.startOfDay(for: d) }
-        let now = cal.startOfDay(for: Date())
-        UserDefaults.standard.set(Date(), forKey: key)
-        return now
+        let stored = (UserDefaults.standard.object(forKey: key) as? Date).map { cal.startOfDay(for: $0) }
+        if stored == nil { UserDefaults.standard.set(Date(), forKey: key) }
+
+        let earliestSnapshot = vm.snapshots.map { cal.startOfDay(for: $0.date) }.min()
+        let earliestList = vm.lists.map { cal.startOfDay(for: $0.createdAt) }.min()
+        return [stored, earliestSnapshot, earliestList].compactMap { $0 }.min()
+            ?? cal.startOfDay(for: Date())
     }
 
-    // Full period — used by charts and heatmap so they always render the selected date range.
-    private var displaySnaps: [DailySnapshot] {
+    private var installedDays: Int {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        return max(1, (cal.dateComponents([.day], from: installDate, to: today).day ?? 0) + 1)
+    }
+
+    // One install-anchored period window for every Analytics visual.
+    // 30D and ALL match until the app has more than 30 installed days.
+    private var periodSnaps: [DailySnapshot] {
         let cal = Calendar.current
         let today = cal.startOfDay(for: Date())
         let all = vm.snapshotsForList(id: resolvedListID)
         var lookup: [Date: DailySnapshot] = [:]
         for s in all { lookup[cal.startOfDay(for: s.date)] = s }
         switch period {
-        case .week:  return filledDays(count: 7,  endingOn: today, lookup: lookup)
-        case .month: return filledDays(count: 30, endingOn: today, lookup: lookup)
-        case .all:
-            let earliestSnap = all.first.map { cal.startOfDay(for: $0.date) }
-            let earliest = earliestSnap.map { min($0, installDate) } ?? installDate
-            let days = (cal.dateComponents([.day], from: earliest, to: today).day ?? 0) + 1
-            return filledDays(count: max(days, 7), endingOn: today, lookup: lookup)
+        case .week:  return filledDays(count: min(7, installedDays), endingOn: today, lookup: lookup)
+        case .month: return filledDays(count: min(30, installedDays), endingOn: today, lookup: lookup)
+        case .all:   return filledDays(count: installedDays, endingOn: today, lookup: lookup)
         }
     }
 
-    // Install-anchored — used by grade/avg/streak/DNA so pre-install zeros don't inflate misses.
+    // Shared by score, trend, heatmap, Task DNA, and Needs Work.
     private var snaps: [DailySnapshot] {
-        let cal = Calendar.current
-        let today = cal.startOfDay(for: Date())
-        let all = vm.snapshotsForList(id: resolvedListID)
-        var lookup: [Date: DailySnapshot] = [:]
-        for s in all { lookup[cal.startOfDay(for: s.date)] = s }
-        let daysSince = max(0, cal.dateComponents([.day], from: installDate, to: today).day ?? 0)
-        switch period {
-        case .week:  return filledDays(count: min(7,  daysSince + 1), endingOn: today, lookup: lookup)
-        case .month: return filledDays(count: min(30, daysSince + 1), endingOn: today, lookup: lookup)
-        case .all:   return displaySnaps  // .all is already install-anchored in displaySnaps
-        }
+        periodSnaps
     }
 
     private func filledDays(count: Int, endingOn today: Date, lookup: [Date: DailySnapshot]) -> [DailySnapshot] {
@@ -79,9 +75,56 @@ struct AnalyticsView: View {
         }
     }
 
+    struct TrendPoint: Identifiable {
+        let id = UUID()
+        var date: Date
+        var completionFraction: Double
+        var axisLabel: String?
+    }
+
+    private var usesWeeklyAllTrend: Bool {
+        period == .all && installedDays > 3
+    }
+
+    private var trendPoints: [TrendPoint] {
+        if usesWeeklyAllTrend {
+            return weeklyTrendPoints(from: periodSnaps)
+        }
+        return snaps.enumerated().map { idx, snap in
+            let isLastToday = idx == snaps.count - 1 && Calendar.current.isDateInToday(snap.date)
+            return TrendPoint(
+                date: snap.date,
+                completionFraction: snap.completionFraction,
+                axisLabel: isLastToday ? localizedTodayLabel : nil
+            )
+        }
+    }
+
+    private func weeklyTrendPoints(from snapshots: [DailySnapshot]) -> [TrendPoint] {
+        guard !snapshots.isEmpty else { return [] }
+        return stride(from: 0, to: snapshots.count, by: 7).map { start in
+            let end = min(start + 7, snapshots.count)
+            let bucket = Array(snapshots[start..<end])
+            let avg = bucket.map(\.completionFraction).reduce(0, +) / Double(bucket.count)
+            let isLast = end == snapshots.count
+            return TrendPoint(
+                date: bucket.last?.date ?? Date(),
+                completionFraction: avg,
+                axisLabel: isLast ? localizedTodayLabel : localizedWeekLabel((start / 7) + 1)
+            )
+        }
+    }
+
+    private var localizedTodayLabel: String {
+        return vm.localized("Today")
+    }
+
+    private func localizedWeekLabel(_ number: Int) -> String {
+        return String(format: vm.localized("W%lld"), Int64(number))
+    }
+
     private var avg: Int {
-        guard !snaps.isEmpty else { return 0 }
-        return Int((snaps.map(\.completionFraction).reduce(0,+) / Double(snaps.count) * 100).rounded())
+        CompletionPolicy.percentage(CompletionPolicy.average(snaps.map(\.completionFraction)))
     }
 
     private var grade: String {
@@ -118,13 +161,22 @@ struct AnalyticsView: View {
     }
 
     private var vsLastPeriod: Int? {
-        let all = vm.snapshotsForList(id: resolvedListID)
         let n = snaps.count
-        guard n > 0 else { return nil }
-        let prevSnaps = Array(all.dropLast(n).suffix(n))
+        guard n > 0, let first = snaps.first else { return nil }
+        let cal = Calendar.current
+        let currentStart = cal.startOfDay(for: first.date)
+        guard let previousEnd = cal.date(byAdding: .day, value: -1, to: currentStart),
+              previousEnd >= installDate else { return nil }
+        guard let previousStart = cal.date(byAdding: .day, value: -(n - 1), to: previousEnd) else { return nil }
+        let clampedStart = max(previousStart, installDate)
+        let previousDays = max(1, (cal.dateComponents([.day], from: clampedStart, to: previousEnd).day ?? 0) + 1)
+        let all = vm.snapshotsForList(id: resolvedListID)
+        var lookup: [Date: DailySnapshot] = [:]
+        for snap in all { lookup[cal.startOfDay(for: snap.date)] = snap }
+        let prevSnaps = filledDays(count: previousDays, endingOn: previousEnd, lookup: lookup)
         guard !prevSnaps.isEmpty else { return nil }
-        let prevAvg = prevSnaps.map(\.completionFraction).reduce(0,+) / Double(prevSnaps.count) * 100
-        return Int((Double(avg) - prevAvg).rounded())
+        let previousPercentage = CompletionPolicy.percentage(CompletionPolicy.average(prevSnaps.map(\.completionFraction)))
+        return avg - previousPercentage
     }
 
     private var bestDay: String {
@@ -179,6 +231,13 @@ struct AnalyticsView: View {
         var streak: Int    // current streak days
     }
 
+    struct TaskRecencyItem: Identifiable {
+        var id: UUID
+        var title: String
+        var daysAgo: Int?
+        var wasNeverDone: Bool = false
+    }
+
     private var taskDNAItems: [TaskDNAItem] {
         guard let list = vm.listForID(resolvedListID), !snaps.isEmpty else { return [] }
         return list.tasks.map { task in
@@ -196,6 +255,44 @@ struct AnalyticsView: View {
 
     private var weakTasks: [TaskDNAItem] {
         taskDNAItems.filter { $0.rate < 0.7 }.sorted { $0.rate < $1.rate }.prefix(5).map { $0 }
+    }
+
+    private var taskRecencyItems: [TaskRecencyItem] {
+        guard let list = vm.listForID(resolvedListID) else { return [] }
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let allSnaps = vm.snapshotsForList(id: resolvedListID)
+
+        return list.tasks.map { task in
+            let lastDoneDate: Date?
+            if task.isCompleted {
+                lastDoneDate = today
+            } else {
+                lastDoneDate = allSnaps
+                    .filter { $0.completedTaskIDs.contains(task.id) }
+                    .map { cal.startOfDay(for: $0.date) }
+                    .max()
+            }
+
+            let wasNeverDone = lastDoneDate == nil
+            let referenceDate = lastDoneDate ?? cal.startOfDay(for: task.createdAt)
+            let daysAgo = max(0, cal.dateComponents([.day], from: referenceDate, to: today).day ?? 0)
+            return TaskRecencyItem(id: task.id, title: task.title, daysAgo: daysAgo, wasNeverDone: wasNeverDone)
+        }
+        .sorted {
+            if ($0.daysAgo ?? 0) == ($1.daysAgo ?? 0) {
+                return $0.title < $1.title
+            }
+            return ($0.daysAgo ?? 0) > ($1.daysAgo ?? 0)
+        }
+    }
+
+    private var coldTaskRecencyItems: [TaskRecencyItem] {
+        taskRecencyItems.filter { ($0.daysAgo ?? 0) > 0 }
+    }
+
+    private var overdueRecencyItems: [TaskRecencyItem] {
+        taskRecencyItems.filter { ($0.daysAgo ?? 0) >= 3 }
     }
 
     // MARK: - Body
@@ -220,10 +317,11 @@ struct AnalyticsView: View {
                             .padding(.horizontal, Theme.s16)
                             .padding(.bottom, 10)
 
-                        // ↓ Insight ribbon height reduced 10% (via internal padding tweak)
-                        insightRibbon
-                            .padding(.horizontal, Theme.s16)
-                            .padding(.bottom, 10)
+                        if !overdueRecencyItems.isEmpty {
+                            taskRecencyCard
+                                .padding(.horizontal, Theme.s16)
+                                .padding(.bottom, 10)
+                        }
 
                         trendChartCard
                             .padding(.horizontal, Theme.s16)
@@ -243,8 +341,10 @@ struct AnalyticsView: View {
                                 .padding(.bottom, 10)
                         }
 
-                        Spacer(minLength: 80)
+                        Spacer(minLength: 140)
                     }
+                    .frame(maxWidth: 800)
+                    .frame(maxWidth: .infinity)
                 }
                 .refreshable { await vm.refresh() }
             }
@@ -252,8 +352,8 @@ struct AnalyticsView: View {
         }
         .onAppear {
             if selectedListID == nil {
-                selectedListID = vm.lists.first(where: { $0.id == vm.activeListID && !$0.isTodo })?.id
-                             ?? vm.lists.first(where: { !$0.isArchived && !$0.isTodo })?.id
+                selectedListID = vm.lists.first(where: { $0.id == vm.activeListID && !$0.isTodo && !$0.isWeekly })?.id
+                             ?? vm.lists.first(where: { !$0.isArchived && !$0.isTodo && !$0.isWeekly })?.id
             }
             Analytics.logEvent(AnalyticsEventScreenView, parameters: [
                 AnalyticsParameterScreenName: "analytics",
@@ -348,15 +448,47 @@ struct AnalyticsView: View {
                     .fill(Theme.border)
                     .frame(width: 0.5, height: 56)
 
-                HStack(spacing: 20) {
-                    heroStat(label: vm.localized("AVG"),    value: "\(avg)",                unit: "%", color: Theme.text0)
-                    heroStat(label: vm.localized("STREAK"), value: "\(bestStreakForPeriod)", unit: "d", color: Theme.coral)
+                VStack(alignment: .trailing, spacing: 10) {
+                    HStack(spacing: 18) {
+                        heroStat(label: vm.localized("AVG"), value: "\(avg)", unit: "%", color: Theme.text0)
+                        heroStat(label: vm.localized("STREAK"), value: "\(bestStreakForPeriod)", unit: "d", color: Theme.coral)
+                    }
+
+                    heroVsLastPill
                 }
                 .padding(.trailing, Theme.s16)
-                .padding(.vertical, Theme.s16)
+                .padding(.top, 10)
+                .padding(.bottom, Theme.s16)
             }
         }
         .dualGlow(violetIntensity: 0.14, cyanIntensity: 0.08)
+    }
+
+    private var heroVsLastPill: some View {
+        let color = (vsLastPeriod ?? 0) >= 0 ? Theme.accent : Theme.danger
+        return HStack(spacing: 5) {
+            if let vs = vsLastPeriod {
+                Image(systemName: vs >= 0 ? "arrow.up.right" : "arrow.down.right")
+                    .font(.system(size: 8, weight: .black))
+                Text(vs >= 0 ? "+\(vs)%" : "\(vs)%")
+                    .font(.system(size: 11, weight: .black, design: .rounded))
+                    .monospacedDigit()
+            } else {
+                Image(systemName: "minus")
+                    .font(.system(size: 8, weight: .black))
+                Text(vm.localized("N/A"))
+                    .font(.system(size: 10, weight: .black, design: .rounded))
+            }
+
+            Text(vm.localized("VS LAST"))
+                .font(.system(size: 7, weight: .black))
+                .kerning(1.1)
+        }
+        .foregroundColor(color)
+        .padding(.horizontal, 9)
+        .padding(.vertical, 5)
+        .background(Capsule().fill(color.opacity(0.10)))
+        .overlay(Capsule().strokeBorder(color.opacity(0.16), lineWidth: 0.5))
     }
 
     private func heroStat(label: String, value: String, unit: String, color: Color) -> some View {
@@ -457,85 +589,202 @@ struct AnalyticsView: View {
         }
     }
 
-    // MARK: - Insight Ribbon (height reduced ~10% via vertical padding)
+    // MARK: - Recovery Rail Card
 
-    private var insightRibbon: some View {
-        HStack(spacing: 8) {
-            let vsLabel = vm.localized("VS LAST")
-            let bestDayLabel = vm.localized("BEST DAY")
-            let weakestLabel = vm.localized("WEAKEST")
+    private var taskRecencyCard: some View {
+        let items = overdueRecencyItems
+        let leadColor = recencyColor(daysAgo: items.first?.daysAgo)
+        return VStack(alignment: .leading, spacing: 10) {
 
-            if let vs = vsLastPeriod {
-                ribbonChip(
-                    icon: vs >= 0 ? "arrow.up.right" : "arrow.down.right",
-                    value: vs >= 0 ? "+\(vs)%" : "\(vs)%",
-                    label: vsLabel,
-                    valueColor: vs >= 0 ? Theme.accent : Theme.danger,
-                    iconColor:  vs >= 0 ? Theme.accent : Theme.danger
-                )
-            } else {
-                ribbonChip(icon: "minus", value: vm.localized("N/A"), label: vsLabel,
-                           valueColor: Theme.text2, iconColor: Theme.text2)
+            // ── Compact header ────────────────────────────────────
+            HStack(spacing: 6) {
+                Image(systemName: (items.first?.daysAgo ?? 0) >= 5 ? "exclamationmark.triangle.fill" : "bell.fill")
+                    .font(.system(size: 8, weight: .heavy))
+                    .foregroundColor(leadColor)
+                Text(recoveryQueueTitle)
+                    .font(.system(size: 9, weight: .bold))
+                    .kerning(1.8)
+                    .foregroundColor(Theme.text2)
+                Text(overdueSummary)
+                    .font(.system(size: 9, weight: .black, design: .rounded))
+                    .foregroundColor((items.first?.daysAgo ?? 0) >= 5 ? .white : leadColor)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .background(
+                        Capsule()
+                            .fill((items.first?.daysAgo ?? 0) >= 5 ? leadColor : leadColor.opacity(0.12))
+                    )
+                    .overlay(
+                        Capsule()
+                            .strokeBorder(leadColor.opacity(0.30), lineWidth: 0.5)
+                    )
+                Spacer()
+                if let lead = items.first {
+                    Text(recencyLabel(daysAgo: lead.daysAgo))
+                        .font(.system(size: 10, weight: .black, design: .rounded))
+                        .foregroundColor(leadColor)
+                        .monospacedDigit()
+                }
             }
-            ribbonChip(icon: "star.fill",  value: bestDay,    label: bestDayLabel,
-                       valueColor: Theme.text0, iconColor: Theme.accent)
-            ribbonChip(icon: "moon.fill",  value: weakestDay, label: weakestLabel,
-                       valueColor: Theme.text0, iconColor: Theme.coral)
+
+            // ── Dormancy rows ─────────────────────────────────────
+            VStack(spacing: 8) {
+                ForEach(items.prefix(5)) { item in
+                    dormancyRow(item)
+                }
+                if items.count > 5 {
+                    Text(overdueMoreLabel(extra: items.count - 5))
+                        .font(.system(size: 8.5, weight: .bold))
+                        .foregroundColor(Theme.text2)
+                }
+            }
+        }
+        .padding(.horizontal, 13)
+        .padding(.vertical, 12)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: Theme.r20, style: .continuous)
+                    .fill(Theme.bg1)
+                RoundedRectangle(cornerRadius: Theme.r20, style: .continuous)
+                    .fill(leadColor.opacity(0.06))
+                RoundedRectangle(cornerRadius: Theme.r20, style: .continuous)
+                    .strokeBorder(leadColor.opacity(0.30), lineWidth: 0.8)
+            }
+        )
+        .shadow(color: leadColor.opacity(0.12), radius: 10, x: 0, y: 4)
+    }
+
+    private func dormancyRow(_ item: TaskRecencyItem) -> some View {
+        let color = recencyColor(daysAgo: item.daysAgo)
+        let frac  = recencyHeatFraction(daysAgo: item.daysAgo)
+        return HStack(spacing: 10) {
+            // Task name
+            Text(item.title)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(Theme.text0)
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            // Heat bar
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Theme.bg3.opacity(0.40))
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [color.opacity(0.70), color, color.opacity(0.80)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: max(8, geo.size.width * frac))
+                        .shadow(color: color.opacity(0.3), radius: 3, x: 0, y: 0)
+                }
+            }
+            .frame(width: 70, height: 6)
+
+            // Day badge
+            Text(recencyLabel(daysAgo: item.daysAgo))
+                .font(.system(size: 10, weight: .black, design: .rounded))
+                .foregroundColor(color)
+                .monospacedDigit()
+                .frame(width: 28, alignment: .trailing)
         }
     }
 
-    // Reduced vertical padding by ~10% (from 11 → 10)
-    private func ribbonChip(icon: String, value: String, label: String,
-                             valueColor: Color, iconColor: Color) -> some View {
-        VStack(spacing: 4) {
-            Image(systemName: icon)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(iconColor)
-            Text(value)
-                .font(.system(size: 14, weight: .black, design: .rounded))
-                .foregroundColor(valueColor)
-                .minimumScaleFactor(0.7)
-                .lineLimit(1)
-            Text(label)
-                .font(.system(size: 7.5, weight: .bold))
-                .kerning(0.6)
-                .foregroundColor(Theme.text2)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 10)   // was 11 → 10 (≈ -9%)
-        .background(
-            RoundedRectangle(cornerRadius: Theme.r16, style: .continuous)
-                .fill(Theme.bg1)
-                .overlay(
-                    RoundedRectangle(cornerRadius: Theme.r16, style: .continuous)
-                        .strokeBorder(Theme.border, lineWidth: 0.5)
-                )
-        )
-        .cardShadow()
+    private var recoveryQueueTitle: String {
+        return vm.localized("NEEDS ATTENTION")
     }
+
+    private var recoveryQueueSubtitle: String {
+        guard let first = coldTaskRecencyItems.first else {
+            return vm.localized("Everything is moving")
+        }
+
+        let title = clippedAnalyticsTaskTitle(first.title, limit: 22)
+        return String(format: vm.localized("Restart “%@” first"), title)
+    }
+
+    private var recoveryQueueHint: String {
+        return vm.localized("One small log gets the rhythm back.")
+    }
+
+    private var coldRecencySummary: String {
+        let count = coldTaskRecencyItems.count
+        return String(format: vm.localized("%lld paused"), Int64(count))
+    }
+
+    private var overdueSummary: String {
+        let count = overdueRecencyItems.count
+        return String(format: vm.localized(count == 1 ? "1 thing" : "%lld things"), Int64(count))
+    }
+
+    private func overdueMoreLabel(extra: Int) -> String {
+        return String(format: vm.localized(extra == 1 ? "+1 more thing" : "+%lld more things"), Int64(extra))
+    }
+
+    private func recencyColor(daysAgo: Int?) -> Color {
+        guard let daysAgo else { return Color(hex: "#FF3B30") }
+        // Urgency Spectrum: Yellow -> Orange -> Red -> Deep Red
+        switch daysAgo {
+        case 0...2: return Theme.accent // Should not happen in this view anymore, but for safety
+        case 3:     return Color(hex: "#FFCC00") // Yellow (Warning)
+        case 4:     return Color(hex: "#FF9500") // Orange (Action needed)
+        case 5:     return Color(hex: "#FF3B30") // Red (Urgent)
+        case 6:     return Color(hex: "#D70015") // Deep Red (Critical)
+        default:    return Color(hex: "#AF0000") // Dark Red (Extreme)
+        }
+    }
+
+    private func recencyHeatFraction(daysAgo: Int?) -> Double {
+        guard let daysAgo else { return 1 }
+        // Faster fill for urgency: 3 days starts at 40%, hits 100% at 7 days
+        let adjustedDays = Double(max(0, daysAgo - 2))
+        return min(1.0, 0.4 + (adjustedDays * 0.15))
+    }
+
+    private func recencyMicrocopy(for item: TaskRecencyItem) -> String {
+        if item.wasNeverDone {
+            return vm.localized("not started")
+        }
+        return vm.localized("quiet")
+    }
+
+    private func recencyShortLabel(daysAgo: Int?) -> String {
+        guard let daysAgo else { return vm.localized("analytics_recency_new_lower") }
+        return String(format: vm.localized("%lldd"), Int64(daysAgo))
+    }
+
+    private var restartCue: String {
+        return vm.localized("restart")
+    }
+
+    private func recencyLabel(daysAgo: Int?) -> String {
+        guard let daysAgo else { return vm.localized("analytics_recency_new_title") }
+        if daysAgo == 0 { return localizedTodayLabel }
+        if daysAgo == 1 { return vm.localized("Yesterday") }
+        return String(format: vm.localized("%lldd"), Int64(daysAgo))
+    }
+
+    private func clippedAnalyticsTaskTitle(_ title: String, limit: Int) -> String {
+        let clean = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard clean.count > limit else { return clean }
+        return String(clean.prefix(max(1, limit - 3))) + "..."
+    }
+
+    // MARK: - Recovery Rail Sub-Views
+
+    // Recovery Rail inline helpers (RecoveryColdestRing and RecoveryTileView removed)
 
     // MARK: - Trend Chart Card (height reduced 10%: 126 → 114)
 
     private var trendChartTitle: String {
-        switch vm.appLanguage {
-        case .arabic:
-            switch period {
-            case .week:  return "اتجاه 7 أيام"
-            case .month: return "اتجاه 30 يوماً"
-            case .all:   return "اتجاه كل الأوقات"
-            }
-        case .spanish:
-            switch period {
-            case .week:  return "TENDENCIA 7D"
-            case .month: return "TENDENCIA 30D"
-            case .all:   return "TENDENCIA TOTAL"
-            }
-        default:
-            switch period {
-            case .week:  return "7-DAY TREND"
-            case .month: return "30-DAY TREND"
-            case .all:   return "ALL-TIME TREND"
-            }
+        switch period {
+        case .week:  return vm.localized("7-DAY TREND")
+        case .month: return vm.localized("30-DAY TREND")
+        case .all:   return usesWeeklyAllTrend ? vm.localized("WEEKLY TREND") : vm.localized("ALL-TIME TREND")
         }
     }
 
@@ -551,20 +800,20 @@ struct AnalyticsView: View {
                 Spacer()
                 HStack(spacing: 4) {
                     Circle().fill(Theme.accent).frame(width: 4, height: 4)
-                    Text(vm.appLanguage == .arabic ? "الإنجاز" : (vm.appLanguage == .spanish ? "cumplimiento" : "completion"))
+                    Text(vm.localized("completion"))
                         .font(.system(size: 9, weight: .medium))
                         .foregroundColor(Theme.text2)
                 }
             }
             .animation(.easeInOut(duration: 0.2), value: trendChartTitle)
 
-            SmoothLineChart(snapshots: displaySnaps)
+            SmoothLineChart(points: trendPoints)
                 .frame(height: 114)
                 .transition(.asymmetric(
                     insertion: .opacity.combined(with: .move(edge: .trailing)),
                     removal:   .opacity.combined(with: .move(edge: .leading))
                 ))
-                .id(period)
+                .id("\(period.rawValue)-\(usesWeeklyAllTrend)")
                 .animation(.spring(response: 0.42, dampingFraction: 0.82), value: period)
         }
         .padding(14)
@@ -585,17 +834,17 @@ struct AnalyticsView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(vm.appLanguage == .arabic ? "نمط أيام الأسبوع" : (vm.appLanguage == .spanish ? "PATRÓN SEMANAL" : "DAY-OF-WEEK PATTERN"))
+                    Text(vm.localized("DAY-OF-WEEK PATTERN"))
                         .font(.system(size: 9, weight: .bold))
                         .kerning(1.8)
                         .foregroundColor(Theme.text2)
-                    Text(vm.appLanguage == .arabic ? "عندما تؤدي بشكل أفضل" : (vm.appLanguage == .spanish ? "Cuando mejor rindes" : "When you perform best"))
+                    Text(vm.localized("When you perform best"))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundColor(Theme.text0.opacity(0.45))
                 }
                 Spacer()
                 HStack(spacing: 5) {
-                    Text(vm.appLanguage == .arabic ? "منخفض" : (vm.appLanguage == .spanish ? "BAJO" : "LOW"))
+                    Text(vm.localized("LOW"))
                         .font(.system(size: 7, weight: .bold))
                         .foregroundColor(Theme.text2)
                     HStack(spacing: 2) {
@@ -605,13 +854,13 @@ struct AnalyticsView: View {
                                 .frame(width: 10, height: 10)
                         }
                     }
-                    Text(vm.appLanguage == .arabic ? "مرتفع" : (vm.appLanguage == .spanish ? "ALTO" : "HIGH"))
+                    Text(vm.localized("HIGH"))
                         .font(.system(size: 7, weight: .bold))
                         .foregroundColor(Theme.text2)
                 }
             }
 
-            WeekdayHeatmap(snapshots: displaySnaps)
+            WeekdayHeatmap(snapshots: snaps)
                 .frame(height: 78)
         }
         .padding(14)
@@ -645,11 +894,11 @@ struct AnalyticsView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(vm.appLanguage == .arabic ? "DNA المهام" : (vm.appLanguage == .spanish ? "DNA DE TAREAS" : "TASK DNA"))
+                    Text(vm.localized("TASK DNA"))
                         .font(.system(size: 9, weight: .bold))
                         .kerning(1.8)
                         .foregroundColor(Theme.text2)
-                    Text(vm.appLanguage == .arabic ? "تحليل إنجاز كل مهمة" : (vm.appLanguage == .spanish ? "Desglose por tarea" : "Per-task completion breakdown"))
+                    Text(vm.localized("Per-task completion breakdown"))
                         .font(.system(size: 10, weight: .medium))
                         .foregroundColor(Theme.text0.opacity(0.40))
                 }
@@ -663,7 +912,7 @@ struct AnalyticsView: View {
                         Image(systemName: "flame.fill")
                             .font(.system(size: 7))
                             .foregroundColor(Theme.coral)
-                        Text(vm.appLanguage == .arabic ? "3أيام+" : "3d+")
+                        Text(vm.localized("3d+"))
                             .font(.system(size: 7.5, weight: .medium))
                             .foregroundColor(Theme.text2)
                     }
@@ -676,7 +925,7 @@ struct AnalyticsView: View {
                     Image(systemName: "dna")
                         .font(.system(size: 20))
                         .foregroundColor(Theme.text2)
-                    Text("No task data yet")
+                    Text(vm.localized("No task data yet"))
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(Theme.text2)
                 }
@@ -713,13 +962,14 @@ struct AnalyticsView: View {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: 9))
                         .foregroundColor(Theme.coral)
-                    Text(vm.appLanguage == .arabic ? "تحتاج لعمل" : (vm.appLanguage == .spanish ? "NECESITA TRABAJO" : "NEEDS WORK"))
+                    Text(vm.localized("NEEDS WORK"))
                         .font(.system(size: 9, weight: .bold))
                         .kerning(1.6)
                         .foregroundColor(Theme.text2)
                 }
                 Spacer()
-                Text("\(weakTasks.count) \(vm.appLanguage == .arabic ? "مهام" : (vm.appLanguage == .spanish ? "tareas" : "tasks"))")
+                let taskWord = weakTasks.count == 1 ? vm.localized("task") : vm.localized("tasks")
+                Text("\(weakTasks.count) \(taskWord)")
                     .font(.system(size: 10, weight: .semibold, design: .rounded))
                     .foregroundColor(Theme.accent)
             }
@@ -757,7 +1007,7 @@ struct AnalyticsView: View {
                 .fixedSize(horizontal: false, vertical: true)
 
             HStack(alignment: .firstTextBaseline, spacing: 2) {
-                Text("\(Int(item.rate * 100))")
+                Text("\(CompletionPolicy.percentage(item.rate))")
                     .font(.system(size: 20, weight: .black, design: .rounded))
                     .foregroundColor(color)
                 Text("%")
@@ -818,7 +1068,9 @@ struct TaskDNAChart: View {
             let rowH   = Self.rowH
             let spacing = Self.rowSpacing
             let labelW: CGFloat = min(w * 0.30, 90)
-            let barZoneW = w - labelW - 36
+            let scoreW: CGFloat = 36
+            let flameW: CGFloat = 9
+            let barZoneW = max(32, w - labelW - scoreW - flameW - 24)
 
             VStack(alignment: .leading, spacing: spacing) {
                 ForEach(Array(items.enumerated()), id: \.element.id) { idx, item in
@@ -847,18 +1099,21 @@ struct TaskDNAChart: View {
                         }
                         .frame(width: barZoneW, height: rowH)
 
-                        Text("\(Int(item.rate * 100))%")
-                            .font(.system(size: 8.5, weight: .bold, design: .rounded))
+                        Text("\(CompletionPolicy.percentage(item.rate))%")
+                            .font(.system(size: 8.2, weight: .bold, design: .rounded))
                             .foregroundColor(barColor(for: item.rate))
-                            .frame(width: 26, alignment: .trailing)
+                            .frame(width: scoreW, alignment: .trailing)
                             .monospacedDigit()
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
 
                         if item.streak >= 3 {
                             Image(systemName: "flame.fill")
                                 .font(.system(size: 7.5))
                                 .foregroundColor(Theme.coral)
+                                .frame(width: flameW)
                         } else {
-                            Spacer().frame(width: 8)
+                            Spacer().frame(width: flameW)
                         }
                     }
                     .frame(height: rowH)
@@ -877,6 +1132,7 @@ struct TaskDNAChart: View {
 // MARK: - WeekdayHeatmap
 
 struct WeekdayHeatmap: View {
+    @EnvironmentObject var vm: AppViewModel
     let snapshots: [DailySnapshot]
     @State private var appeared = false
 
@@ -923,6 +1179,7 @@ struct WeekdayHeatmap: View {
                     ForEach(Array(displayOrder.enumerated()), id: \.offset) { idx, wd in
                         let value  = avgs[wd]
                         let isBest = wd == best && value != nil
+                        let isWorst = wd == worst && value != nil && wd != best
 
                         VStack(spacing: 5) {
                             ZStack {
@@ -942,14 +1199,25 @@ struct WeekdayHeatmap: View {
                                         Image(systemName: "crown.fill")
                                             .font(.system(size: 7, weight: .bold))
                                             .foregroundColor(Theme.accent)
-                                        Text(value != nil ? "\(Int(value! * 100))%" : "—")
+                                        Text(value != nil ? "\(CompletionPolicy.percentage(value!))%" : "—")
                                             .font(.system(size: 11, weight: .black, design: .rounded))
                                             .foregroundColor(.white)
                                             .minimumScaleFactor(0.7)
                                             .lineLimit(1)
                                     }
+                                } else if isWorst {
+                                    VStack(spacing: 2) {
+                                        Image(systemName: "moon.fill")
+                                            .font(.system(size: 7, weight: .bold))
+                                            .foregroundColor(Theme.text2.opacity(0.75))
+                                        Text(value != nil ? "\(CompletionPolicy.percentage(value!))%" : "—")
+                                            .font(.system(size: 11, weight: .black, design: .rounded))
+                                            .foregroundColor(.white.opacity(0.82))
+                                            .minimumScaleFactor(0.7)
+                                            .lineLimit(1)
+                                    }
                                 } else {
-                                    Text(value != nil ? "\(Int(value! * 100))%" : "—")
+                                    Text(value != nil ? "\(CompletionPolicy.percentage(value!))%" : "—")
                                         .font(.system(
                                             size: value != nil ? 11 : 9,
                                             weight: .bold,
@@ -973,8 +1241,8 @@ struct WeekdayHeatmap: View {
                             )
 
                             Text(dayLabels[idx])
-                                .font(.system(size: 9, weight: isBest ? .black : .medium))
-                                .foregroundColor(isBest ? Theme.accent : Theme.text2)
+                                .font(.system(size: 9, weight: (isBest || isWorst) ? .black : .medium))
+                                .foregroundColor(isBest ? Theme.accent : (isWorst ? Theme.text2.opacity(0.78) : Theme.text2))
                         }
                     }
                 }
@@ -991,9 +1259,9 @@ struct WeekdayHeatmap: View {
                                worst != best,
                                let worstVal = avgs[worst],
                                bestVal - worstVal > 0.08 {
-                                Text("\(weekdayFullName(best))s are \(Int((bestVal - worstVal) * 100))% stronger than \(weekdayFullName(worst))s")
+                                Text(String(format: vm.localized("%@s are %lld%% stronger than %@s"), weekdayFullName(best), Int64((bestVal - worstVal) * 100), weekdayFullName(worst)))
                             } else {
-                                Text("Your performance is consistent across the week — well done")
+                                Text(vm.localized("Your performance is consistent across the week — well done"))
                             }
                         }
                         .font(.system(size: 8.5, weight: .medium))
@@ -1014,17 +1282,20 @@ struct WeekdayHeatmap: View {
 // MARK: - SmoothLineChart
 
 struct SmoothLineChart: View {
-    let snapshots: [DailySnapshot]
+    @EnvironmentObject var vm: AppViewModel
+    let points: [AnalyticsView.TrendPoint]
     @State private var appear = false
 
-    private var values: [Double] { snapshots.map(\.completionFraction) }
+    private var values: [Double] { points.map(\.completionFraction) }
 
     static let axisFormatter: DateFormatter = {
         let f = DateFormatter(); f.dateFormat = "MMM d"; return f
     }()
 
-    private func axisLabel(for date: Date) -> String {
-        Calendar.current.isDateInToday(date) ? "Today" : Self.axisFormatter.string(from: date)
+    private func axisLabel(for point: AnalyticsView.TrendPoint) -> String {
+        if let label = point.axisLabel { return label }
+        Self.axisFormatter.locale = vm.appLanguage.locale
+        return Calendar.current.isDateInToday(point.date) ? vm.localized("Today") : Self.axisFormatter.string(from: point.date)
     }
 
     var body: some View {
@@ -1095,21 +1366,21 @@ struct SmoothLineChart: View {
                 }
             }
 
-            if snapshots.count >= 2 {
+            if points.count >= 2 {
                 HStack {
                     // .first and .last are guaranteed non-nil by the count >= 2 guard above,
                     // but use optional chaining + fallback to be resilient against future refactors.
-                    Text(axisLabel(for: snapshots.first?.date ?? Date()))
+                    Text(axisLabel(for: points.first ?? AnalyticsView.TrendPoint(date: Date(), completionFraction: 0, axisLabel: nil)))
                         .font(.system(size: 7.5, weight: .medium))
                         .foregroundColor(Theme.text2)
                     Spacer()
-                    if snapshots.count >= 7, let midSnap = snapshots[safe: snapshots.count / 2] {
-                        Text(axisLabel(for: midSnap.date))
+                    if points.count >= 3, let midPoint = points[safe: points.count / 2] {
+                        Text(axisLabel(for: midPoint))
                             .font(.system(size: 7.5, weight: .medium))
                             .foregroundColor(Theme.text2)
                     }
                     Spacer()
-                    Text(axisLabel(for: snapshots.last?.date ?? Date()))
+                    Text(axisLabel(for: points.last ?? AnalyticsView.TrendPoint(date: Date(), completionFraction: 0, axisLabel: nil)))
                         .font(.system(size: 7.5, weight: .semibold))
                         .foregroundColor(Theme.accent)
                 }
@@ -1161,13 +1432,13 @@ struct AnalyticsListPickerSheet: View {
                         .padding(.top, 12).padding(.bottom, 20)
 
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Analytics For").font(.system(size: 22, weight: .black)).foregroundColor(Theme.text0)
-                        Text("Data stays on this screen only").font(.system(size: 13)).foregroundColor(Theme.text2)
+                        Text(vm.localized("Analytics For")).font(.system(size: 22, weight: .black)).foregroundColor(Theme.text0)
+                        Text(vm.localized("Data stays on this screen only")).font(.system(size: 13)).foregroundColor(Theme.text2)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 20).padding(.bottom, 20)
 
-                    let liveLists = vm.lists.filter { !$0.isArchived && !$0.isTodo }
+                    let liveLists = vm.lists.filter { !$0.isArchived && !$0.isTodo && !$0.isWeekly }
                     let todoList  = vm.lists.first(where: { $0.isTodo })
                     ScrollView {
                         VStack(spacing: 10) {
@@ -1179,7 +1450,7 @@ struct AnalyticsListPickerSheet: View {
                                     .fill(Theme.border)
                                     .frame(height: 0.5)
                                     .padding(.vertical, 4)
-                                Text("ADHOC TO DO")
+                                Text(vm.localized("ADHOC TO DO"))
                                     .font(.system(size: 9, weight: .bold))
                                     .kerning(1.5)
                                     .foregroundColor(Theme.text2)
@@ -1211,7 +1482,7 @@ struct AnalyticsListPickerSheet: View {
                 }
                 VStack(alignment: .leading, spacing: 3) {
                     Text(list.cleanName).font(.system(size: 15, weight: .semibold)).foregroundColor(Theme.text0)
-                    Text("\(list.tasks.count) tasks").font(.system(size: 12)).foregroundColor(Theme.text1)
+                    Text(String(format: list.tasks.count == 1 ? vm.localized("%lld task") : vm.localized("%lld tasks"), Int64(list.tasks.count))).font(.system(size: 12)).foregroundColor(Theme.text1)
                 }
                 Spacer()
                 if selectedListID.wrappedValue == list.id {
@@ -1269,17 +1540,16 @@ struct NewUserBanner: View {
 
     private var messages: [String] {
         let day = daysSinceInstall + 1
-        let locale = vm.appLanguage.locale
         return [
-            String(localized: "🌱 Day %lld of 7 — your journey just started with Sortyd", locale: locale).replacingOccurrences(of: "%lld", with: "\(day)"),
-            String(localized: "Give Sortyd time to learn how you work", locale: locale),
+            vm.localized("🌱 Day %lld of 7 — your journey just started with Sortyd").replacingOccurrences(of: "%lld", with: "\(day)"),
+            vm.localized("Give Sortyd time to learn how you work"),
             daysClocked > 0
-                ? (daysClocked == 1 
-                   ? String(localized: "1 day clocked in so far — keep it up!", locale: locale)
-                   : String(localized: "%lld days clocked in so far — keep it up!", locale: locale).replacingOccurrences(of: "%lld", with: "\(daysClocked)"))
-                : String(localized: "Complete tasks today to start tracking your progress", locale: locale),
-            String(localized: "Better insights unlock as more data builds", locale: locale),
-            String(localized: "Track consistently and your grade will reflect it ✨", locale: locale)
+                ? (daysClocked == 1
+                   ? vm.localized("1 day clocked in so far — keep it up!")
+                   : vm.localized("%lld days clocked in so far — keep it up!").replacingOccurrences(of: "%lld", with: "\(daysClocked)"))
+                : vm.localized("Complete tasks today to start tracking your progress"),
+            vm.localized("Better insights unlock as more data builds"),
+            vm.localized("Track consistently and your grade will reflect it ✨")
         ]
     }
 

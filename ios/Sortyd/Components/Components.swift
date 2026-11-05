@@ -205,7 +205,7 @@ struct HeatmapCalendarView: View {
         .onChange(of: vm.snapshots.count) { _, _ in
             cachedSnapshotMap = buildSnapshotMap()
         }
-        .onChange(of: vm.snapshots.map { "\($0.id)\($0.completedTaskIDs.count)" }.joined()) { _, _ in
+        .onChange(of: vm.snapshots.map { "\($0.id)|\($0.date)|\($0.completionFraction)|\($0.completedTaskIDs)" }.joined()) { _, _ in
             cachedSnapshotMap = buildSnapshotMap()
         }
         .fullScreenCover(isPresented: $showEmptyToast) {
@@ -526,8 +526,9 @@ struct DayDetailSheet: View {
     }
     
     private var pct: Int {
+        if !kDebugAllowPastEditing { return snapshot?.completionPercentage ?? 0 }
         guard let list = list, !list.tasks.isEmpty else { return 0 }
-        return Int((Double(localCompletedIDs.count) / Double(list.tasks.count)) * 100)
+        return Int((Double(completedTasks.count) / Double(list.tasks.count)) * 100)
     }
     
     var body: some View {
@@ -575,7 +576,7 @@ struct DayDetailSheet: View {
                                 Text(performanceLabel(pct))
                                     .font(Theme.font(size: 18, weight: .black))
                                     .foregroundColor(Theme.text0)
-                                Text(String(localized: "%lld of %lld tasks completed", locale: appVM.appLanguage.locale).replacingOccurrences(of: "%lld", with: "\(completedTasks.count)", range: nil).replacingOccurrences(of: "%lld", with: "\(completedTasks.count + missedTasks.count)"))
+                                Text(String(format: appVM.localized("%lld of %lld tasks completed"), locale: appVM.appLanguage.locale, Int64(completedTasks.count), Int64(completedTasks.count + missedTasks.count)))
                                     .font(Theme.font(size: 13))
                                     .foregroundColor(Theme.text2)
                             }
@@ -617,15 +618,6 @@ struct DayDetailSheet: View {
         .fullScreenCover(isPresented: $showCheatAlert) {
             CheatBlockPopup {
                 showCheatAlert = false
-                let total = list?.tasks.count ?? 1
-                let updated = DailySnapshot(
-                    id: snapshot?.id ?? UUID(),
-                    date: sheetDate,
-                    listID: listID,
-                    completionFraction: Double(localCompletedIDs.count) / Double(total),
-                    completedTaskIDs: Array(localCompletedIDs)
-                )
-                appVM.upsertSnapshot(updated)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                     dismiss()
                     onGoToToday?()
@@ -636,13 +628,16 @@ struct DayDetailSheet: View {
             localCompletedIDs = Set(snapshot?.completedTaskIDs ?? [])
         }
         .onDisappear {
-            let total = list?.tasks.count ?? 1
+            guard kDebugAllowPastEditing,
+                  localCompletedIDs != Set(snapshot?.completedTaskIDs ?? []),
+                  let list, !list.tasks.isEmpty else { return }
+            let total = list.tasks.count
             let updated = DailySnapshot(
                 id: snapshot?.id ?? UUID(),
                 date: sheetDate,
                 listID: listID,
-                completionFraction: Double(localCompletedIDs.count) / Double(total),
-                completedTaskIDs: Array(localCompletedIDs)
+                completionFraction: Double(completedTasks.count) / Double(total),
+                completedTaskIDs: completedTasks.map(\.id)
             )
             appVM.upsertSnapshot(updated)
         }
@@ -1025,6 +1020,12 @@ struct GhostDayToast: View {
                 ("🌑", "Apagón total.", "No hay datos para este día. ¿Quizás mañana?"),
                 ("🕳️", "Un vacío. Nada puro.", "Parece que te saltaste este día por completo.")
             ]
+        case .chinese:
+            return [
+                ("👻", "像座空城。", "这里什么都没有——你今天大概没有打卡。"),
+                ("🌑", "完全黑屏。", "这天没有数据，明天试试？"),
+                ("🕳️", "一片虚空。", "看来你今天完全跳过了。")
+            ]
         case .english:
             return [
                 ("👻", "Looks like a ghost town.", "Nothing here — guess you didn't clock in."),
@@ -1151,7 +1152,7 @@ struct GhostDayToast: View {
                 Spacer()
                 
                 Button(action: { dismissToast() }) {
-                    Text(appVM.appLanguage == .arabic ? "اذهب إلى اليوم" : (appVM.appLanguage == .spanish ? "Ir a Hoy" : "Go to Today"))
+                    Text(appVM.appLanguage == .arabic ? "اذهب إلى اليوم" : (appVM.appLanguage == .spanish ? "Ir a Hoy" : (appVM.appLanguage == .chinese ? "去今天" : "Go to Today")))
                         .font(.system(size: 15, weight: .bold))
                         .foregroundColor(Color(hex: "#0A1A0A"))
                         .padding(.horizontal, 28)
@@ -1292,6 +1293,13 @@ struct CheatBlockPopup: View {
                 ("😤", "¡Historia sellada!", "Lo hecho, hecho está.\nCanaliza esa energía para que hoy valga la pena."),
                 ("🚫", "¿Máquina del tiempo? Denegada.", "Queremos que mejores mañana,\nno que pierdas tiempo puliendo el pasado.")
             ]
+        case .chinese:
+            return [
+                ("🕵️", "别想了，作弊者！", "我们看到你在试图改写历史。\n过去已锁定——去征服明天吧。"),
+                ("🔒", "不行，今天不行。", "抱歉，为了你好我们不能让你作弊。\n专注明天，不要纠结昨天。"),
+                ("😤", "历史已封存！", "已经发生的就发生了。\n把这股劲用在让今天有意义上吧。"),
+                ("🚫", "时光机？拒绝。", "我们希望你明天进步，\n不是浪费时间美化过去。")
+            ]
         case .english:
             return [
                 ("🕵️", "Nice try, cheater!", "We see you trying to rewrite history.\nThe past is locked — go crush tomorrow instead."),
@@ -1424,7 +1432,7 @@ struct CheatBlockPopup: View {
                 
                 // CTA — capsule pill, no enclosing box
                 Button(action: onDismiss) {
-                    Text(appVM.appLanguage == .arabic ? "فهمت، سأبلي بلاءً أفضل 💪" : (appVM.appLanguage == .spanish ? "Entendido, lo haré mejor 💪" : "Got it, I'll do better 💪"))
+                    Text(appVM.appLanguage == .arabic ? "فهمت، سأبلي بلاءً أفضل 💪" : (appVM.appLanguage == .spanish ? "Entendido, lo haré mejor 💪" : (appVM.appLanguage == .chinese ? "明白了，我会更努力 💪" : "Got it, I'll do better 💪")))
                         .font(.system(size: 15, weight: .bold))
                         .foregroundColor(Color(hex: "#0A1A0A"))
                         .padding(.horizontal, 28)
@@ -1634,5 +1642,170 @@ struct LEDChasingBorder: View {
                     rotation = 360
                 }
             }
+    }
+}
+
+// ══════════════════════════════════════════════
+// MARK: DailyRecapBanner
+// ══════════════════════════════════════════════
+
+struct DailyRecapBanner: View {
+    @EnvironmentObject var vm: AppViewModel
+    let data: DailyRecapData
+    let onDismiss: () -> Void
+    
+    @State private var isVisible = false
+    @State private var offset: CGFloat = -200
+    @State private var hideTask: Task<Void, Never>? = nil
+    
+    var body: some View {
+        VStack {
+            if isVisible {
+                HStack(spacing: 16) {
+                    // Score Badge (Premium glowing)
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Theme.accent, Theme.coral],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 54, height: 54)
+                            .shadow(color: Theme.accent.opacity(0.4), radius: 8, x: 0, y: 4)
+
+                        // Inner dark cut-out or glass
+                        Circle()
+                            .fill(Theme.bg1.opacity(0.85))
+                            .frame(width: 50, height: 50)
+                            .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 2)
+                        
+                        VStack(spacing: -1) {
+                            Text(data.emoji)
+                                .font(.system(size: 14))
+                                .shadow(color: Theme.accent.opacity(0.5), radius: 4, x: 0, y: 0)
+                            Text("\(data.percentage)%")
+                                .font(Theme.font(size: 12, weight: .black, design: .rounded))
+                                .foregroundColor(.white)
+                        }
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(data.dateLabel.uppercased())
+                            .font(Theme.font(size: 10, weight: .black))
+                            .kerning(1.5)
+                            .foregroundColor(Theme.accent)
+                        
+                        Text(data.message)
+                            .font(Theme.font(size: 14, weight: .semibold))
+                            .foregroundColor(Theme.text0)
+                            .lineLimit(3)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    
+                    Spacer()
+                    
+                    Button {
+                        hide()
+                    } label: {
+                        ZStack {
+                            Circle()
+                                .fill(Color.white.opacity(0.1))
+                                .frame(width: 32, height: 32)
+                            Image(systemName: "xmark")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundColor(Color.white.opacity(0.8))
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.trailing, 4)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(
+                    ZStack {
+                        // Base dark blur
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(Theme.bg0.opacity(0.8))
+                            .background(
+                                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                    .fill(.ultraThinMaterial)
+                            )
+                        
+                        // Subtle gradient overlay
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Theme.accent.opacity(0.15), .clear, Theme.coral.opacity(0.05)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                        
+                        // Glassy inner border
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [Color.white.opacity(0.25), Color.white.opacity(0.02)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    }
+                )
+                .shadow(color: Color.black.opacity(0.4), radius: 20, x: 0, y: 10)
+                .shadow(color: Theme.accent.opacity(0.2), radius: 15, x: 0, y: 8)
+                .padding(.horizontal, 16)
+                .padding(.top, 24) // Drop further down
+                .offset(y: offset)
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            if value.translation.height < 0 {
+                                offset = value.translation.height
+                            }
+                        }
+                        .onEnded { value in
+                            if value.translation.height < -40 {
+                                hide()
+                            } else {
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                                    offset = 0
+                                }
+                            }
+                        }
+                )
+                .transition(.move(edge: .top).combined(with: .opacity).combined(with: .scale(scale: 0.95)))
+            }
+        }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.65)) {
+                    isVisible = true
+                    offset = 0
+                }
+                
+                // Auto-dismiss after 5 seconds
+                hideTask = Task {
+                    try? await Task.sleep(nanoseconds: 5_000_000_000)
+                    if !Task.isCancelled {
+                        hide()
+                    }
+                }
+            }
+        }
+    }
+    
+    private func hide() {
+        hideTask?.cancel()
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            offset = -200
+            isVisible = false
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            onDismiss()
+        }
     }
 }

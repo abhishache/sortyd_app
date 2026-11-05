@@ -12,6 +12,8 @@
 		4663A64D2F7B39130021CF8A /* SortydWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4663A6392F7B39120021CF8A /* SortydWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		4663DC332F805E480036A9D2 /* SortydWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 4663DC292F805E460036A9D2 /* SortydWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		46BBEB072F95089F0022DBAF /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 46BBEB062F95089F0022DBAF /* FirebaseAnalytics */; };
+		46C1A0022F95089F0022DBAF /* Clarity in Frameworks */ = {isa = PBXBuildFile; productRef = 46C1A0012F95089F0022DBAF /* Clarity */; };
+		46CFA0012026110500000001 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 46CFA0022026110500000001 /* FirebaseCrashlytics */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -127,7 +129,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				46C1A0022F95089F0022DBAF /* Clarity in Frameworks */,
 				46BBEB072F95089F0022DBAF /* FirebaseAnalytics in Frameworks */,
+				46CFA0012026110500000001 /* FirebaseCrashlytics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -194,6 +198,7 @@
 				4663A5F02F7B38CA0021CF8A /* Resources */,
 				4663A6522F7B39130021CF8A /* Embed Foundation Extensions */,
 				4663DC372F805E480036A9D2 /* Embed Watch Content */,
+				46CFA0032026110500000001 /* Upload Crashlytics Symbols */,
 			);
 			buildRules = (
 			);
@@ -207,7 +212,9 @@
 			);
 			name = Sortyd;
 			packageProductDependencies = (
+				46C1A0012F95089F0022DBAF /* Clarity */,
 				46BBEB062F95089F0022DBAF /* FirebaseAnalytics */,
+				46CFA0022026110500000001 /* FirebaseCrashlytics */,
 			);
 			productName = Sortyd;
 			productReference = 4663A5F22F7B38CA0021CF8A /* Sortyd.app */;
@@ -288,10 +295,12 @@
 				Base,
 				es,
 				ar,
+				"zh-Hans",
 			);
 			mainGroup = 4663A5E92F7B38CA0021CF8A;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				46C1A0002F95089F0022DBAF /* XCRemoteSwiftPackageReference "clarity-apps" */,
 				46BBEB052F95089F0022DBAF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -329,6 +338,26 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+        46CFA0032026110500000001 /* Upload Crashlytics Symbols */ = {
+            isa = PBXShellScriptBuildPhase;
+            buildActionMask = 2147483647;
+            files = ();
+            inputPaths = (
+                "${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}",
+                "${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}",
+                "${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist",
+                "$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
+                "$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)",
+            );
+            name = "Upload Crashlytics Symbols";
+            outputPaths = ();
+            runOnlyForDeploymentPostprocessing = 1;
+            shellPath = /bin/sh;
+            shellScript = "\"${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run\"\n";
+        };
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		4663A5EE2F7B38CA0021CF8A /* Sources */ = {
@@ -408,7 +437,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 25E5AWSP4F;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -524,7 +553,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.1;
+				MARKETING_VERSION = 1.7.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sortyd.sortyd;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -563,7 +592,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.1;
+				MARKETING_VERSION = 1.7.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sortyd.sortyd;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -590,13 +619,13 @@
 				INFOPLIST_FILE = SortydWidgetExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = SortydWidgetExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 17;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.4.1;
+				MARKETING_VERSION = 1.7.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sortyd.sortyd.widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -625,13 +654,13 @@
 				INFOPLIST_FILE = SortydWidgetExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = SortydWidgetExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 17;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.4.1;
+				MARKETING_VERSION = 1.7.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sortyd.sortyd.widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -666,7 +695,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.1;
+				MARKETING_VERSION = 1.7.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sortyd.sortyd.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -705,7 +734,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.1;
+				MARKETING_VERSION = 1.7.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sortyd.sortyd.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -769,7 +798,15 @@
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 12.12.1;
+				minimumVersion = 13.1.1;
+			};
+		};
+		46C1A0002F95089F0022DBAF /* XCRemoteSwiftPackageReference "clarity-apps" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/microsoft/clarity-apps";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.5.4;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -779,6 +816,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 46BBEB052F95089F0022DBAF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalytics;
+		};
+		46CFA0022026110500000001 /* FirebaseCrashlytics */ = {
+            isa = XCSwiftPackageProductDependency;
+            package = 46BBEB052F95089F0022DBAF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+            productName = FirebaseCrashlytics;
+        };
+        46C1A0012F95089F0022DBAF /* Clarity */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 46C1A0002F95089F0022DBAF /* XCRemoteSwiftPackageReference "clarity-apps" */;
+			productName = Clarity;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

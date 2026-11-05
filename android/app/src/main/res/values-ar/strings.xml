@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Sortyd</string>
+    <string name="widget_small_description">قوس إنجاز يومي مع تتبع الصحة</string>
+    <string name="widget_medium_description">حلقات لوحة وتحكم تفاعلي بالمهام</string>
+    <string name="widget_large_description">لوحة مفصلة مع قائمة تفاعلية ومؤشرات صحية</string>
+    <string name="widget_heatmap_description">خريطة فقاعات شهرية لتاريخ عاداتك</string>
+</resources>

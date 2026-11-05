@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Sortyd</string>
+    <string name="widget_small_description">Arco diario de progreso con seguimiento de salud</string>
+    <string name="widget_medium_description">Anillos de panel y tareas interactivas</string>
+    <string name="widget_large_description">Panel detallado con lista interactiva y medidores de salud</string>
+    <string name="widget_heatmap_description">Mapa mensual de burbujas de tu historial de hábitos</string>
+</resources>

@@ -425,22 +425,38 @@ struct ThemeToggleButton: View {
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(Theme.accent)
             }
+            .frame(width: 44, height: 44)
+            .contentShape(Circle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PremiumPressStyle())
         .accessibilityLabel(ThemeManager.shared.isDark ? "Switch to light mode" : "Switch to dark mode")
+    }
+}
+
+/// Shared tactile feedback for primary controls. The transition remains brief,
+/// interruptible, and is disabled for people who reduce motion.
+struct PremiumPressStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.96 : 1)
+            .opacity(configuration.isPressed ? 0.92 : 1)
+            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
     }
 }
 
 // MARK: - ThemeToggleRow
 struct ThemeToggleRow: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var vm: AppViewModel
 
     var body: some View {
         HStack {
             Image(systemName: themeManager.isDark ? "sun.max.fill" : "moon.fill")
                 .foregroundColor(Theme.accent)
                 .frame(width: 24)
-            Text("Appearance")
+            Text(vm.localized("Appearance"))
                 .foregroundColor(Theme.text0)
             Spacer()
             Toggle("", isOn: $themeManager.isDark)

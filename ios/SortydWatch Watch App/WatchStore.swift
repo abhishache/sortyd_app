@@ -31,6 +31,7 @@ enum AppLanguage: String, Codable {
     case english = "en"
     case arabic  = "ar"
     case spanish = "es"
+    case chinese = "zh-Hans"
 }
 
 struct TaskList: Identifiable, Codable, Hashable {
@@ -40,6 +41,8 @@ struct TaskList: Identifiable, Codable, Hashable {
     var tasks: [SortydTask]
     var createdAt: Date = Date()
     var isArchived: Bool = false
+    var isTodo: Bool?
+    var isWeekly: Bool?
 
     var completionFraction: Double {
         guard !tasks.isEmpty else { return 0 }
@@ -54,8 +57,9 @@ struct AppData: Codable {
     var snapshots: [DailySnapshot] = []
 
     var activeList: TaskList? {
-        guard let id = activeListID else { return lists.first }
-        return lists.first(where: { $0.id == id }) ?? lists.first
+        let live = lists.filter { !$0.isArchived && $0.isWeekly != true }
+        guard let id = activeListID else { return live.first }
+        return live.first(where: { $0.id == id }) ?? live.first
     }
 }
 
@@ -108,9 +112,10 @@ final class WatchStore: NSObject, ObservableObject {
             let taskIdx = appData.lists[listIdx].tasks.firstIndex(where: { $0.id == task.id })
         else { return }
 
+        let expected = appData.lists[listIdx].tasks[taskIdx].isCompleted
         appData.lists[listIdx].tasks[taskIdx].isCompleted.toggle()
         save(appData)
-        sendToPhone()
+        sendToPhone(taskID: task.id, expected: expected, completed: !expected)
     }
 
     func refresh() {
@@ -121,9 +126,7 @@ final class WatchStore: NSObject, ObservableObject {
     // MARK: Private helpers
 
     private var activeListIndex: Int? {
-        guard let id = appData.activeListID else {
-            return appData.lists.isEmpty ? nil : 0
-        }
+        guard let id = appData.activeList?.id else { return nil }
         return appData.lists.firstIndex(where: { $0.id == id })
     }
 
@@ -171,14 +174,15 @@ final class WatchStore: NSObject, ObservableObject {
         })
     }
 
-    private func sendToPhone() {
-        guard let encoded = try? JSONEncoder().encode(appData) else { return }
+    private func sendToPhone(taskID: UUID, expected: Bool, completed: Bool) {
+        let operation: [String: Any] = ["operationID": UUID().uuidString, "taskID": taskID.uuidString,
+            "expectedCompleted": expected, "completed": completed, "sentAt": Date()]
         if WCSession.default.isReachable {
-            // Phone app is foregrounded — send immediately
-            WCSession.default.sendMessage(["appData": encoded], replyHandler: nil, errorHandler: nil)
+            WCSession.default.sendMessage(operation, replyHandler: nil) { _ in
+                WCSession.default.transferUserInfo(operation)
+            }
         } else {
-            // Phone is backgrounded — persist so it receives on next foreground
-            try? WCSession.default.updateApplicationContext(["appData": encoded])
+            WCSession.default.transferUserInfo(operation)
         }
     }
 }

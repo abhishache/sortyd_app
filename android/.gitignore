@@ -1,0 +1,17 @@
+# Android build outputs
+*.apk
+*.aab
+*.ap_
+*.dex
+build/
+.gradle/
+
+# Local environment — SDK path and signing credentials — never commit these
+local.properties
+*.jks
+*.keystore
+
+# IDE
+.idea/
+*.iml
+.DS_Store

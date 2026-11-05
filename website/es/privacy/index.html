@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Política de Privacidad — Sortyd</title>
+  <meta name="description" content="Política de privacidad de Sortyd. Sin anuncios, sin rastreo, sin cuenta requerida. Tus datos permanecen en tu dispositivo." />
+  <link rel="canonical" href="https://www.sortyd.com/es/privacy/" />
+  <link rel="alternate" hreflang="en" href="https://www.sortyd.com/privacy/"/>
+  <link rel="alternate" hreflang="es" href="https://www.sortyd.com/es/privacy/"/>
+  <link rel="alternate" hreflang="ar" href="https://www.sortyd.com/ar/privacy/"/>
+  <link rel="alternate" hreflang="zh-Hans" href="https://www.sortyd.com/zh/privacy/"/>
+  <link rel="alternate" hreflang="x-default" href="https://www.sortyd.com/privacy/"/>
+  <meta name="robots" content="index, follow" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Sortyd" />
+  <meta property="og:title" content="Política de Privacidad — Sortyd" />
+  <meta property="og:description" content="Política de privacidad de Sortyd. Sin anuncios, sin rastreo, sin cuenta requerida. Tus datos permanecen en tu dispositivo." />
+  <meta property="og:url" content="https://www.sortyd.com/es/privacy/" />
+  <meta property="og:locale" content="es_ES" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --v:    #7C6FFF;
+      --c:    #3ECFFF;
+      --bg:   #FAF8F4;
+      --bg2:  #F0EDE5;
+      --bg3:  #141424;
+      --ink:  #1A1520;
+      --mute: #B0AA9E;
+      --dim:  #5C5248;
+      --grad: linear-gradient(90deg, #7C6FFF, #3ECFFF);
+      --r:    16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 64px;
+      background: rgba(250, 248, 244, 0.88);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+
+    .nav-wordmark {
+      font-family: 'Space Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 28px; }
+
+    .nav-link { color: var(--dim); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+    .nav-link:hover { color: var(--ink); }
+
+    .nav-dl {
+      background: var(--grad);
+      border: none;
+      border-radius: 100px;
+      padding: 8px 20px;
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: opacity 0.2s;
+    }
+    .nav-dl:hover { opacity: 0.85; }
+
+    main {
+      flex: 1;
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 80px 24px 100px;
+    }
+
+    .page-eyebrow {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+
+    h1 { font-size: clamp(36px, 6vw, 52px); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 16px; }
+
+    .hero-meta { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--mute); margin-bottom: 20px; }
+
+    .hero-sub { font-size: 18px; color: var(--mute); line-height: 1.6; margin-bottom: 56px; max-width: 560px; }
+
+    .commits { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 64px; }
+
+    @media (max-width: 560px) { .commits { grid-template-columns: 1fr; } }
+
+    .commit-card { background: var(--bg2); border: 1px solid rgba(124, 111, 255, 0.15); border-radius: var(--r); padding: 20px; text-align: center; }
+    .commit-icon { font-size: 22px; margin-bottom: 8px; }
+    .commit-card strong { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .commit-card span { font-size: 12px; color: var(--mute); line-height: 1.4; }
+
+    .section { margin-bottom: 52px; }
+
+    h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--dim); }
+
+    p { font-size: 15px; color: var(--mute); margin-bottom: 14px; line-height: 1.75; }
+    p:last-child { margin-bottom: 0; }
+
+    ul { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+
+    li { font-size: 15px; color: var(--mute); padding-left: 20px; position: relative; line-height: 1.65; }
+    li::before { content: '—'; position: absolute; left: 0; color: var(--v); font-weight: 700; }
+
+    strong { color: var(--ink); font-weight: 600; }
+    a { color: var(--c); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .highlight { background: var(--bg2); border-left: 3px solid var(--v); border-radius: 0 var(--r) var(--r) 0; padding: 20px 24px; margin: 20px 0; }
+    .highlight p { margin: 0; color: var(--ink); font-size: 15px; }
+
+    .contact-section { background: var(--bg2); border: 1px solid rgba(124, 111, 255, 0.18); border-radius: var(--r); padding: 36px; text-align: center; margin-top: 64px; }
+    .contact-section h2 { border: none; padding: 0; margin-bottom: 8px; font-size: 22px; }
+    .contact-section p { margin-bottom: 24px; }
+
+    .contact-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--grad); color: #fff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 12px 28px; border-radius: 100px; transition: opacity 0.2s; }
+    .contact-btn:hover { opacity: 0.85; text-decoration: none; }
+
+    footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 28px 40px; border-top: 1px solid rgba(0, 0, 0, 0.07); }
+    .footer-left { display: flex; align-items: center; gap: 14px; }
+    .footer-wordmark { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .footer-div { width: 1px; height: 14px; background: var(--dim); }
+    .footer-tagline { font-size: 13px; color: var(--mute); }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { font-size: 13px; color: var(--mute); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--ink); }
+    .footer-copy { font-size: 13px; color: var(--dim); width: 100%; text-align: right; margin-top: 4px; }
+
+    @media (max-width: 640px) {
+      nav { padding: 0 20px; }
+      footer { padding: 24px 20px; flex-direction: column; align-items: flex-start; }
+      .footer-copy { text-align: left; }
+    }
+
+    .lang-switcher { position: relative; display: flex; align-items: center; }
+    .lang-select { appearance: none; -webkit-appearance: none; background: transparent; border: 1px solid rgba(124,111,255,.22); border-radius: 100px; padding: 6px 28px 6px 12px; font-family: 'Space Mono', monospace; font-size: .66rem; font-weight: 700; letter-spacing: .10em; color: #6B6B8A; cursor: pointer; transition: border-color .2s, color .2s; outline: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B6B8A' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+    .lang-select:hover { border-color: #7C6FFF; color: #EEEEF5; }
+    .lang-select option { background: #0D0E1A; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-logo" href="https://www.sortyd.com">
+      <img src="/logo.png" alt="Sortyd Logo" style="height: 32px; width: auto; display: block;">
+    </a>
+    <div class="nav-right">
+      <a class="nav-link" href="https://www.sortyd.com/es/#features">Funciones</a>
+      <a class="nav-link" href="https://www.sortyd.com/es/#how">Proceso</a>
+      <div class="lang-switcher">
+        <select class="lang-select" id="langSelect" onchange="switchLang(this.value)" aria-label="Seleccionar idioma">
+          <option value="en">EN</option>
+          <option value="es" selected>ES</option>
+          <option value="ar">ع</option>
+          <option value="zh">中文</option>
+        </select>
+      </div>
+      <a class="nav-dl" href="https://apps.apple.com/in/app/sortyd/id6762193535">Descargar</a>
+    </div>
+  </nav>
+
+  <main>
+
+    <p class="page-eyebrow">Política de Privacidad</p>
+    <h1>Tus datos.<br>Tu dispositivo.</h1>
+    <p class="hero-meta">Última actualización: abril de 2026 · Vigente de inmediato</p>
+    <p class="hero-sub">Sortyd se basa en un principio simple: tus hábitos no son asunto nuestro. Sin anuncios, sin rastreo, sin vender tus datos. Nunca.</p>
+
+    <div class="commits">
+      <div class="commit-card">
+        <div class="commit-icon">🔒</div>
+        <strong>Datos en tu dispositivo</strong>
+        <span>Las tareas y listas nunca salen de tu teléfono</span>
+      </div>
+      <div class="commit-card">
+        <div class="commit-icon">🚫</div>
+        <strong>Sin anuncios. Sin perfiles.</strong>
+        <span>Sin SDKs publicitarios ni rastreo de identidad</span>
+      </div>
+      <div class="commit-card">
+        <div class="commit-icon">🆓</div>
+        <strong>Sin cuenta requerida</strong>
+        <span>Nunca pedimos tu correo o nombre</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>1. Quiénes somos</h2>
+      <p>Sortyd es una app de seguimiento de hábitos para iOS, desarrollada y operada por un desarrollador independiente. Puedes contactarnos en <a href="mailto:privacy@sortyd.com">privacy@sortyd.com</a>.</p>
+    </div>
+
+    <div class="section">
+      <h2>2. Datos almacenados en tu dispositivo</h2>
+      <p>Todos los datos de la app se almacenan localmente en tu dispositivo usando UserDefaults de iOS y el contenedor App Group compartido con el widget de Sortyd y la app de Apple Watch. Esto incluye:</p>
+      <ul>
+        <li>Tus listas de tareas, títulos de tareas e historial de completación</li>
+        <li>Instantáneas diarias para calcular rachas y analíticas</li>
+        <li>Los horarios de recordatorio que configures para cada tarea</li>
+        <li>Tu tema seleccionado (preferencia de modo oscuro/claro)</li>
+      </ul>
+      <div class="highlight">
+        <p><strong>Ninguno de estos datos se transmite a nuestros servidores.</strong> Permanece en tu dispositivo y se elimina cuando borras la app.</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>3. Coach IA — qué se envía a internet</h2>
+      <p>Cuando usas el Coach IA o las funciones de Analíticas, Sortyd envía un resumen limitado y anonimizado para generar información. Este resumen contiene:</p>
+      <ul>
+        <li>Los títulos de tus tareas (p. ej., "Ejercicio matutino", "Beber agua")</li>
+        <li>Tus tasas de completación por tarea en los últimos 7–14 días</li>
+        <li>Qué días de la semana se completaron o se omitieron las tareas</li>
+      </ul>
+      <p>Estos datos se envían a través de un proxy Cloudflare Worker a la <a href="https://groq.com" target="_blank" rel="noopener">API de Groq</a> para generar tu respuesta de coaching. No registramos, almacenamos ni retenemos estos datos en nuestros servidores. Cada solicitud es independiente — no tenemos forma de vincularte.</p>
+      <p><strong>Tus datos de salud, identificadores de dispositivo, ubicación e información personal nunca se incluyen en estas solicitudes.</strong></p>
+    </div>
+
+    <div class="section">
+      <h2>4. Apple HealthKit</h2>
+      <p>Si conectas Apple Health, Sortyd lee tu recuento de pasos y calorías activas quemadas en modo solo lectura. Estos datos se usan exclusivamente para autocompletar las tareas de salud que hayas configurado (p. ej., "Caminar 10.000 pasos").</p>
+      <ul>
+        <li>Los datos de salud se leen localmente desde el framework HealthKit de Apple</li>
+        <li>Nunca se suben a nuestros servidores ni se incluyen en solicitudes de IA</li>
+        <li>Nunca se comparten con terceros</li>
+        <li>Puedes revocar el acceso a Salud en cualquier momento en Ajustes de iOS → Salud → Acceso a datos</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>5. Notificaciones</h2>
+      <p>Sortyd programa recordatorios diarios de tareas y una notificación opcional de resumen nocturno. Todas las notificaciones se procesan completamente en el dispositivo usando el framework UserNotifications de iOS. No se envía contenido de notificaciones a nuestros servidores.</p>
+      <p>Puedes desactivar las notificaciones en cualquier momento en Ajustes de iOS → Notificaciones → Sortyd.</p>
+    </div>
+
+    <div class="section">
+      <h2>6. Analíticas</h2>
+      <p>Sortyd usa <strong>Firebase Analytics</strong> (de Google) para recopilar datos de uso anónimos y agregados. Esto nos ayuda a entender cómo se usa la app para poder mejorarla. Los datos recopilados incluyen:</p>
+      <ul>
+        <li>Vistas de pantalla (p. ej., qué pestañas visitas)</li>
+        <li>Interacciones con funciones (p. ej., crear una lista, completar una tarea, usar el Coach IA)</li>
+        <li>Metadatos básicos del dispositivo (versión del SO, modelo del dispositivo)</li>
+      </ul>
+      <p>Estos datos <strong>no están vinculados a tu identidad</strong>, <strong>no se usan para publicidad</strong> y <strong>no se usan para rastreo entre apps</strong>. Firebase Analytics asigna un identificador por instalación que se restablece si eliminas y reinstala la app.</p>
+    </div>
+
+    <div class="section">
+      <h2>7. Compartir datos</h2>
+      <p>No vendemos, alquilamos, intercambiamos ni compartimos tus datos personales con ningún tercero para fines comerciales. Los servicios externos que pueden recibir datos de Sortyd son:</p>
+      <ul>
+        <li><strong>API de Groq</strong> — recibe un resumen anonimizado de tareas solo cuando activas explícitamente el Coach IA o las funciones de Analíticas (ver Sección 3)</li>
+        <li><strong>Google Firebase Analytics</strong> — recibe eventos de uso anónimos como se describe en la Sección 6. Regido por la <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Política de Privacidad de Google</a></li>
+      </ul>
+      <p>Ningún otro tercero recibe datos de Sortyd.</p>
+    </div>
+
+    <div class="section">
+      <h2>8. Privacidad de menores</h2>
+      <p>Sortyd no está dirigido a menores de 13 años. No recopilamos conscientemente ningún dato de menores. La app tiene clasificación 4+ en el App Store. Si crees que un menor ha usado la app y tienes inquietudes, contáctanos en <a href="mailto:privacy@sortyd.com">privacy@sortyd.com</a>.</p>
+    </div>
+
+    <div class="section">
+      <h2>9. Retención y eliminación de datos</h2>
+      <p>Como todos los datos se almacenan localmente en tu dispositivo, siempre tienes control total. Para eliminar todos los datos de Sortyd: elimina la app de tu dispositivo. Esto elimina todo — tareas, historial, instantáneas, preferencias — de forma permanente.</p>
+      <p>El historial de instantáneas con más de 730 días se elimina automáticamente dentro de la app para mantener el uso de almacenamiento al mínimo.</p>
+    </div>
+
+    <div class="section">
+      <h2>10. Cambios en esta política</h2>
+      <p>Si realizamos cambios materiales en esta política de privacidad, actualizaremos la fecha de "Última actualización" en la parte superior de esta página. El uso continuado de la app después de los cambios constituye la aceptación de la política actualizada.</p>
+    </div>
+
+    <div class="contact-section">
+      <h2>¿Preguntas sobre privacidad?</h2>
+      <p>Somos un equipo pequeño y leemos cada correo. Escríbenos cuando quieras.</p>
+      <a class="contact-btn" href="mailto:privacy@sortyd.com">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M2 4a1 1 0 011-1h10a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V4z" stroke="#fff" stroke-width="1.4"/>
+          <path d="M2 4l6 5 6-5" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>
+        </svg>
+        privacy@sortyd.com
+      </a>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="footer-left">
+      <span class="footer-wordmark">sortyd</span>
+      <div class="footer-div"></div>
+      <span class="footer-tagline">Rastreador de Hábitos IA</span>
+    </div>
+    <div class="footer-links">
+      <a href="/es/privacy/">Privacidad</a>
+      <a href="/es/support/">Soporte</a>
+      <a href="mailto:support@sortyd.com">Contacto</a>
+    </div>
+    <span class="footer-copy">© 2026 Sortyd</span>
+  </footer>
+
+<script src="/i18n.js"></script>
+</body>
+</html>

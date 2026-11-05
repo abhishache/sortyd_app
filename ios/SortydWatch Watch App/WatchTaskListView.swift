@@ -57,7 +57,7 @@ struct WatchTaskListView: View {
                             HStack(spacing: 4) {
                                 Image(systemName: "arrow.clockwise")
                                     .font(.caption2)
-                                Text(store.appLanguage == .arabic ? "مزامنة" : (store.appLanguage == .spanish ? "Sincronizar" : "Sync"))
+                                Text(store.appLanguage == .arabic ? "مزامنة" : (store.appLanguage == .spanish ? "Sincronizar" : (store.appLanguage == .chinese ? "同步" : "Sync")))
                                     .font(.caption2)
                             }
                             .foregroundStyle(.secondary)
@@ -139,7 +139,7 @@ struct EmptyWatchView: View {
             Image(systemName: "checkmark.circle")
                 .font(.largeTitle)
                 .foregroundStyle(Color(hex: "7C6FFF"))
-            Text(store.appLanguage == .arabic ? "افتح Sortyd\nعلى iPhone الخاص بك\nللبدء" : (store.appLanguage == .spanish ? "Abre Sortyd\nen tu iPhone\npara comenzar" : "Open Sortyd\non your iPhone\nto get started"))
+            Text(store.appLanguage == .arabic ? "افتح Sortyd\nعلى iPhone الخاص بك\nللبدء" : (store.appLanguage == .spanish ? "Abre Sortyd\nen tu iPhone\npara comenzar" : (store.appLanguage == .chinese ? "请在 iPhone 上\n打开 Sortyd\n以开始使用" : "Open Sortyd\non your iPhone\nto get started")))
                 .font(.caption)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
