@@ -91,9 +91,15 @@ struct ListManagementView: View {
             // FIX: keep nav bar fully invisible — no system material on scroll
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
+            #if os(iOS)
             .toolbar { navigationBar }
+            #else
+            .toolbar(.hidden, for: .windowToolbar)
+            #endif
             .navigationDestination(for: UUID.self) { id in
-                ListDetailView(listID: id).environmentObject(vm)
+                ListDetailView(listID: id, onBack: {
+                    if !navigationPath.isEmpty { navigationPath.removeLast() }
+                }).environmentObject(vm)
             }
             .sheet(isPresented: $showAdd) {
                 AddListSheet(onSwitchToAI: { showStarterList = true }).environmentObject(vm)
@@ -344,6 +350,44 @@ struct ListManagementView: View {
                 }
 
                 Spacer()
+
+                #if os(macOS)
+                HStack(spacing: 10) {
+                    Button { showStarterList = true } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 10, weight: .black))
+                            Text(vm.appLanguage == .arabic ? "ذكاء اصطناعي" : "AI")
+                                .font(.system(size: 12, weight: .black))
+                                .tracking(0.6)
+                        }
+                        .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#060710") : .white)
+                        .padding(.horizontal, 13)
+                        .padding(.vertical, 8)
+                        .background(Capsule().fill(Theme.accent))
+                    }
+                    .buttonStyle(.plain)
+
+                    Button { showAdd = true } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 11, weight: .bold))
+                            Text(vm.localized("New List"))
+                                .font(.system(size: 12, weight: .bold))
+                        }
+                        .foregroundColor(Theme.text0)
+                        .padding(.horizontal, 13)
+                        .padding(.vertical, 8)
+                        .background(
+                            Capsule()
+                                .fill(Theme.bg2)
+                                .overlay(Capsule().strokeBorder(Theme.accent.opacity(0.38), lineWidth: 0.85))
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.trailing, 8)
+                #endif
 
                 if !activeLists.isEmpty {
                     listCountBadge
@@ -1053,8 +1097,10 @@ private struct ListScaleStyle: ButtonStyle {
 
 struct ListDetailView: View {
     let listID: UUID
+    var onBack: (() -> Void)? = nil
     @EnvironmentObject var vm: AppViewModel
     @Environment(\.undoManager) var undoManager
+    @Environment(\.dismiss) private var dismiss
 
     @State private var showAdd      = false
     @State private var showSmartAdd = false
@@ -1065,10 +1111,91 @@ struct ListDetailView: View {
     var body: some View {
         ZStack {
             Theme.bg0.ignoresSafeArea()
-            if let list {
-                if list.tasks.isEmpty { emptyState } else { taskList(list: list) }
+            VStack(spacing: 0) {
+                #if os(macOS)
+                HStack(spacing: 12) {
+                    Button {
+                        if let onBack { onBack() } else { dismiss() }
+                    } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 11, weight: .bold))
+                            Text(vm.localized("Lists"))
+                                .font(.system(size: 12.5, weight: .semibold))
+                        }
+                        .foregroundColor(Theme.text1)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(Capsule().fill(Theme.bg2).overlay(Capsule().strokeBorder(Theme.border, lineWidth: 0.75)))
+                    }
+                    .buttonStyle(.plain)
+
+                    if let list {
+                        Text("\(list.emoji) \(list.cleanName)")
+                            .font(.system(size: 22, weight: .heavy, design: .rounded))
+                            .foregroundColor(Theme.text0)
+                            .lineLimit(1)
+                    }
+
+                    Spacer()
+
+                    HStack(spacing: 8) {
+                        Button { undoManager?.undo() } label: {
+                            Image(systemName: "arrow.uturn.backward")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(undoManager?.canUndo == true ? Theme.accent : Theme.text2.opacity(0.35))
+                                .frame(width: 30, height: 30)
+                                .background(Circle().fill(Theme.bg2))
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(undoManager?.canUndo != true)
+
+                        Button { undoManager?.redo() } label: {
+                            Image(systemName: "arrow.uturn.forward")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(undoManager?.canRedo == true ? Theme.accent : Theme.text2.opacity(0.35))
+                                .frame(width: 30, height: 30)
+                                .background(Circle().fill(Theme.bg2))
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(undoManager?.canRedo != true)
+
+                        Button { showSmartAdd = true } label: {
+                            HStack(spacing: 5) {
+                                Image(systemName: "sparkles").font(.system(size: 11, weight: .semibold))
+                                Text(vm.localized("Smart Add")).font(.system(size: 12, weight: .bold))
+                            }
+                            .foregroundColor(Theme.coral)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 7)
+                            .background(Capsule().fill(Theme.coral.opacity(0.10)).overlay(Capsule().strokeBorder(Theme.coral.opacity(0.25), lineWidth: 0.75)))
+                        }
+                        .buttonStyle(.plain)
+
+                        Button { showAdd = true } label: {
+                            HStack(spacing: 5) {
+                                Image(systemName: "plus").font(.system(size: 11, weight: .black))
+                                Text(vm.localized("Add Task")).font(.system(size: 12, weight: .bold))
+                            }
+                            .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
+                            .padding(.horizontal, 13)
+                            .padding(.vertical, 7)
+                            .background(Capsule().fill(Theme.accent))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+                .padding(.bottom, 10)
+                #endif
+
+                if let list {
+                    if list.tasks.isEmpty { emptyState } else { taskList(list: list) }
+                }
             }
         }
+        #if os(iOS)
         .navigationTitle(list.map { "\($0.emoji) \($0.cleanName)" } ?? "")
         .navigationBarTitleDisplayMode(.large)
         .toolbarBackground(Theme.bg0, for: .navigationBar)
@@ -1094,11 +1221,9 @@ struct ListDetailView: View {
                 .disabled(undoManager?.canRedo != true)
             }
             ToolbarItemGroup(placement: .navigationBarTrailing) {
-                #if os(iOS)
                 if let list, !list.tasks.isEmpty {
                     EditButton().foregroundColor(Theme.accent).fontWeight(.semibold)
                 }
-                #endif
                 Button { showSmartAdd = true } label: {
                     ZStack {
                         Circle().fill(Theme.coral.opacity(0.10)).frame(width: 32, height: 32)
@@ -1116,6 +1241,10 @@ struct ListDetailView: View {
                 }
             }
         }
+        #else
+        .navigationBarBackButtonHidden(true)
+        .toolbar(.hidden, for: .windowToolbar)
+        #endif
         .sheet(isPresented: $showAdd)      { AddTaskSheet(listID: listID).environmentObject(vm) }
         .sheet(isPresented: $showSmartAdd) { SmartAddTaskSheet(listID: listID).environmentObject(vm) }
         .sheet(item: $editing)             { task in EditTaskSheet(task: task, listID: listID).environmentObject(vm) }
