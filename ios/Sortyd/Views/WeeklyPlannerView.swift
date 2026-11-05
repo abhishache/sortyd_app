@@ -277,67 +277,88 @@ struct WeeklyPlannerSection: View {
     private var taskEntrySheet: some View {
         NavigationStack {
             VStack(spacing: 0) {
-
-                // ── Date badge ───────────────────────────────────────────────
-                if let date = selectedDate {
-                    HStack(spacing: 5) {
-                        Image(systemName: "calendar")
-                            .font(.system(size: 11, weight: .bold))
-                        Text(date.formatted(date: .abbreviated, time: .shortened))
-                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                // Explicit in-view top bar with Cancel so macOS & iOS users never need Escape
+                HStack {
+                    Button {
+                        showTaskEntry = false
+                    } label: {
+                        Text(vm.localized("Cancel"))
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(Theme.text1)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Capsule().fill(Theme.bg2).overlay(Capsule().strokeBorder(Theme.border, lineWidth: 0.8)))
                     }
-                    .foregroundColor(Theme.accent)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 7)
-                    .background(
-                        Capsule()
-                            .fill(Theme.accent.opacity(0.12))
-                            .overlay(Capsule().strokeBorder(Theme.accent.opacity(0.22), lineWidth: 0.8))
-                    )
-                    .padding(.top, 4)
-                    .padding(.bottom, 16)
+                    .buttonStyle(.plain)
+
+                    Spacer()
+
+                    Text(vm.localized(editingTask == nil ? "Plan Your Day" : "Edit Task"))
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundColor(Theme.text0)
+
+                    Spacer()
+
+                    if let date = selectedDate {
+                        HStack(spacing: 4) {
+                            Image(systemName: "calendar")
+                                .font(.system(size: 10, weight: .bold))
+                            Text(date.formatted(date: .abbreviated, time: .shortened))
+                                .font(.system(size: 11, weight: .bold, design: .rounded))
+                        }
+                        .foregroundColor(Theme.accent)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(
+                            Capsule()
+                                .fill(Theme.accent.opacity(0.12))
+                                .overlay(Capsule().strokeBorder(Theme.accent.opacity(0.22), lineWidth: 0.8))
+                        )
+                    }
                 }
+                .padding(.top, 4)
+                .padding(.bottom, 14)
 
                 // ── Task name field ──────────────────────────────────────────
                 TextField(vm.localized("What are you planning?"), text: $newTaskTitle)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 15)
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
                     .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .fill(Theme.bg1)
                             .overlay(
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
                                     .strokeBorder(Theme.border.opacity(0.3), lineWidth: 0.8)
                             )
                     )
-                    .padding(.bottom, 12)
+                    .padding(.bottom, 10)
 
                 // ── Color + Timer card ───────────────────────────────────────
                 HStack(spacing: 0) {
                     colorPickerSection
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .padding(.leading, 16)
-                        .padding(.trailing, 12)
+                        .padding(.vertical, 12)
+                        .padding(.leading, 14)
+                        .padding(.trailing, 10)
 
                     Rectangle()
                         .fill(Theme.border.opacity(0.35))
                         .frame(width: 0.8)
-                        .padding(.vertical, 12)
+                        .padding(.vertical, 10)
 
                     timerPickerSection
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .padding(.leading, 12)
-                        .padding(.trailing, 16)
+                        .padding(.vertical, 12)
+                        .padding(.leading, 10)
+                        .padding(.trailing, 14)
                 }
                 .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .fill(Theme.bg1)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
                                 .strokeBorder(Theme.border.opacity(0.3), lineWidth: 0.8)
                         )
                 )
@@ -353,24 +374,41 @@ struct WeeklyPlannerSection: View {
                     }
                     .foregroundColor(Theme.text2.opacity(0.5))
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.bottom, 12)
+                    .padding(.bottom, 10)
                 }
 
-                // ── CTA ──────────────────────────────────────────────────────
-                Button { handleTaskAction() } label: {
-                    Text(vm.localized(editingTask == nil ? "Add to Calendar" : "Save Changes"))
-                        .font(.system(size: 15, weight: .black, design: .rounded))
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 15)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(Theme.accent)
-                                .shadow(color: Theme.accent.opacity(0.35), radius: 10, x: 0, y: 4)
-                        )
+                // ── CTA + Cancel ─────────────────────────────────────────────
+                HStack(spacing: 10) {
+                    Button {
+                        showTaskEntry = false
+                    } label: {
+                        Text(vm.localized("Cancel"))
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .foregroundColor(Theme.text1)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 13)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(Theme.bg2)
+                                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.border, lineWidth: 0.8))
+                            )
+                    }
+                    .buttonStyle(.plain)
+
+                    Button { handleTaskAction() } label: {
+                        Text(vm.localized(editingTask == nil ? "Add to Calendar" : "Save Changes"))
+                            .font(.system(size: 14, weight: .black, design: .rounded))
+                            .foregroundColor(.black)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 13)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(Theme.accent)
+                            )
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
-                .padding(.bottom, editingTask == nil ? 0 : 10)
+                .padding(.bottom, editingTask == nil ? 0 : 8)
 
                 if let task = editingTask, let listID = editingListID {
                     Button(role: .destructive) {
@@ -381,14 +419,14 @@ struct WeeklyPlannerSection: View {
                             .font(.system(size: 13, weight: .semibold, design: .rounded))
                             .foregroundColor(.red.opacity(0.75))
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 10)
+                            .padding(.vertical, 8)
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
-            .padding(.bottom, 16)
+            .padding(.horizontal, 18)
+            .padding(.top, 10)
+            .padding(.bottom, 14)
             .background(Theme.bg0)
             .navigationTitle(vm.localized(editingTask == nil ? "Plan Your Day" : "Edit Task"))
             .navigationBarTitleDisplayMode(.inline)
@@ -399,6 +437,9 @@ struct WeeklyPlannerSection: View {
                 }
             }
         }
+        #if os(macOS)
+        .frame(width: 440, height: editingTask == nil ? 320 : 365)
+        #endif
         .presentationDetents([.height(editingTask == nil ? 360 : 408)])
         .presentationDragIndicator(.visible)
     }

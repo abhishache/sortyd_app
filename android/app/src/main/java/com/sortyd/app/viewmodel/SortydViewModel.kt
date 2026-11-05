@@ -57,6 +57,31 @@ class SortydViewModel(application: Application) : AndroidViewModel(application) 
     val lastResetDate: StateFlow<Long> = repo.prefs.lastResetDate
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
 
+    // ── Auth & Cloud Sync ──
+    val authToken: StateFlow<String?> = repo.prefs.authToken
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val currentUser: StateFlow<com.sortyd.app.data.UserProfile?> = repo.prefs.authUserJson
+        .map { jsonStr ->
+            if (jsonStr == null) null
+            else try {
+                val j = org.json.JSONObject(jsonStr)
+                com.sortyd.app.data.UserProfile(
+                    id = j.getString("id"),
+                    email = j.getString("email"),
+                    name = j.optString("name", ""),
+                    createdAt = if (j.has("createdAt") && !j.isNull("createdAt")) j.getString("createdAt") else null
+                )
+            } catch (_: Exception) { null }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    private val _isSyncing = MutableStateFlow(false)
+    val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
+
+    val lastSyncTime: StateFlow<Long> = repo.prefs.lastSyncTime
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0L)
+
     // ── Derived: active list ──
     val activeList: StateFlow<TaskList?> = combine(activeLists, activeListId) { lists, id ->
         val visibleLists = lists.filter { !it.cleanName.equals("Weekly Planner", ignoreCase = true) }
@@ -197,6 +222,11 @@ class SortydViewModel(application: Application) : AndroidViewModel(application) 
                     }
             }
             checkHealthPermissions()
+            if (repo.prefs.authToken.first() != null) {
+                _isSyncing.value = true
+                repo.syncWithCloud()
+                _isSyncing.value = false
+            }
         }
     }
 
@@ -205,6 +235,110 @@ class SortydViewModel(application: Application) : AndroidViewModel(application) 
             performDailyResetIfNeeded()
             checkForDailyRecap()
             checkHealthPermissions()
+            if (authToken.value != null) {
+                _isSyncing.value = true
+                repo.syncWithCloud()
+                _isSyncing.value = false
+            }
+        }
+    }
+
+    // ── Auth & Cloud Sync Actions ──
+    fun signUp(email: String, password: String, name: String, onResult: (Result<com.sortyd.app.data.UserProfile>) -> Unit) {
+        viewModelScope.launch {
+            _isSyncing.value = true
+            val res = repo.authService.signUp(email, password, name)
+            if (res.isSuccess) {
+                val authResult = res.getOrThrow()
+                repo.prefs.setAuthToken(authResult.token)
+                val userJson = org.json.JSONObject().apply {
+                    put("id", authResult.user.id)
+                    put("email", authResult.user.email)
+                    put("name", authResult.user.name)
+                    if (authResult.user.createdAt != null) put("createdAt", authResult.user.createdAt)
+                }.toString()
+                repo.prefs.setAuthUserJson(userJson)
+                repo.syncWithCloud()
+                onResult(Result.success(authResult.user))
+            } else {
+                onResult(Result.failure(res.exceptionOrNull() ?: Exception("Sign up failed")))
+            }
+            _isSyncing.value = false
+        }
+    }
+
+    fun signIn(email: String, password: String, onResult: (Result<com.sortyd.app.data.UserProfile>) -> Unit) {
+        viewModelScope.launch {
+            _isSyncing.value = true
+            val res = repo.authService.signIn(email, password)
+            if (res.isSuccess) {
+                val authResult = res.getOrThrow()
+                repo.prefs.setAuthToken(authResult.token)
+                val userJson = org.json.JSONObject().apply {
+                    put("id", authResult.user.id)
+                    put("email", authResult.user.email)
+                    put("name", authResult.user.name)
+                    if (authResult.user.createdAt != null) put("createdAt", authResult.user.createdAt)
+                }.toString()
+                repo.prefs.setAuthUserJson(userJson)
+                repo.syncWithCloud()
+                onResult(Result.success(authResult.user))
+            } else {
+                onResult(Result.failure(res.exceptionOrNull() ?: Exception("Sign in failed")))
+            }
+            _isSyncing.value = false
+        }
+    }
+
+    fun signInWithGoogle(email: String, name: String, onResult: (Result<com.sortyd.app.data.UserProfile>) -> Unit) {
+        viewModelScope.launch {
+            _isSyncing.value = true
+            val res = repo.authService.signInWithGoogle(email, name)
+            if (res.isSuccess) {
+                val authResult = res.getOrThrow()
+                repo.prefs.setAuthToken(authResult.token)
+                val userJson = org.json.JSONObject().apply {
+                    put("id", authResult.user.id)
+                    put("email", authResult.user.email)
+                    put("name", authResult.user.name)
+                }.toString()
+                repo.prefs.setAuthUserJson(userJson)
+                repo.syncWithCloud()
+                onResult(Result.success(authResult.user))
+            } else {
+                onResult(Result.failure(res.exceptionOrNull() ?: Exception("Google Sign-In failed")))
+            }
+            _isSyncing.value = false
+        }
+    }
+
+    fun completeOAuthCallback(token: String, id: String, email: String, name: String) {
+        viewModelScope.launch {
+            _isSyncing.value = true
+            repo.prefs.setAuthToken(token)
+            val userJson = org.json.JSONObject().apply {
+                put("id", id)
+                put("email", email)
+                put("name", name)
+            }.toString()
+            repo.prefs.setAuthUserJson(userJson)
+            repo.syncWithCloud()
+            _isSyncing.value = false
+        }
+    }
+
+    fun signOut() {
+        viewModelScope.launch {
+            repo.prefs.setAuthToken(null)
+            repo.prefs.setAuthUserJson(null)
+        }
+    }
+
+    fun triggerCloudSync() {
+        viewModelScope.launch {
+            _isSyncing.value = true
+            repo.syncWithCloud()
+            _isSyncing.value = false
         }
     }
 
@@ -641,12 +775,14 @@ class SortydViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     // ── AI Coach (live) ──
-    fun refreshCoach(listId: String) {
+    fun refreshCoach(listId: String, force: Boolean = false) {
         val language = selectedLanguage.value
-        loadCachedCoachRecap(listId, language)?.let { cached ->
-            _coachRecap.value = cached
-            _coachLoading.value = false
-            return
+        if (!force) {
+            loadCachedCoachRecap(listId, language)?.let { cached ->
+                _coachRecap.value = cached
+                _coachLoading.value = false
+                return
+            }
         }
         viewModelScope.launch {
             _coachLoading.value = true

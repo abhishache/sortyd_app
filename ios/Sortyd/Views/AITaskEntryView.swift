@@ -431,8 +431,7 @@ struct SmartAddTaskSheet: View {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 showConflictToast = true
             }
-            let gen = UINotificationFeedbackGenerator()
-            gen.notificationOccurred(.warning)
+            HapticFeedback.trigger(.error)
             return
         }
 
@@ -444,8 +443,7 @@ struct SmartAddTaskSheet: View {
             return
         }
 
-        let gen = UIImpactFeedbackGenerator(style: .medium)
-        gen.impactOccurred()
+        HapticFeedback.trigger(.medium)
         dismiss()
     }
 }
@@ -1218,16 +1216,13 @@ struct StarterListSheet: View {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 showStarterConflictToast = true
             }
-            let gen = UINotificationFeedbackGenerator()
-            gen.notificationOccurred(.warning)
+            HapticFeedback.trigger(.error)
         }
 
         // Safe call — no force-cast, correct tuple shape
         vm.addListWithTasks(name: editableListName.trimmingCharacters(in: .whitespaces).isEmpty ? starter.listName : editableListName, emoji: starter.emoji, taskData: finalTasks)
 
-
-        let gen = UIImpactFeedbackGenerator(style: .medium)
-        gen.impactOccurred()
+        HapticFeedback.trigger(.medium)
 
         if !hk.isAuthorized {
             if let healthTask = dedupedTaskData.first(where: {
@@ -1343,6 +1338,7 @@ struct MarqueeChipRows: View {
 
 // MARK: - MarqueeRow
 
+#if os(iOS)
 struct MarqueeRow: UIViewRepresentable {
     let chips: [String]
     let goLeft: Bool
@@ -1471,6 +1467,35 @@ struct MarqueeRow: UIViewRepresentable {
         }
     }
 }
+#else
+struct MarqueeRow: View {
+    let chips: [String]
+    let goLeft: Bool
+    let speed: Double
+    let onSelect: (String) -> Void
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(chips, id: \.self) { chip in
+                    Button(action: { onSelect(chip) }) {
+                        Text(chip)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(Theme.text1)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Theme.bg2)
+                            .clipShape(Capsule())
+                            .overlay(Capsule().stroke(Theme.border, lineWidth: 0.5))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 16)
+        }
+    }
+}
+#endif
 
 // Strips common AI-appended filler words from generated list names across all supported languages.
 private func stripBannedListNameSuffixes(_ name: String) -> String {

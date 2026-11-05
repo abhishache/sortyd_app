@@ -29,6 +29,9 @@ final class PersistenceManager {
     private var widgetWorkItem: DispatchWorkItem?
     private let widgetDebounceInterval: TimeInterval = 1.5
 
+    private var cloudWorkItem: DispatchWorkItem?
+    private let cloudDebounceInterval: TimeInterval = 2.0
+
     private init() {}
 
     // MARK: - Public API
@@ -47,12 +50,12 @@ final class PersistenceManager {
         }
     }
 
-    func saveImmediately(_ data: AppData, reloadWidget: Bool = true) {
+    func saveImmediately(_ data: AppData, reloadWidget: Bool = true, pushToCloud: Bool = true) {
         ioQueue.sync {
             saveWorkItem?.cancel()
             saveWorkItem = nil
             pendingData = nil
-            commitToDisk(data, reloadWidget: reloadWidget)
+            commitToDisk(data, reloadWidget: reloadWidget, pushToCloud: pushToCloud)
         }
     }
 
@@ -89,14 +92,27 @@ final class PersistenceManager {
 
     // MARK: - Private
 
-    private func commitToDisk(_ data: AppData, reloadWidget: Bool = true) {
+    private func commitToDisk(_ data: AppData, reloadWidget: Bool = true, pushToCloud: Bool = true) {
         guard let encoded = try? JSONEncoder().encode(data) else { return }
         defaults.set(encoded, forKey: dataKey)
         scheduleWatchPush(data)
+        if pushToCloud { scheduleCloudPush(data) }
         if reloadWidget { scheduleWidgetReload(data) }
     }
 
+    private func scheduleCloudPush(_ data: AppData) {
+        cloudWorkItem?.cancel()
+        let work = DispatchWorkItem {
+            Task { @MainActor in
+                await AuthService.shared.pushData(data)
+            }
+        }
+        cloudWorkItem = work
+        ioQueue.asyncAfter(deadline: .now() + cloudDebounceInterval, execute: work)
+    }
+
     private func scheduleWatchPush(_ data: AppData) {
+        #if os(iOS)
         watchWorkItem?.cancel()
         let work = DispatchWorkItem {
             DispatchQueue.main.async {
@@ -105,6 +121,7 @@ final class PersistenceManager {
         }
         watchWorkItem = work
         ioQueue.asyncAfter(deadline: .now() + watchDebounceInterval, execute: work)
+        #endif
     }
 
     private func scheduleWidgetReload(_ data: AppData) {

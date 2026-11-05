@@ -14,6 +14,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.CloudDone
+import androidx.compose.material.icons.filled.PersonOutline
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.ui.draw.rotate
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -156,6 +160,7 @@ fun HomeScreenContent(
     var showAddTask by remember { mutableStateOf(initialShowAddTask) }
     var showWeeklyPlanner by remember { mutableStateOf(false) }
     var editingTodoTask by remember { mutableStateOf<SortydTask?>(null) }
+    var showAccountSheet by remember { mutableStateOf(false) }
     
     val context = LocalContext.current
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -223,6 +228,13 @@ fun HomeScreenContent(
         }
     }
 
+    if (showAccountSheet && viewModel != null) {
+        com.sortyd.app.ui.sheets.AccountSheet(
+            viewModel = viewModel,
+            onDismiss = { showAccountSheet = false }
+        )
+    }
+
     if (selectedDay != null) {
         DayDetailSheet(
             date = selectedDay!!,
@@ -247,7 +259,7 @@ fun HomeScreenContent(
             .verticalScroll(scrollState)
             .padding(bottom = 80.dp),
     ) {
-        // ── Header: Theme toggle + List pills ──
+        // ── Header: Theme toggle & Account + List pills ──
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -255,7 +267,58 @@ fun HomeScreenContent(
                 .padding(start = 16.dp, end = 0.dp)
                 .padding(top = 2.dp, bottom = 0.dp),
         ) {
-            ThemeToggle(isDark = isDark, onToggle = onToggleDarkMode)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                ThemeToggle(isDark = isDark, onToggle = onToggleDarkMode)
+
+                val currentUser by (viewModel?.currentUser?.collectAsState() ?: remember { mutableStateOf(null) })
+                val isSyncing by (viewModel?.isSyncing?.collectAsState() ?: remember { mutableStateOf(false) })
+
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .background(colors.bg1)
+                        .border(
+                            1.dp,
+                            if (currentUser != null) colors.accent.copy(alpha = 0.5f) else colors.borderSubtle,
+                            CircleShape
+                        )
+                        .clickable { showAccountSheet = true },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (currentUser != null) {
+                        val rotation = remember { Animatable(0f) }
+                        LaunchedEffect(isSyncing) {
+                            if (isSyncing) {
+                                rotation.animateTo(
+                                    360f,
+                                    infiniteRepeatable(tween(1000, easing = LinearEasing), RepeatMode.Restart)
+                                )
+                            } else {
+                                rotation.snapTo(0f)
+                            }
+                        }
+                        Icon(
+                            imageVector = if (isSyncing) Icons.Default.Refresh else Icons.Default.CloudDone,
+                            contentDescription = "Cloud Account",
+                            tint = colors.accent,
+                            modifier = Modifier
+                                .size(16.dp)
+                                .rotate(if (isSyncing) rotation.value else 0f)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.PersonOutline,
+                            contentDescription = "Sign In",
+                            tint = colors.text2,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            }
             
             Box(modifier = Modifier.weight(1f)) {
                 LazyRow(

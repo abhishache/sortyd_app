@@ -22,7 +22,13 @@ final class ThemeManager: ObservableObject {
         if let savedDark = UserDefaults.standard.object(forKey: "sortyd_is_dark_theme") as? Bool {
             self.isDark = savedDark
         } else {
+            #if os(iOS)
             self.isDark = UITraitCollection.current.userInterfaceStyle == .dark
+            #elseif os(macOS)
+            self.isDark = NSApp?.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            #else
+            self.isDark = true
+            #endif
         }
 
         if let savedFontRaw = UserDefaults.standard.string(forKey: "sortyd_app_font"),

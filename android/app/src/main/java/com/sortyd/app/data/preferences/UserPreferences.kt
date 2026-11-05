@@ -27,6 +27,9 @@ class UserPreferences(private val context: Context) {
         val SHOW_EDIT_MODE = booleanPreferencesKey("show_edit_mode")
         val HAS_SHOWN_HEALTH_NOTIFICATION = booleanPreferencesKey("has_shown_health_notification")
         val HAS_SHOWN_REMINDER_NOTIFICATION = booleanPreferencesKey("has_shown_reminder_notification")
+        val AUTH_TOKEN = stringPreferencesKey("sortyd_auth_token")
+        val AUTH_USER_JSON = stringPreferencesKey("sortyd_auth_user_json")
+        val LAST_SYNC_TIME = longPreferencesKey("sortyd_last_sync_timestamp")
     }
 
     // ── Active list ──
@@ -106,5 +109,25 @@ class UserPreferences(private val context: Context) {
     val hasShownReminderNotification: Flow<Boolean> = context.dataStore.data.map { it[Keys.HAS_SHOWN_REMINDER_NOTIFICATION] ?: false }
     suspend fun setHasShownReminderNotification(shown: Boolean) {
         context.dataStore.edit { it[Keys.HAS_SHOWN_REMINDER_NOTIFICATION] = shown }
+    }
+
+    // ── Authentication & Cloud Sync ──
+    val authToken: Flow<String?> = context.dataStore.data.map { it[Keys.AUTH_TOKEN] }
+    suspend fun setAuthToken(token: String?) {
+        context.dataStore.edit {
+            if (token != null) it[Keys.AUTH_TOKEN] = token else it.remove(Keys.AUTH_TOKEN)
+        }
+    }
+
+    val authUserJson: Flow<String?> = context.dataStore.data.map { it[Keys.AUTH_USER_JSON] }
+    suspend fun setAuthUserJson(json: String?) {
+        context.dataStore.edit {
+            if (json != null) it[Keys.AUTH_USER_JSON] = json else it.remove(Keys.AUTH_USER_JSON)
+        }
+    }
+
+    val lastSyncTime: Flow<Long> = context.dataStore.data.map { it[Keys.LAST_SYNC_TIME] ?: 0L }
+    suspend fun setLastSyncTime(time: Long) {
+        context.dataStore.edit { it[Keys.LAST_SYNC_TIME] = time }
     }
 }

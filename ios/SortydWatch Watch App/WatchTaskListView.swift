@@ -83,7 +83,9 @@ struct WatchTaskRow: View {
             withAnimation(.spring(response: 0.3)) {
                 store.toggleTask(task)
             }
+            #if os(watchOS)
             WKInterfaceDevice.current().play(task.isCompleted ? .click : .success)
+            #endif
         } label: {
             HStack(spacing: 10) {
                 // Checkbox

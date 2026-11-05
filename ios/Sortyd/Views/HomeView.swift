@@ -12,7 +12,9 @@ struct HomeView: View {
     @State private var showWeeklyPlanner = false
     
     @StateObject private var hk = HealthKitManager.shared
+    @StateObject private var auth = AuthService.shared
     @State private var showSwitcher = false
+    @State private var showAccountSheet = false
     @State private var showAddTodoTask = false
     @State private var showTodoEdit = false
     @State private var editingTodoTask: SortydTask? = nil
@@ -87,6 +89,9 @@ struct HomeView: View {
             .sheet(isPresented: $showSwitcher) {
                 ListSwitcherSheet().environmentObject(vm)
             }
+            .sheet(isPresented: $showAccountSheet) {
+                AccountSheet().environmentObject(vm)
+            }
             .sheet(isPresented: $showAddTodoTask) {
                 if let id = vm.todoList?.id {
                     AddTaskSheet(listID: id).environmentObject(vm)
@@ -104,7 +109,7 @@ struct HomeView: View {
                     EditTaskSheet(task: task, listID: id).environmentObject(vm)
                 }
             }
-            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            .onReceive(NotificationCenter.default.publisher(for: .appWillEnterForeground)) { _ in
                 hk.fetchToday()
             }
             .onAppear {
@@ -120,11 +125,38 @@ struct HomeView: View {
 
     private var headerSection: some View {
         HStack(alignment: .center, spacing: 0) {
-            // Theme Toggle (Left)
-            ThemeToggleButton()
-                .environmentObject(themeManager)
-                .frame(width: 40, alignment: .leading)
-                .padding(.leading, 2)
+            // Theme Toggle & Account (Left)
+            HStack(spacing: 6) {
+                ThemeToggleButton()
+                    .environmentObject(themeManager)
+
+                Button(action: { showAccountSheet = true }) {
+                    ZStack {
+                        Circle()
+                            .fill(Theme.bg1)
+                            .frame(width: 30, height: 30)
+                            .overlay(
+                                Circle()
+                                    .strokeBorder(auth.isAuthenticated ? Theme.accent.opacity(0.4) : Color.white.opacity(0.12), lineWidth: 1)
+                            )
+
+                        if auth.isAuthenticated {
+                            Image(systemName: auth.isSyncing ? "arrow.triangle.2.circlepath" : "cloud.fill")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(Theme.accent)
+                                .rotationEffect(.degrees(auth.isSyncing ? 360 : 0))
+                                .animation(auth.isSyncing ? .linear(duration: 1).repeatForever(autoreverses: false) : .default, value: auth.isSyncing)
+                        } else {
+                            Image(systemName: "person.crop.circle")
+                                .font(.system(size: 14))
+                                .foregroundColor(Theme.text2)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(auth.isAuthenticated ? "Cloud Sync Account" : "Sign In to Sync")
+            }
+            .padding(.leading, 2)
 
             // Scrollable Lists
             ScrollViewReader { proxy in
@@ -915,8 +947,7 @@ struct TodoSwipeRow<Content: View>: View {
                 
                 // Edit Button
                 Button(action: {
-                    let gen = UIImpactFeedbackGenerator(style: .medium)
-                    gen.impactOccurred()
+                    HapticFeedback.trigger(.medium)
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                         offset = 0
                         isSwiped = false
@@ -942,8 +973,7 @@ struct TodoSwipeRow<Content: View>: View {
                 
                 // Delete Button
                 Button(action: {
-                    let gen = UINotificationFeedbackGenerator()
-                    gen.notificationOccurred(.warning)
+                    HapticFeedback.trigger(.heavy)
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                         offset = 0
                         isSwiped = false
@@ -993,8 +1023,7 @@ struct TodoSwipeRow<Content: View>: View {
                                 if velocity < -50 || offset < maxOffset / 2 || dragAmount < -80 {
                                     offset = maxOffset
                                     isSwiped = true
-                                    let gen = UIImpactFeedbackGenerator(style: .light)
-                                    gen.impactOccurred()
+                                    HapticFeedback.trigger(.light)
                                 } else {
                                     offset = 0
                                     isSwiped = false
@@ -1156,8 +1185,7 @@ struct TaskRowView: View {
 
 
                     Button(action: {
-                        let gen = UIImpactFeedbackGenerator(style: .medium)
-                        gen.prepare(); gen.impactOccurred()
+                        HapticFeedback.trigger(.medium)
                         if shouldConfirmHealthToggle {
                             showHealthConfirm = true
                         } else {

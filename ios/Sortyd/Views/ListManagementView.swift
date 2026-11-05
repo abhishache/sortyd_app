@@ -76,8 +76,12 @@ struct ListManagementView: View {
                     if isEmpty {
                         emptyState
                     } else {
+                        #if os(iOS)
                         scrollContent
                             .environment(\.editMode, $editMode)
+                        #else
+                        scrollContent
+                        #endif
                     }
                 }
                 .frame(maxWidth: 800)
@@ -1090,9 +1094,11 @@ struct ListDetailView: View {
                 .disabled(undoManager?.canRedo != true)
             }
             ToolbarItemGroup(placement: .navigationBarTrailing) {
+                #if os(iOS)
                 if let list, !list.tasks.isEmpty {
                     EditButton().foregroundColor(Theme.accent).fontWeight(.semibold)
                 }
+                #endif
                 Button { showSmartAdd = true } label: {
                     ZStack {
                         Circle().fill(Theme.coral.opacity(0.10)).frame(width: 32, height: 32)
@@ -1171,7 +1177,11 @@ struct ListDetailView: View {
             .onMove { vm.moveTasks(in: listID, from: $0, to: $1, undoManager: undoManager) }
         }
         .listRowSpacing(8)
+        #if os(iOS)
         .listStyle(.insetGrouped)
+        #else
+        .listStyle(.inset)
+        #endif
         .scrollContentBackground(.hidden)
     }
 }
@@ -1260,47 +1270,85 @@ struct AddListSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                #if os(macOS)
+                HStack {
+                    Button(vm.localized("Cancel")) { dismiss() }
+                        .buttonStyle(.plain)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Theme.text1)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(Theme.bg2))
+
+                    Spacer()
+
+                    Text(vm.localized("New List"))
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(Theme.text0)
+
+                    Spacer()
+
+                    Button {
+                        let n = name.trimmingCharacters(in: .whitespaces)
+                        guard !n.isEmpty else { return }
+                        vm.addList(name: n, emoji: emoji); dismiss()
+                    } label: {
+                        Text(vm.localized("Add List"))
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(ThemeManager.shared.isDark ? .black : .white)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 6)
+                            .background(Capsule().fill(name.trimmingCharacters(in: .whitespaces).isEmpty ? Theme.text2 : Theme.accent))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+                .padding(.bottom, 6)
+                #endif
+
                 ScrollView {
-                    VStack(alignment: .leading, spacing: Theme.s20) {
+                    VStack(alignment: .leading, spacing: 14) {
                         sheetLabel(vm.localized("LIST NAME"))
                         HStack(spacing: 12) {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                                     .fill(Theme.bg2)
-                                    .frame(width: 44, height: 44)
+                                    .frame(width: 40, height: 40)
                                     .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
                                         .strokeBorder(Theme.border, lineWidth: 0.5))
                                 Text(emoji).font(.system(size: 20))
                             }
                             
                             TextField(vm.localized("e.g. Morning Routine"), text: $name)
-                                .font(.system(size: 16, weight: .medium))
+                                .font(.system(size: 15, weight: .medium))
                                 .foregroundColor(Theme.text0)
                         }
-                        .padding(Theme.s12)
+                        .padding(10)
                         .background(fieldBG(Theme.r12))
                             // FIX: user must tap to open keyboard — no auto-focus
 
                         sheetLabel(vm.localized("ICON"))
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 6), spacing: 8) {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 8), spacing: 6) {
                             ForEach(emojis, id: \.self) { e in
                                 Button { emoji = e } label: {
-                                    Text(e).font(.system(size: 22))
+                                    Text(e).font(.system(size: 19))
                                         .frame(maxWidth: .infinity).aspectRatio(1, contentMode: .fit)
                                         .background(
-                                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                            RoundedRectangle(cornerRadius: 9, style: .continuous)
                                                 .fill(emoji == e ? Theme.accent.opacity(0.14) : Theme.bg2)
-                                                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                                .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous)
                                                     .strokeBorder(emoji == e ? Theme.accent.opacity(0.50) : Theme.border, lineWidth: 0.5))
                                         )
-                                        .scaleEffect(emoji == e ? 1.08 : 1.0)
+                                        .scaleEffect(emoji == e ? 1.06 : 1.0)
                                         .animation(.spring(response: 0.2, dampingFraction: 0.6), value: emoji == e)
                                 }
                                 .buttonStyle(.plain)
                             }
                         }
                     }
-                    .padding(.horizontal, Theme.s20).padding(.top, Theme.s20).padding(.bottom, 100)
+                    .padding(.horizontal, Theme.s20).padding(.top, 12).padding(.bottom, 16)
                 }
             }
             .background(Theme.bg0)
@@ -1330,24 +1378,40 @@ struct AddListSheet: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                Button {
-                    let n = name.trimmingCharacters(in: .whitespaces)
-                    guard !n.isEmpty else { return }
-                    vm.addList(name: n, emoji: emoji); dismiss()
-                } label: {
-                    Text(vm.localized("Add List"))
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
-                        .frame(maxWidth: .infinity).padding(.vertical, 16)
-                        .background(RoundedRectangle(cornerRadius: Theme.r16, style: .continuous)
-                            .fill(name.trimmingCharacters(in: .whitespaces).isEmpty ? Theme.text2 : Theme.accent))
+                HStack(spacing: 10) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text(vm.localized("Cancel"))
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(Theme.text1)
+                            .frame(maxWidth: .infinity).padding(.vertical, 13)
+                            .background(RoundedRectangle(cornerRadius: Theme.r16, style: .continuous).fill(Theme.bg2))
+                    }
+                    .buttonStyle(.plain)
+
+                    Button {
+                        let n = name.trimmingCharacters(in: .whitespaces)
+                        guard !n.isEmpty else { return }
+                        vm.addList(name: n, emoji: emoji); dismiss()
+                    } label: {
+                        Text(vm.localized("Add List"))
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
+                            .frame(maxWidth: .infinity).padding(.vertical, 13)
+                            .background(RoundedRectangle(cornerRadius: Theme.r16, style: .continuous)
+                                .fill(name.trimmingCharacters(in: .whitespaces).isEmpty ? Theme.text2 : Theme.accent))
+                    }
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .buttonStyle(ListScaleStyle())
                 }
-                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
-                .buttonStyle(ListScaleStyle())
-                .padding(.horizontal, Theme.s20).padding(.vertical, 12)
+                .padding(.horizontal, Theme.s20).padding(.vertical, 10)
                 .background(Theme.bg0)
             }
         }
+        #if os(macOS)
+        .frame(width: 440, height: 420)
+        #endif
         .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         .presentationCornerRadius(Theme.r32).presentationBackground(Theme.bg0)
     }
@@ -1382,46 +1446,96 @@ struct RenameListSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: Theme.s20) {
+                #if os(macOS)
+                HStack {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text(vm.localized("Cancel"))
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(Theme.text1)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Capsule().fill(Theme.bg2).overlay(Capsule().strokeBorder(Theme.border, lineWidth: 0.8)))
+                    }
+                    .buttonStyle(.plain)
+
+                    Spacer()
+
+                    Text(vm.localized("Rename List"))
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundColor(Theme.text0)
+
+                    Spacer()
+
+                    Button {
+                        let n = name.trimmingCharacters(in: .whitespaces)
+                        guard !n.isEmpty else { return }
+                        onSave(n, emoji)
+                        dismiss()
+                    } label: {
+                        Text(vm.localized("Save"))
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 6)
+                            .background(Capsule().fill(name.trimmingCharacters(in: .whitespaces).isEmpty ? Theme.text2 : Theme.accent))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+                .padding(.horizontal, 18)
+                .padding(.top, 14)
+                .padding(.bottom, 10)
+                Divider().background(Theme.border)
+                #endif
+
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 14) {
                         sheetLabel(vm.localized("LIST NAME"))
                         HStack(spacing: 12) {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                                     .fill(Theme.bg2)
-                                    .frame(width: 44, height: 44)
+                                    .frame(width: 40, height: 40)
                                     .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
                                         .strokeBorder(Theme.border, lineWidth: 0.5))
-                                Text(emoji).font(.system(size: 20))
+                                Text(emoji).font(.system(size: 19))
                             }
                             
                             TextField(vm.localized("List name"), text: $name)
-                                .font(.system(size: 16, weight: .medium))
+                                .textFieldStyle(.plain)
+                                .font(.system(size: 15, weight: .medium))
                                 .foregroundColor(Theme.text0)
                         }
-                        .padding(Theme.s12)
+                        .padding(10)
                         .background(fieldBG(Theme.r12))
 
                         sheetLabel(vm.localized("ICON"))
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 6), spacing: 8) {
+                        #if os(macOS)
+                        let gridCols = 8
+                        #else
+                        let gridCols = 6
+                        #endif
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: gridCols), spacing: 6) {
                             ForEach(emojis, id: \.self) { e in
                                 Button { emoji = e } label: {
-                                    Text(e).font(.system(size: 22))
+                                    Text(e).font(.system(size: 19))
                                         .frame(maxWidth: .infinity).aspectRatio(1, contentMode: .fit)
                                         .background(
-                                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                            RoundedRectangle(cornerRadius: 9, style: .continuous)
                                                 .fill(emoji == e ? Theme.accent.opacity(0.14) : Theme.bg2)
-                                                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                                .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous)
                                                     .strokeBorder(emoji == e ? Theme.accent.opacity(0.50) : Theme.border, lineWidth: 0.5))
                                         )
-                                        .scaleEffect(emoji == e ? 1.08 : 1.0)
+                                        .scaleEffect(emoji == e ? 1.06 : 1.0)
                                         .animation(.spring(response: 0.2, dampingFraction: 0.6), value: emoji == e)
                                 }
                                 .buttonStyle(.plain)
                             }
                         }
                     }
-                    .padding(.horizontal, Theme.s20).padding(.top, Theme.s20).padding(.bottom, 100)
+                    .padding(.horizontal, 18).padding(.top, 14).padding(.bottom, 16)
                 }
             }
             .background(Theme.bg0)
@@ -1434,24 +1548,43 @@ struct RenameListSheet: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                Button {
-                    let n = name.trimmingCharacters(in: .whitespaces)
-                    guard !n.isEmpty else { return }
-                    onSave(n, emoji); dismiss()
-                } label: {
-                    Text(vm.localized("Save"))
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
-                        .frame(maxWidth: .infinity).padding(.vertical, 16)
-                        .background(RoundedRectangle(cornerRadius: Theme.r16, style: .continuous)
-                            .fill(name.trimmingCharacters(in: .whitespaces).isEmpty ? Theme.text2 : Theme.accent))
+                HStack(spacing: 10) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text(vm.localized("Cancel"))
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(Theme.text1)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(RoundedRectangle(cornerRadius: Theme.r16, style: .continuous)
+                                .fill(Theme.bg2)
+                                .overlay(RoundedRectangle(cornerRadius: Theme.r16, style: .continuous).strokeBorder(Theme.border, lineWidth: 0.8)))
+                    }
+                    .buttonStyle(.plain)
+
+                    Button {
+                        let n = name.trimmingCharacters(in: .whitespaces)
+                        guard !n.isEmpty else { return }
+                        onSave(n, emoji); dismiss()
+                    } label: {
+                        Text(vm.localized("Save"))
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
+                            .frame(maxWidth: .infinity).padding(.vertical, 12)
+                            .background(RoundedRectangle(cornerRadius: Theme.r16, style: .continuous)
+                                .fill(name.trimmingCharacters(in: .whitespaces).isEmpty ? Theme.text2 : Theme.accent))
+                    }
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .buttonStyle(ListScaleStyle())
                 }
-                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
-                .buttonStyle(ListScaleStyle())
-                .padding(.horizontal, Theme.s20).padding(.vertical, 12)
+                .padding(.horizontal, 18).padding(.vertical, 10)
                 .background(Theme.bg0)
             }
         }
+        #if os(macOS)
+        .frame(width: 440, height: 420)
+        #endif
         .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         .presentationCornerRadius(Theme.r32).presentationBackground(Theme.bg0)
     }
@@ -1492,74 +1625,144 @@ struct AddTaskSheet: View {
         NavigationStack {
             ZStack {
                 Theme.bg0.ignoresSafeArea()
-                ScrollView {
-                    VStack(alignment: .leading, spacing: Theme.s16) {
-                        sheetLabel(vm.localized("TASK NAME"))
-                        HStack(spacing: 10) {
-                            TextField(vm.localized("What do you need to do?"), text: $title)
-                                .font(.system(size: 16, weight: .medium)).foregroundColor(Theme.text0)
-                                .autocorrectionDisabled()
-                                .onChange(of: title) { _, v in detectHealth(from: v) }
-                            Button { showTimePicker = true } label: {
-                                ZStack {
-                                    Circle()
-                                        .fill(reminderTime != nil ? Theme.accent.opacity(0.12) : Theme.bg3)
-                                        .frame(width: 36, height: 36)
-                                        .shadow(color: reminderTime != nil ? Theme.accent.opacity(0.30) : .clear, radius: 8, x: 0, y: 2)
-                                    Image(systemName: reminderTime != nil ? "clock.fill" : "clock")
-                                        .font(.system(size: 16))
-                                        .foregroundColor(reminderTime != nil ? Theme.accent : Theme.text2)
-                                }
-                                .animation(.easeInOut(duration: 0.15), value: reminderTime != nil)
-                            }.buttonStyle(.plain)
+                VStack(spacing: 0) {
+                    #if os(macOS)
+                    HStack {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text(vm.localized("Cancel"))
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(Theme.text1)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Capsule().fill(Theme.bg2).overlay(Capsule().strokeBorder(Theme.border, lineWidth: 0.8)))
                         }
-                        .padding(Theme.s16).background(fieldBG(Theme.r12))
+                        .buttonStyle(.plain)
 
-                        VStack(alignment: .leading, spacing: 10) {
-                            sheetLabel(vm.localized("TASK TYPE"))
-                            VStack(spacing: 8) {
-                                HStack(spacing: 8) {
+                        Spacer()
+
+                        Text(vm.localized("New Task"))
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .foregroundColor(Theme.text0)
+
+                        Spacer()
+
+                        Button(action: confirmAdd) {
+                            Text(vm.localized("Add"))
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 6)
+                                .background(Capsule().fill(title.trimmingCharacters(in: .whitespaces).isEmpty ? Theme.text2 : Theme.accent))
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || isSaving)
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.top, 14)
+                    .padding(.bottom, 10)
+                    Divider().background(Theme.border)
+                    #endif
+
+                    ScrollView(showsIndicators: false) {
+                        VStack(alignment: .leading, spacing: 14) {
+                            sheetLabel(vm.localized("TASK NAME"))
+                            HStack(spacing: 10) {
+                                TextField(vm.localized("What do you need to do?"), text: $title)
+                                    .textFieldStyle(.plain)
+                                    .font(.system(size: 15, weight: .medium)).foregroundColor(Theme.text0)
+                                    .autocorrectionDisabled()
+                                    .onChange(of: title) { _, v in detectHealth(from: v) }
+                                    .onSubmit { confirmAdd() }
+                                Button { showTimePicker = true } label: {
+                                    ZStack {
+                                        Circle()
+                                            .fill(reminderTime != nil ? Theme.accent.opacity(0.12) : Theme.bg3)
+                                            .frame(width: 34, height: 34)
+                                            .shadow(color: reminderTime != nil ? Theme.accent.opacity(0.30) : .clear, radius: 8, x: 0, y: 2)
+                                        Image(systemName: reminderTime != nil ? "clock.fill" : "clock")
+                                            .font(.system(size: 15))
+                                            .foregroundColor(reminderTime != nil ? Theme.accent : Theme.text2)
+                                    }
+                                    .animation(.easeInOut(duration: 0.15), value: reminderTime != nil)
+                                }.buttonStyle(.plain)
+                            }
+                            .padding(12).background(fieldBG(Theme.r12))
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                sheetLabel(vm.localized("TASK TYPE"))
+                                HStack(spacing: 6) {
                                     typePill(type: .none, label: vm.localized("Regular"))
                                     typePill(type: .steps, label: vm.localized("Steps"))
-                                }
-                                HStack(spacing: 8) {
                                     typePill(type: .calories, label: vm.localized("Calories"))
                                     typePill(type: .distance, label: vm.localized("Distance"))
                                 }
+                                Text(vm.localized("Only one task from step count, calorie count, or distance measure is allowed."))
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundColor(Theme.text2)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .padding(.top, 2)
                             }
-                            Text(vm.localized("Only one task from step count, calorie count, or distance measure is allowed."))
-                                .font(.system(size: 9, weight: .bold)) // Standardized to 9pt bold
-                                .foregroundColor(Theme.text2)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .padding(.top, 2)
-                        }
 
-                        if let t = reminderTime {
-                            ReminderBanner(time: t, isOneTime: reminderIsOneTime) { reminderTime = nil; reminderIsOneTime = false }
-                                .transition(.move(edge: .top).combined(with: .opacity))
-                        }
-                        if detectedHealthType != .none {
-                            HealthTargetBanner(taskType: detectedHealthType, targetText: $healthTargetText,
-                                               onRequestPermission: { showHealthPermSheet = true })
-                            .sheet(isPresented: $showHealthPermSheet) {
-                                HealthPermissionSheet(taskType: detectedHealthType, onGrant: {}, onSkip: {})
-                                .environmentObject(vm)
+                            if let t = reminderTime {
+                                ReminderBanner(time: t, isOneTime: reminderIsOneTime) { reminderTime = nil; reminderIsOneTime = false }
+                                    .transition(.move(edge: .top).combined(with: .opacity))
+                            }
+                            if detectedHealthType != .none {
+                                HealthTargetBanner(taskType: detectedHealthType, targetText: $healthTargetText,
+                                                   onRequestPermission: { showHealthPermSheet = true })
+                                .sheet(isPresented: $showHealthPermSheet) {
+                                    HealthPermissionSheet(taskType: detectedHealthType, onGrant: {}, onSkip: {})
+                                    .environmentObject(vm)
+                                }
+                            }
+                            if showConflictToast, let ct = conflictHealthType {
+                                HealthConflictToast(type: ct, isVisible: $showConflictToast)
+                                    .transition(.move(edge: .top).combined(with: .opacity))
+                            }
+                            if showReminderConflictToast, let rc = reminderConflict {
+                                ReminderConflictToast(conflict: rc, isVisible: $showReminderConflictToast)
+                                    .transition(.move(edge: .top).combined(with: .opacity))
                             }
                         }
-                        if showConflictToast, let ct = conflictHealthType {
-                            HealthConflictToast(type: ct, isVisible: $showConflictToast)
-                                .transition(.move(edge: .top).combined(with: .opacity))
-                        }
-                        if showReminderConflictToast, let rc = reminderConflict {
-                            ReminderConflictToast(conflict: rc, isVisible: $showReminderConflictToast)
-                                .transition(.move(edge: .top).combined(with: .opacity))
-                        }
-                        Spacer(minLength: 16)
+                        .padding(18)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.75), value: reminderTime != nil)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.75), value: detectedHealthType)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.75), value: showReminderConflictToast)
                     }
-                    .padding(Theme.s20)
-                    .animation(.spring(response: 0.3, dampingFraction: 0.75), value: reminderTime != nil)
-                    .animation(.spring(response: 0.3, dampingFraction: 0.75), value: detectedHealthType)
-                    .animation(.spring(response: 0.3, dampingFraction: 0.75), value: showReminderConflictToast)
+
+                    // Always-visible bottom Cancel + Add Task buttons
+                    HStack(spacing: 10) {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text(vm.localized("Cancel"))
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(Theme.text1)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 11)
+                                .background(RoundedRectangle(cornerRadius: Theme.r16, style: .continuous)
+                                    .fill(Theme.bg2)
+                                    .overlay(RoundedRectangle(cornerRadius: Theme.r16, style: .continuous).strokeBorder(Theme.border, lineWidth: 0.8)))
+                        }
+                        .buttonStyle(.plain)
+
+                        Button(action: confirmAdd) {
+                            Text(vm.localized("Add Task"))
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 11)
+                                .background(RoundedRectangle(cornerRadius: Theme.r16, style: .continuous)
+                                    .fill(title.trimmingCharacters(in: .whitespaces).isEmpty ? Theme.text2 : Theme.accent))
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || isSaving)
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.bottom, 14)
+                    .padding(.top, 4)
                 }
             }
             .navigationTitle(vm.localized("New Task")).navigationBarTitleDisplayMode(.inline)
@@ -1578,6 +1781,9 @@ struct AddTaskSheet: View {
                 }
             }
         }
+        #if os(macOS)
+        .frame(width: 450, height: detectedHealthType != .none || reminderTime != nil ? 400 : 330)
+        #endif
         .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         .presentationCornerRadius(Theme.r32).presentationBackground(Theme.bg0)
         .sheet(isPresented: $showTimePicker) {
@@ -1591,7 +1797,7 @@ struct AddTaskSheet: View {
                 .presentationDetents([.large]).presentationCornerRadius(Theme.r32).presentationBackground(Theme.bg0)
         }
         .alert(vm.localized("Notifications Disabled"), isPresented: $showDeniedAlert) {
-            Button(vm.localized("Open Settings")) { if let u = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(u) } }
+            Button(vm.localized("Open Settings")) { PlatformURLOpener.openSettings() }
             Button(vm.localized("Cancel"), role: .cancel) {}
         } message: { Text(vm.localized("Enable notifications for Sortyd in Settings to receive task reminders.")) }
     }
@@ -1669,8 +1875,7 @@ struct AddTaskSheet: View {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 showConflictToast = true
             }
-            let gen = UINotificationFeedbackGenerator()
-            gen.notificationOccurred(.warning)
+            HapticFeedback.trigger(.error)
             return
         }
 
@@ -1681,7 +1886,7 @@ struct AddTaskSheet: View {
                                                        in: listID, date: time, isOneTime: reminderIsOneTime) {
                 reminderConflict = conflict
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { showReminderConflictToast = true }
-                UINotificationFeedbackGenerator().notificationOccurred(.warning)
+                HapticFeedback.trigger(.error)
                 return
             }
             isSaving = true
@@ -1735,69 +1940,141 @@ struct EditTaskSheet: View {
         NavigationStack {
             ZStack {
                 Theme.bg0.ignoresSafeArea()
-                VStack(alignment: .leading, spacing: Theme.s16) {
-                    sheetLabel(vm.localized("TASK NAME"))
-                    HStack(spacing: 10) {
-                        TextField(vm.localized("Task name"), text: $title)
-                            .font(.system(size: 16, weight: .medium)).foregroundColor(Theme.text0).autocorrectionDisabled()
-                        Button { showTimePicker = true } label: {
-                            ZStack {
-                                Circle()
-                                    .fill(reminderTime != nil ? Theme.accent.opacity(0.12) : Theme.bg3)
-                                    .frame(width: 36, height: 36)
-                                    .shadow(color: reminderTime != nil ? Theme.accent.opacity(0.28) : .clear, radius: 7, x: 0, y: 2)
-                                Image(systemName: reminderTime != nil ? "clock.fill" : "clock")
-                                    .font(.system(size: 16)).foregroundColor(reminderTime != nil ? Theme.accent : Theme.text2)
-                            }
-                            .animation(.easeInOut(duration: 0.15), value: reminderTime != nil)
-                        }.buttonStyle(.plain)
-                    }
-                    .padding(Theme.s16).background(fieldBG(Theme.r12))
+                VStack(spacing: 0) {
+                    #if os(macOS)
+                    HStack {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text(vm.localized("Cancel"))
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(Theme.text1)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Capsule().fill(Theme.bg2).overlay(Capsule().strokeBorder(Theme.border, lineWidth: 0.8)))
+                        }
+                        .buttonStyle(.plain)
 
-                    if let t = reminderTime {
-                        ReminderBanner(time: t, isOneTime: reminderIsOneTime) { reminderTime = nil; reminderIsOneTime = false }
-                            .transition(.move(edge: .top).combined(with: .opacity))
+                        Spacer()
+
+                        Text(vm.localized("Edit Task"))
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .foregroundColor(Theme.text0)
+
+                        Spacer()
+
+                        Button(action: confirmSave) {
+                            Text(vm.localized("Save"))
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 6)
+                                .background(Capsule().fill(Theme.accent))
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(isSaving)
                     }
-                    if showReminderConflictToast, let rc = reminderConflict {
-                        ReminderConflictToast(conflict: rc, isVisible: $showReminderConflictToast)
-                            .transition(.move(edge: .top).combined(with: .opacity))
-                    }
-                    if task.isHealthTask, let htStr = task.healthType, let ht = HealthTaskType(rawValue: htStr) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            sheetLabel(vm.localized("HEALTH GOAL"))
-                            HStack(spacing: 8) {
-                                Image(systemName: ht.icon).font(.system(size: 13)).foregroundColor(Color(hex: ht.accentColor))
-                                TextField(ht.placeholder, text: $healthTargetText)
-                                    .keyboardType(.numberPad)
-                                    .font(.system(size: 15, weight: .medium)).foregroundColor(Theme.text0)
-                                Button {
-                                    if ht == .distance {
-                                        hk.distanceUnit = (hk.distanceUnit == .kilometers ? .miles : .kilometers)
-                                    }
-                                } label: {
-                                    Text(ht.label.lowercased())
-                                        .font(.system(size: 13, weight: .bold))
-                                        .foregroundColor(Color(hex: ht.accentColor))
-                                        .padding(.horizontal, 8)
-                                        .padding(.vertical, 4)
-                                        .background(Color(hex: ht.accentColor).opacity(0.1))
-                                        .clipShape(Capsule())
+                    .padding(.horizontal, 18)
+                    .padding(.top, 14)
+                    .padding(.bottom, 10)
+                    Divider().background(Theme.border)
+                    #endif
+
+                    VStack(alignment: .leading, spacing: 14) {
+                        sheetLabel(vm.localized("TASK NAME"))
+                        HStack(spacing: 10) {
+                            TextField(vm.localized("Task name"), text: $title)
+                                .textFieldStyle(.plain)
+                                .font(.system(size: 15, weight: .medium)).foregroundColor(Theme.text0).autocorrectionDisabled()
+                                .onSubmit { confirmSave() }
+                            Button { showTimePicker = true } label: {
+                                ZStack {
+                                    Circle()
+                                        .fill(reminderTime != nil ? Theme.accent.opacity(0.12) : Theme.bg3)
+                                        .frame(width: 34, height: 34)
+                                        .shadow(color: reminderTime != nil ? Theme.accent.opacity(0.28) : .clear, radius: 7, x: 0, y: 2)
+                                    Image(systemName: reminderTime != nil ? "clock.fill" : "clock")
+                                        .font(.system(size: 15)).foregroundColor(reminderTime != nil ? Theme.accent : Theme.text2)
                                 }
-                                .buttonStyle(.plain)
-                                .disabled(ht != .distance)
+                                .animation(.easeInOut(duration: 0.15), value: reminderTime != nil)
+                            }.buttonStyle(.plain)
+                        }
+                        .padding(12).background(fieldBG(Theme.r12))
+
+                        if let t = reminderTime {
+                            ReminderBanner(time: t, isOneTime: reminderIsOneTime) { reminderTime = nil; reminderIsOneTime = false }
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                        }
+                        if showReminderConflictToast, let rc = reminderConflict {
+                            ReminderConflictToast(conflict: rc, isVisible: $showReminderConflictToast)
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                        }
+                        if task.isHealthTask, let htStr = task.healthType, let ht = HealthTaskType(rawValue: htStr) {
+                            VStack(alignment: .leading, spacing: 6) {
+                                sheetLabel(vm.localized("HEALTH GOAL"))
+                                HStack(spacing: 8) {
+                                    Image(systemName: ht.icon).font(.system(size: 13)).foregroundColor(Color(hex: ht.accentColor))
+                                    TextField(ht.placeholder, text: $healthTargetText)
+                                        .textFieldStyle(.plain)
+                                        .keyboardType(.numberPad)
+                                        .font(.system(size: 15, weight: .medium)).foregroundColor(Theme.text0)
+                                    Button {
+                                        if ht == .distance {
+                                            hk.distanceUnit = (hk.distanceUnit == .kilometers ? .miles : .kilometers)
+                                        }
+                                    } label: {
+                                        Text(ht.label.lowercased())
+                                            .font(.system(size: 13, weight: .bold))
+                                            .foregroundColor(Color(hex: ht.accentColor))
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 4)
+                                            .background(Color(hex: ht.accentColor).opacity(0.1))
+                                            .clipShape(Capsule())
+                                    }
+                                    .buttonStyle(.plain)
+                                    .disabled(ht != .distance)
+                                }
+                                .padding(11)
+                                .background(RoundedRectangle(cornerRadius: Theme.r12, style: .continuous)
+                                    .fill(Color(hex: ht.accentColor).opacity(0.07))
+                                    .overlay(RoundedRectangle(cornerRadius: Theme.r12, style: .continuous)
+                                        .strokeBorder(Color(hex: ht.accentColor).opacity(0.25), lineWidth: 0.5)))
                             }
-                            .padding(11)
-                            .background(RoundedRectangle(cornerRadius: Theme.r12, style: .continuous)
-                                .fill(Color(hex: ht.accentColor).opacity(0.07))
-                                .overlay(RoundedRectangle(cornerRadius: Theme.r12, style: .continuous)
-                                    .strokeBorder(Color(hex: ht.accentColor).opacity(0.25), lineWidth: 0.5)))
+                        }
+                        Spacer()
+
+                        HStack(spacing: 10) {
+                            Button {
+                                dismiss()
+                            } label: {
+                                Text(vm.localized("Cancel"))
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(Theme.text1)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 11)
+                                    .background(RoundedRectangle(cornerRadius: Theme.r16, style: .continuous)
+                                        .fill(Theme.bg2)
+                                        .overlay(RoundedRectangle(cornerRadius: Theme.r16, style: .continuous).strokeBorder(Theme.border, lineWidth: 0.8)))
+                            }
+                            .buttonStyle(.plain)
+
+                            Button(action: confirmSave) {
+                                Text(vm.localized("Save"))
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 11)
+                                    .background(RoundedRectangle(cornerRadius: Theme.r16, style: .continuous)
+                                        .fill(Theme.accent))
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(isSaving)
                         }
                     }
-                    Spacer()
+                    .padding(18)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.75), value: reminderTime != nil)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.75), value: showReminderConflictToast)
                 }
-                .padding(Theme.s20)
-                .animation(.spring(response: 0.3, dampingFraction: 0.75), value: reminderTime != nil)
-                .animation(.spring(response: 0.3, dampingFraction: 0.75), value: showReminderConflictToast)
             }
             .navigationTitle(vm.localized("Edit Task")).navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Theme.bg0, for: .navigationBar).toolbarColorScheme(.dark, for: .navigationBar)
@@ -1813,6 +2090,9 @@ struct EditTaskSheet: View {
                 }
             }
         }
+        #if os(macOS)
+        .frame(width: 440, height: task.isHealthTask ? 340 : 280)
+        #endif
         .presentationDetents(showReminderConflictToast ? [.medium] : [.height(task.isHealthTask ? 350 : 300)]).presentationDragIndicator(.visible)
         .presentationCornerRadius(Theme.r32).presentationBackground(Theme.bg0)
         .sheet(isPresented: $showTimePicker) {
@@ -1821,7 +2101,7 @@ struct EditTaskSheet: View {
             }
         }
         .alert(vm.localized("Notifications Disabled"), isPresented: $showDeniedAlert) {
-            Button(vm.localized("Open Settings")) { if let u = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(u) } }
+            Button(vm.localized("Open Settings")) { PlatformURLOpener.openSettings() }
             Button(vm.localized("Cancel"), role: .cancel) {}
         } message: { Text(vm.localized("Enable notifications for Sortyd in Settings to receive task reminders.")) }
     }
@@ -1848,7 +2128,7 @@ struct EditTaskSheet: View {
                                                        date: time, isOneTime: reminderIsOneTime) {
                 reminderConflict = conflict
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { showReminderConflictToast = true }
-                UINotificationFeedbackGenerator().notificationOccurred(.warning)
+                HapticFeedback.trigger(.error)
                 return
             }
             isSaving = true
@@ -1901,6 +2181,50 @@ struct ReminderPickerSheet: View {
             ZStack {
                 Theme.bg0.ignoresSafeArea()
                 VStack(spacing: 0) {
+                    #if os(macOS)
+                    HStack {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text(vm.localized("Cancel"))
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(Theme.text1)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Capsule().fill(Theme.bg2).overlay(Capsule().strokeBorder(Theme.border, lineWidth: 0.8)))
+                        }
+                        .buttonStyle(.plain)
+
+                        Spacer()
+
+                        Text(vm.localized("Reminder"))
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .foregroundColor(Theme.text0)
+
+                        Spacer()
+
+                        Button {
+                            switch mode {
+                            case .daily:   onConfirm(dailyTime, false)
+                            case .oneTime: onConfirm(oneTimeDate, true)
+                            }
+                            dismiss()
+                        } label: {
+                            Text(vm.localized("Confirm"))
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 6)
+                                .background(Capsule().fill(Theme.accent))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.top, 14)
+                    .padding(.bottom, 10)
+                    Divider().background(Theme.border)
+                    #endif
+
                     // Mode toggle
                     HStack(spacing: 0) {
                         modeTab(vm.localized("Daily"), active: mode == .daily) { withAnimation(.spring(response: 0.22, dampingFraction: 0.7)) { mode = .daily } }
@@ -1912,7 +2236,7 @@ struct ReminderPickerSheet: View {
                         .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .strokeBorder(Theme.border, lineWidth: 0.5)))
                     .padding(.horizontal, 24)
-                    .padding(.top, 20)
+                    .padding(.top, 14)
                     .padding(.bottom, 4)
 
                     if mode == .daily {
@@ -1923,22 +2247,38 @@ struct ReminderPickerSheet: View {
 
                     Spacer()
 
-                    Button {
-                        switch mode {
-                        case .daily:   onConfirm(dailyTime, false)
-                        case .oneTime: onConfirm(oneTimeDate, true)
+                    HStack(spacing: 10) {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text(vm.localized("Cancel"))
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(Theme.text1)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(RoundedRectangle(cornerRadius: Theme.r16, style: .continuous)
+                                    .fill(Theme.bg2)
+                                    .overlay(RoundedRectangle(cornerRadius: Theme.r16, style: .continuous).strokeBorder(Theme.border, lineWidth: 0.8)))
                         }
-                        dismiss()
-                    } label: {
-                        Text(vm.localized("Confirm")).font(.system(size: 16, weight: .bold))
-                            .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
-                            .frame(maxWidth: .infinity).padding(.vertical, 14)
-                            .background(RoundedRectangle(cornerRadius: Theme.r20, style: .continuous)
-                                .fill(Theme.accent).shadow(color: Theme.accent.opacity(0.42), radius: 16, x: 0, y: 5))
+                        .buttonStyle(.plain)
+
+                        Button {
+                            switch mode {
+                            case .daily:   onConfirm(dailyTime, false)
+                            case .oneTime: onConfirm(oneTimeDate, true)
+                            }
+                            dismiss()
+                        } label: {
+                            Text(vm.localized("Confirm")).font(.system(size: 14, weight: .bold))
+                                .foregroundColor(ThemeManager.shared.isDark ? Color(hex: "#07080F") : .white)
+                                .frame(maxWidth: .infinity).padding(.vertical, 12)
+                                .background(RoundedRectangle(cornerRadius: Theme.r16, style: .continuous)
+                                    .fill(Theme.accent))
+                        }
+                        .buttonStyle(ListScaleStyle())
                     }
-                    .buttonStyle(ListScaleStyle())
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 24)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 16)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -1950,6 +2290,9 @@ struct ReminderPickerSheet: View {
                 }
             }
         }
+        #if os(macOS)
+        .frame(width: 400, height: mode == .daily ? 320 : 420)
+        #endif
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(Theme.r32)
@@ -1966,9 +2309,15 @@ struct ReminderPickerSheet: View {
             }.padding(.top, 20)
             Text(vm.localized("Daily Reminder")).font(.system(size: 17, weight: .bold)).foregroundColor(Theme.text0)
             Text(vm.localized("Fires every day at this time")).font(.system(size: 12.5)).foregroundColor(Theme.text2)
+            #if os(iOS)
             DatePicker("", selection: $dailyTime, displayedComponents: .hourAndMinute)
                 .datePickerStyle(.wheel).labelsHidden()
                 .colorScheme(ThemeManager.shared.colorScheme)
+            #else
+            DatePicker("", selection: $dailyTime, displayedComponents: .hourAndMinute)
+                .datePickerStyle(.graphical).labelsHidden()
+                .colorScheme(ThemeManager.shared.colorScheme)
+            #endif
         }
     }
 

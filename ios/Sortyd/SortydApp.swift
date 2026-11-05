@@ -4,7 +4,9 @@
 import SwiftUI
 import Firebase
 import FirebaseCrashlytics
+#if os(iOS)
 import Clarity
+#endif
 
 @main
 struct SortydApp: App {
@@ -17,14 +19,21 @@ struct SortydApp: App {
         Crashlytics.crashlytics().log("Application configured")
         _ = ReviewPromptManager.shared.installDate
 
+        #if os(iOS)
         // Clarity records interaction paths while the UI is masked below.
         ClaritySDK.initialize(config: ClarityConfig(projectId: "ybfdycps9e"))
+        #endif
     }
 
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .clarityMask()
+                .sortydClarityMask()
+                #if os(macOS)
+                .frame(minWidth: 1020, minHeight: 680)
+                #else
+                .frame(minWidth: 420, minHeight: 640)
+                #endif
                 .onAppear {
                     #if DEBUG
                     // Explicit local QA modes. Neither entry point exists in release builds.
@@ -41,7 +50,9 @@ struct SortydApp: App {
                         }
                     }
                     #endif
+                    #if os(iOS)
                     _ = WatchSessionManager.shared
+                    #endif
                     vm.cancelLegacyNotifications()
 
                     // Let the first screen render before non-urgent startup work.
@@ -105,10 +116,12 @@ struct SortydApp: App {
                         .zIndex(999)
                     }
                 }
+                #if os(iOS)
                 // Watch toggled a task — reload AppViewModel so views refresh immediately
                 .onReceive(NotificationCenter.default.publisher(for: .watchDidUpdateAppData)) { _ in
                     vm.reloadFromDisk()
                 }
+                #endif
                 // FIX: onOpenURL handler added.
                 //
                 // WidgetLarge.swift emits Link(destination: URL(string: "sortyd://open")!)
@@ -133,5 +146,26 @@ struct SortydApp: App {
                 .environment(\.locale, vm.appLanguage.locale)
                 .environment(\.layoutDirection, vm.appLanguage.isRTL ? .rightToLeft : .leftToRight)
         }
+        #if os(macOS)
+        .defaultSize(width: 1240, height: 820)
+        .windowStyle(.hiddenTitleBar)
+        #endif
+
+        #if os(macOS)
+        MenuBarExtra {
+            SortydMenuBarPopoverView()
+                .environmentObject(vm)
+                .environmentObject(themeManager)
+                .preferredColorScheme(themeManager.colorScheme)
+        } label: {
+            let pct = Int(((vm.activeList?.completionFraction ?? 0) * 100).rounded())
+            HStack(spacing: 4) {
+                Image(systemName: "checkmark.seal.fill")
+                Text("\(pct)%")
+                    .monospacedDigit()
+            }
+        }
+        .menuBarExtraStyle(.window)
+        #endif
     }
 }

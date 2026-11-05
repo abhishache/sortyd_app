@@ -5,6 +5,49 @@
 import Foundation
 import SwiftUI
 
+// MARK: - Cross-Platform Flexible JSON Decoding Helpers (iOS / macOS / Android / Supabase)
+
+extension KeyedDecodingContainer {
+    func decodeFlexibleUUID(forKey key: K) -> UUID? {
+        if let uuid = try? decodeIfPresent(UUID.self, forKey: key) {
+            return uuid
+        }
+        if let str = try? decodeIfPresent(String.self, forKey: key) {
+            let trimmed = str.trimmingCharacters(in: .whitespacesAndNewlines)
+            return UUID(uuidString: trimmed)
+        }
+        return nil
+    }
+
+    func decodeFlexibleDate(forKey key: K) -> Date? {
+        if let num = try? decodeIfPresent(Double.self, forKey: key) {
+            if num > 100_000_000_000 {
+                // Epoch milliseconds (Android System.currentTimeMillis)
+                return Date(timeIntervalSince1970: num / 1000.0)
+            } else if num > 1_200_000_000 && num < 4_100_000_000 {
+                // Epoch seconds
+                return Date(timeIntervalSince1970: num)
+            } else {
+                // Apple reference date seconds (since 2001-01-01)
+                return Date(timeIntervalSinceReferenceDate: num)
+            }
+        }
+        if let str = try? decodeIfPresent(String.self, forKey: key) {
+            let trimmed = str.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.isEmpty { return nil }
+            let isoFrac = ISO8601DateFormatter()
+            isoFrac.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let d = isoFrac.date(from: trimmed) { return d }
+            let iso = ISO8601DateFormatter()
+            if let d = iso.date(from: trimmed) { return d }
+            let df = DateFormatter()
+            df.dateFormat = "yyyy-MM-dd"
+            if let d = df.date(from: String(trimmed.prefix(10))) { return d }
+        }
+        return try? decodeIfPresent(Date.self, forKey: key)
+    }
+}
+
 // MARK: - Task
 
 struct SortydTask: Identifiable, Codable, Hashable {
@@ -41,20 +84,20 @@ struct SortydTask: Identifiable, Codable, Hashable {
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        id               = try c.decodeIfPresent(UUID.self,   forKey: .id)               ?? UUID()
-        title            = try c.decode(String.self,          forKey: .title)
-        isCompleted      = try c.decodeIfPresent(Bool.self,   forKey: .isCompleted)       ?? false
-        manuallyCompleted = try c.decodeIfPresent(Bool.self,  forKey: .manuallyCompleted) ?? false
-        createdAt        = try c.decodeIfPresent(Date.self,   forKey: .createdAt)         ?? Date()
-        let decodedWeight = try c.decodeIfPresent(Double.self, forKey: .weight) ?? 0
+        id               = c.decodeFlexibleUUID(forKey: .id)                                 ?? UUID()
+        title            = (try? c.decodeIfPresent(String.self, forKey: .title))             ?? ""
+        isCompleted      = (try? c.decodeIfPresent(Bool.self,   forKey: .isCompleted))       ?? false
+        manuallyCompleted = (try? c.decodeIfPresent(Bool.self,  forKey: .manuallyCompleted)) ?? false
+        createdAt        = c.decodeFlexibleDate(forKey: .createdAt)                          ?? Date()
+        let decodedWeight = (try? c.decodeIfPresent(Double.self, forKey: .weight)) ?? 0
         weight = decodedWeight.isFinite ? max(0, decodedWeight) : 0
-        reminderTime      = try c.decodeIfPresent(Date.self,   forKey: .reminderTime)
-        reminderIsOneTime = try c.decodeIfPresent(Bool.self,   forKey: .reminderIsOneTime) ?? false
-        soundName         = try c.decodeIfPresent(String.self, forKey: .soundName)
-        hexColor          = try c.decodeIfPresent(String.self, forKey: .hexColor)
-        durationMinutes   = try c.decodeIfPresent(Int.self,    forKey: .durationMinutes)
-        healthType        = try c.decodeIfPresent(String.self, forKey: .healthType)
-        healthTarget     = try c.decodeIfPresent(Double.self, forKey: .healthTarget)
+        reminderTime      = c.decodeFlexibleDate(forKey: .reminderTime)
+        reminderIsOneTime = (try? c.decodeIfPresent(Bool.self,   forKey: .reminderIsOneTime)) ?? false
+        soundName         = try? c.decodeIfPresent(String.self, forKey: .soundName)
+        hexColor          = try? c.decodeIfPresent(String.self, forKey: .hexColor)
+        durationMinutes   = try? c.decodeIfPresent(Int.self,    forKey: .durationMinutes)
+        healthType        = try? c.decodeIfPresent(String.self, forKey: .healthType)
+        healthTarget     = try? c.decodeIfPresent(Double.self, forKey: .healthTarget)
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -77,14 +120,14 @@ struct TaskList: Identifiable, Codable, Hashable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        id         = try container.decode(UUID.self,             forKey: .id)
-        name       = try container.decode(String.self,           forKey: .name)
-        emoji      = try container.decodeIfPresent(String.self,  forKey: .emoji) ?? "📋"
-        tasks      = try container.decode([SortydTask].self,     forKey: .tasks)
-        createdAt  = try container.decodeIfPresent(Date.self,    forKey: .createdAt) ?? Date()
-        isArchived = try container.decodeIfPresent(Bool.self,    forKey: .isArchived) ?? false
-        isTodo     = try container.decodeIfPresent(Bool.self,    forKey: .isTodo) ?? false
-        isWeekly   = try container.decodeIfPresent(Bool.self,    forKey: .isWeekly) ?? false
+        id         = container.decodeFlexibleUUID(forKey: .id)                                 ?? UUID()
+        name       = (try? container.decodeIfPresent(String.self,      forKey: .name))         ?? "List"
+        emoji      = (try? container.decodeIfPresent(String.self,      forKey: .emoji))        ?? "📋"
+        tasks      = (try? container.decodeIfPresent([SortydTask].self, forKey: .tasks))       ?? []
+        createdAt  = container.decodeFlexibleDate(forKey: .createdAt)                          ?? Date()
+        isArchived = (try? container.decodeIfPresent(Bool.self,        forKey: .isArchived))   ?? false
+        isTodo     = (try? container.decodeIfPresent(Bool.self,        forKey: .isTodo))       ?? false
+        isWeekly   = (try? container.decodeIfPresent(Bool.self,        forKey: .isWeekly))     ?? false
         recalculateWeights()
     }
 
@@ -186,16 +229,32 @@ struct WeeklyPlan: Identifiable, Codable, Hashable {
     
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        id = try c.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
-        weekStartDate = try c.decodeIfPresent(Date.self, forKey: .weekStartDate) ?? WeeklyPlan.currentWeekStart()
-        northStar = try c.decodeIfPresent(String.self, forKey: .northStar) ?? ""
-        weeklyTheme = try c.decodeIfPresent(String.self, forKey: .weeklyTheme) ?? ""
-        dailyFocus = try c.decodeIfPresent([Int: String].self, forKey: .dailyFocus) ?? [:]
-        dayLoads = try c.decodeIfPresent([Int: Int].self, forKey: .dayLoads) ?? [:]
-        mustDoTasks = Array(((try c.decodeIfPresent([String].self, forKey: .mustDoTasks) ?? []) + ["", "", ""]).prefix(3))
-        antiGoals = Array(((try c.decodeIfPresent([String].self, forKey: .antiGoals) ?? []) + ["", ""]).prefix(2))
-        recoveryDay = min(max(try c.decodeIfPresent(Int.self, forKey: .recoveryDay) ?? 7, 1), 7)
-        weeklyReward = try c.decodeIfPresent(String.self, forKey: .weeklyReward) ?? ""
+        id = c.decodeFlexibleUUID(forKey: .id) ?? UUID()
+        weekStartDate = c.decodeFlexibleDate(forKey: .weekStartDate) ?? WeeklyPlan.currentWeekStart()
+        northStar = (try? c.decodeIfPresent(String.self, forKey: .northStar)) ?? ""
+        weeklyTheme = (try? c.decodeIfPresent(String.self, forKey: .weeklyTheme)) ?? ""
+        if let intMap = try? c.decodeIfPresent([Int: String].self, forKey: .dailyFocus) {
+            dailyFocus = intMap
+        } else if let strMap = try? c.decodeIfPresent([String: String].self, forKey: .dailyFocus) {
+            var mapped: [Int: String] = [:]
+            for (k, v) in strMap { if let ik = Int(k) { mapped[ik] = v } }
+            dailyFocus = mapped
+        } else {
+            dailyFocus = [:]
+        }
+        if let intLoads = try? c.decodeIfPresent([Int: Int].self, forKey: .dayLoads) {
+            dayLoads = intLoads
+        } else if let strLoads = try? c.decodeIfPresent([String: Int].self, forKey: .dayLoads) {
+            var mapped: [Int: Int] = [:]
+            for (k, v) in strLoads { if let ik = Int(k) { mapped[ik] = v } }
+            dayLoads = mapped
+        } else {
+            dayLoads = [:]
+        }
+        mustDoTasks = Array((((try? c.decodeIfPresent([String].self, forKey: .mustDoTasks)) ?? []) + ["", "", ""]).prefix(3))
+        antiGoals = Array((((try? c.decodeIfPresent([String].self, forKey: .antiGoals)) ?? []) + ["", ""]).prefix(2))
+        recoveryDay = min(max((try? c.decodeIfPresent(Int.self, forKey: .recoveryDay)) ?? 7, 1), 7)
+        weeklyReward = (try? c.decodeIfPresent(String.self, forKey: .weeklyReward)) ?? ""
     }
     
     static func currentWeekStart() -> Date {
@@ -218,6 +277,14 @@ struct WeeklyPlan: Identifiable, Codable, Hashable {
         var completedTaskIDs: [UUID]
         var completionPercentage: Int { CompletionPolicy.percentage(completionFraction) }
         
+        private enum CodingKeys: String, CodingKey {
+            case id, date, listID, completionFraction, completedTaskIDs
+        }
+
+        private enum LegacyCodingKeys: String, CodingKey {
+            case listId, completedTaskIds
+        }
+
         // Forward-compatible decoder: new fields added in future versions decode safely.
         init(id: UUID = UUID(), date: Date, listID: UUID, completionFraction: Double, completedTaskIDs: [UUID]) {
             self.id = id
@@ -229,11 +296,26 @@ struct WeeklyPlan: Identifiable, Codable, Hashable {
         
         init(from decoder: Decoder) throws {
             let c = try decoder.container(keyedBy: CodingKeys.self)
-            id                = try c.decodeIfPresent(UUID.self,    forKey: .id)                ?? UUID()
-            date              = try c.decode(Date.self,             forKey: .date)
-            listID            = try c.decode(UUID.self,             forKey: .listID)
-            completionFraction = CompletionPolicy.fraction(try c.decode(Double.self, forKey: .completionFraction))
-            completedTaskIDs  = try c.decodeIfPresent([UUID].self,  forKey: .completedTaskIDs)  ?? []
+            let legacy = try? decoder.container(keyedBy: LegacyCodingKeys.self)
+            id   = c.decodeFlexibleUUID(forKey: .id)   ?? UUID()
+            date = c.decodeFlexibleDate(forKey: .date) ?? Date()
+            listID = c.decodeFlexibleUUID(forKey: .listID)
+                  ?? legacy?.decodeFlexibleUUID(forKey: .listId)
+                  ?? UUID()
+            completionFraction = CompletionPolicy.fraction((try? c.decodeIfPresent(Double.self, forKey: .completionFraction)) ?? 0)
+            if let uuids = try? c.decodeIfPresent([UUID].self, forKey: .completedTaskIDs) {
+                completedTaskIDs = uuids
+            } else if let strs = try? c.decodeIfPresent([String].self, forKey: .completedTaskIDs) {
+                completedTaskIDs = strs.compactMap { UUID(uuidString: $0) }
+            } else if let legacyUUIDs = try? legacy?.decodeIfPresent([UUID].self, forKey: .completedTaskIds) {
+                completedTaskIDs = legacyUUIDs
+            } else if let legacyStr = try? legacy?.decodeIfPresent(String.self, forKey: .completedTaskIds),
+                      let data = legacyStr.data(using: .utf8),
+                      let arr = try? JSONSerialization.jsonObject(with: data) as? [String] {
+                completedTaskIDs = arr.compactMap { UUID(uuidString: $0) }
+            } else {
+                completedTaskIDs = []
+            }
         }
     }
     
@@ -268,10 +350,10 @@ struct WeeklyPlan: Identifiable, Codable, Hashable {
         
         init(from decoder: Decoder) throws {
             let c = try decoder.container(keyedBy: CodingKeys.self)
-            lists        = try c.decodeIfPresent([TaskList].self, forKey: .lists)        ?? []
-            activeListID = try c.decodeIfPresent(UUID.self,       forKey: .activeListID)
-            snapshots    = try c.decodeIfPresent([DailySnapshot].self, forKey: .snapshots) ?? []
-            weeklyPlan   = try c.decodeIfPresent(WeeklyPlan.self, forKey: .weeklyPlan)
+            lists        = (try? c.decodeIfPresent([TaskList].self, forKey: .lists))          ?? []
+            activeListID = c.decodeFlexibleUUID(forKey: .activeListID)
+            snapshots    = (try? c.decodeIfPresent([DailySnapshot].self, forKey: .snapshots)) ?? []
+            weeklyPlan   = try? c.decodeIfPresent(WeeklyPlan.self, forKey: .weeklyPlan)
         }
     }
     

@@ -195,6 +195,13 @@ extension WatchStore: WCSessionDelegate {
         Task { @MainActor in requestFromPhone() }
     }
 
+    #if os(iOS)
+    nonisolated func sessionDidBecomeInactive(_ session: WCSession) {}
+    nonisolated func sessionDidDeactivate(_ session: WCSession) {
+        session.activate()
+    }
+    #endif
+
     nonisolated func session(_ session: WCSession,
                              didReceiveMessage message: [String: Any]) {
         Task { @MainActor in

@@ -9,10 +9,10 @@
 /* Begin PBXBuildFile section */
 		4663A63C2F7B39120021CF8A /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4663A63B2F7B39120021CF8A /* WidgetKit.framework */; };
 		4663A63E2F7B39120021CF8A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4663A63D2F7B39120021CF8A /* SwiftUI.framework */; };
-		4663A64D2F7B39130021CF8A /* SortydWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4663A6392F7B39120021CF8A /* SortydWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		4663DC332F805E480036A9D2 /* SortydWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 4663DC292F805E460036A9D2 /* SortydWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4663A64D2F7B39130021CF8A /* SortydWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; platformFilters = (ios, ); fileRef = 4663A6392F7B39120021CF8A /* SortydWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4663DC332F805E480036A9D2 /* SortydWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; platformFilters = (ios, ); fileRef = 4663DC292F805E460036A9D2 /* SortydWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		46BBEB072F95089F0022DBAF /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 46BBEB062F95089F0022DBAF /* FirebaseAnalytics */; };
-		46C1A0022F95089F0022DBAF /* Clarity in Frameworks */ = {isa = PBXBuildFile; productRef = 46C1A0012F95089F0022DBAF /* Clarity */; };
+		46C1A0022F95089F0022DBAF /* Clarity in Frameworks */ = {isa = PBXBuildFile; platformFilters = (ios, ); productRef = 46C1A0012F95089F0022DBAF /* Clarity */; };
 		46CFA0012026110500000001 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 46CFA0022026110500000001 /* FirebaseCrashlytics */; };
 /* End PBXBuildFile section */
 
@@ -386,16 +386,25 @@
 /* Begin PBXTargetDependency section */
 		4663A64C2F7B39130021CF8A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
+			platformFilters = (
+				ios,
+			);
 			target = 4663A6382F7B39120021CF8A /* SortydWidgetExtension */;
 			targetProxy = 4663A64B2F7B39130021CF8A /* PBXContainerItemProxy */;
 		};
 		4663DC322F805E480036A9D2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
+			platformFilters = (
+				ios,
+			);
 			target = 4663DC282F805E460036A9D2 /* SortydWatch Watch App */;
 			targetProxy = 4663DC312F805E480036A9D2 /* PBXContainerItemProxy */;
 		};
 		4663DC4C2F8066860036A9D2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
+			platformFilters = (
+				ios,
+			);
 			target = 4663DC282F805E460036A9D2 /* SortydWatch Watch App */;
 			targetProxy = 4663DC4B2F8066860036A9D2 /* PBXContainerItemProxy */;
 		};
@@ -461,7 +470,9 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = iphoneos;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "macosx iphoneos iphonesimulator";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -520,7 +531,9 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				SDKROOT = iphoneos;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "macosx iphoneos iphonesimulator";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
@@ -533,7 +546,9 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
-				CODE_SIGN_ENTITLEMENTS = Sortyd/Sortyd.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = Sortyd/Sortyd-ios.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = Sortyd/Sortyd-ios.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = Sortyd/Sortyd-mac.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 25E5AWSP4F;
@@ -563,7 +578,10 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-			};
+			
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SUPPORTED_PLATFORMS = "macosx iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;};
 			name = Debug;
 		};
 		4663A5FF2F7B38CB0021CF8A /* Release */ = {
@@ -572,7 +590,9 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
-				CODE_SIGN_ENTITLEMENTS = Sortyd/Sortyd.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = Sortyd/Sortyd-ios.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = Sortyd/Sortyd-ios.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=macosx*]" = Sortyd/Sortyd-mac.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 25E5AWSP4F;
@@ -602,7 +622,10 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-			};
+			
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SUPPORTED_PLATFORMS = "macosx iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;};
 			name = Release;
 		};
 		4663A6502F7B39130021CF8A /* Debug */ = {

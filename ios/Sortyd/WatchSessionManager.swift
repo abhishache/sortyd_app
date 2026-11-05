@@ -1,3 +1,4 @@
+#if os(iOS)
 // WatchSessionManager.swift
 // Add this file to your MAIN iOS Sortyd target (not the Watch target).
 // It listens for Watch requests and pushes AppData updates automatically.
@@ -144,3 +145,5 @@ extension Notification.Name {
     static let watchDidUpdateAppData = Notification.Name("watchDidUpdateAppData")
     static let watchTaskCompletionRequested = Notification.Name("watchTaskCompletionRequested")
 }
+
+#endif

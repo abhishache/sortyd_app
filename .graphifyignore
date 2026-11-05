@@ -6,3 +6,5 @@ graphify-out/**
 **/build_log.txt
 **/*.xcuserstate
 **/xcuserdata/**
+release/**
+supabase/.temp/**

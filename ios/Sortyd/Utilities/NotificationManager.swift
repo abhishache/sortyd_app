@@ -11,6 +11,16 @@
 import Foundation
 import UserNotifications
 
+extension UNAuthorizationStatus {
+    var isPermitted: Bool {
+        #if os(iOS)
+        return self == .authorized || self == .provisional || self == .ephemeral
+        #else
+        return self == .authorized || self == .provisional
+        #endif
+    }
+}
+
 @MainActor
 final class NotificationManager {
     static let shared = NotificationManager()
@@ -51,9 +61,10 @@ final class NotificationManager {
     /// Returns `false` if denied — caller shows a one-time settings nudge.
     func requestPermissionIfNeeded() async -> Bool {
         let status = await currentStatus()
-        switch status {
-        case .authorized, .provisional, .ephemeral:
+        if status.isPermitted {
             return true
+        }
+        switch status {
         case .notDetermined:
             // This is the ONE place we ask — user has just confirmed a reminder time.
             let granted = (try? await UNUserNotificationCenter.current()
@@ -61,7 +72,7 @@ final class NotificationManager {
             return granted
         case .denied:
             return false
-        @unknown default:
+        default:
             return false
         }
     }
@@ -73,7 +84,7 @@ final class NotificationManager {
     /// Silent — only runs if permission is already granted.
     func scheduleDailySummaryIfPermitted(lists: [TaskList], snapshots: [DailySnapshot]) async {
         let status = await currentStatus()
-        guard status == .authorized || status == .provisional || status == .ephemeral else {
+        guard status.isPermitted else {
             return
         }
 
@@ -129,7 +140,7 @@ final class NotificationManager {
     /// time slots already used by task reminders or the daily summary.
     func scheduleColdTaskNudgeIfPermitted(lists: [TaskList], snapshots: [DailySnapshot]) async {
         let status = await currentStatus()
-        guard status == .authorized || status == .provisional || status == .ephemeral else {
+        guard status.isPermitted else {
             return
         }
 
@@ -672,7 +683,7 @@ final class NotificationManager {
         reconciling = true
         defer { reconciling = false }
         let status = await currentStatus()
-        guard status == .authorized || status == .provisional || status == .ephemeral else {
+        guard status.isPermitted else {
             return
         }
 

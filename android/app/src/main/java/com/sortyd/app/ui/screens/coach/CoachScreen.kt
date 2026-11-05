@@ -47,6 +47,10 @@ fun CoachScreen(viewModel: SortydViewModel) {
     val selectedCoachList = coachLists.firstOrNull { it.id == activeList?.id } ?: coachLists.firstOrNull()
     var showCoachInfo by remember { mutableStateOf(false) }
 
+    LaunchedEffect(selectedCoachList?.id, language) {
+        selectedCoachList?.let { viewModel.refreshCoach(it.id, force = false) }
+    }
+
     val infinite = rememberInfiniteTransition(label = "spin")
     val spin by infinite.animateFloat(0f, 360f, infiniteRepeatable(tween(700, easing = LinearEasing)), label = "spinA")
 
@@ -90,7 +94,7 @@ fun CoachScreen(viewModel: SortydViewModel) {
                         Icon(Icons.Default.Info, null, tint = colors.accent, modifier = Modifier.size(14.dp))
                     }
                     // Refresh button
-                    Box(Modifier.size(44.dp).clip(CircleShape).background(colors.bg2).border(0.5.dp, colors.borderSubtle, CircleShape).clickable { selectedCoachList?.let { viewModel.refreshCoach(it.id) } }, Alignment.Center) {
+                    Box(Modifier.size(44.dp).clip(CircleShape).background(colors.bg2).border(0.5.dp, colors.borderSubtle, CircleShape).clickable { selectedCoachList?.let { viewModel.refreshCoach(it.id, force = true) } }, Alignment.Center) {
                         Icon(Icons.Default.Refresh, null, tint = if (isLoading) colors.accent else colors.text1, modifier = Modifier.size(14.dp).then(if (isLoading) Modifier.rotate(spin) else Modifier))
                     }
                 }

@@ -396,82 +396,78 @@ struct MonthPickerSheet: View {
     @Binding var selectedMonth: MonthYear
     @Environment(\.dismiss) var dismiss
     
-    private let months = MonthYear.pastMonths(count: 24)
+    private let months = MonthYear.pastMonths(count: 12)
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
     
     var body: some View {
-        VStack(spacing: 0) {
-            Capsule()
-                .fill(Theme.bg3)
-                .frame(width: 36, height: 4)
-                .padding(.top, 12)
-                .padding(.bottom, 16)
+        VStack(spacing: 12) {
+            HStack {
+                Text(appVM.localized("SELECT MONTH"))
+                    .font(Theme.font(size: 11, weight: .bold))
+                    .kerning(1.6)
+                    .foregroundColor(Theme.text2)
+                
+                Spacer()
+                
+                Button(action: { dismiss() }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 10, weight: .bold))
+                        Text(appVM.localized("Cancel"))
+                            .font(.system(size: 12, weight: .bold))
+                    }
+                    .foregroundColor(Theme.text1)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Capsule().fill(Theme.bg2))
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 18)
+            .padding(.top, 16)
             
-            Text(appVM.localized("SELECT MONTH"))
-                .font(Theme.font(size: 11, weight: .bold))
-                .kerning(1.6)
-                .foregroundColor(Theme.text2)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 20)
-                .padding(.bottom, 10)
-            
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: 4) {
-                    ForEach(months, id: \.self) { month in
-                        HStack {
+            LazyVGrid(columns: columns, spacing: 8) {
+                ForEach(months, id: \.self) { month in
+                    let isSelected = selectedMonth == month
+                    Button {
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            selectedMonth = month
+                        }
+                        dismiss()
+                    } label: {
+                        VStack(spacing: 3) {
                             Text(month.label)
-                                .font(.system(size: 15,
-                                              weight: selectedMonth == month ? .bold : .regular))
-                                .foregroundColor(selectedMonth == month ? Theme.accent : Theme.text0)
-                            
-                            Spacer()
-                            
+                                .font(.system(size: 12.5, weight: isSelected ? .bold : .semibold))
+                                .foregroundColor(isSelected ? Theme.accent : Theme.text0)
+                                .lineLimit(1)
                             if month == .current {
-                                Text(appVM.localized("current"))
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(Theme.text2)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 3)
-                                    .background(Capsule().fill(Theme.bg3))
-                                    .padding(.trailing, selectedMonth == month ? 8 : 0)
-                            }
-                            
-                            if selectedMonth == month {
-                                Image(systemName: "checkmark")
-                                    .font(Theme.font(size: 12, weight: .bold))
+                                Text(appVM.localized("Current"))
+                                    .font(.system(size: 9, weight: .bold))
                                     .foregroundColor(Theme.accent)
                             }
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 13)
                         .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 6)
                         .background(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(selectedMonth == month
-                                      ? Theme.accent.opacity(0.08)
-                                      : Color.clear)
+                            RoundedRectangle(cornerRadius: 11, style: .continuous)
+                                .fill(isSelected ? Theme.accent.opacity(0.14) : Theme.bg2)
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .strokeBorder(
-                                            selectedMonth == month
-                                            ? Theme.accent.opacity(0.25)
-                                            : Color.clear,
-                                            lineWidth: 0.5
-                                        )
+                                    RoundedRectangle(cornerRadius: 11, style: .continuous)
+                                        .strokeBorder(isSelected ? Theme.accent.opacity(0.45) : Theme.border, lineWidth: 0.75)
                                 )
                         )
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            withAnimation(.easeOut(duration: 0.2)) {
-                                selectedMonth = month
-                            }
-                            dismiss()
-                        }
-                        .padding(.horizontal, 8)
                     }
+                    .buttonStyle(.plain)
                 }
-                .padding(.bottom, 28)
             }
+            .padding(.horizontal, 18)
+            .padding(.bottom, 18)
         }
+        #if os(macOS)
+        .frame(width: 390)
+        #endif
+        .background(Theme.bg0)
     }
 }
 
@@ -535,85 +531,101 @@ struct DayDetailSheet: View {
         ZStack {
             Theme.bg0.ignoresSafeArea()
             
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 0) {
-                    
-                    Capsule()
-                        .fill(Theme.bg3)
-                        .frame(width: 36, height: 4)
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, 12)
-                        .padding(.bottom, 20)
-                    
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
                     Text(dateLabel.uppercased())
-                        .font(Theme.font(size: 10, weight: .bold))
-                        .kerning(1.6)
+                        .font(Theme.font(size: 10.5, weight: .bold))
+                        .kerning(1.5)
                         .foregroundColor(Theme.text2)
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 16)
                     
-                    if snapshot != nil || kDebugAllowPastEditing {
-                        // Score ring + label
-                        HStack(spacing: 16) {
-                            ZStack {
-                                Circle()
-                                    .fill(Theme.accent.opacity(0.12))
-                                    .frame(width: 72, height: 72)
-                                Circle()
-                                    .strokeBorder(Theme.accent.opacity(0.3), lineWidth: 1)
-                                    .frame(width: 72, height: 72)
-                                VStack(spacing: -1) {
-                                    Text("\(pct)")
-                                        .font(Theme.font(size: 26, weight: .black, design: .rounded))
-                                        .foregroundColor(Theme.accent)
-                                    Text("%")
-                                        .font(Theme.font(size: 11, weight: .bold))
-                                        .foregroundColor(Theme.accent.opacity(0.7))
+                    Spacer()
+                    
+                    Button(action: { dismiss() }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 10, weight: .bold))
+                            Text(appVM.localized("Close"))
+                                .font(.system(size: 12, weight: .bold))
+                        }
+                        .foregroundColor(Theme.text1)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(Capsule().fill(Theme.bg2))
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+                .padding(.bottom, 12)
+                
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        if snapshot != nil || kDebugAllowPastEditing {
+                            // Score ring + label
+                            HStack(spacing: 14) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Theme.accent.opacity(0.12))
+                                        .frame(width: 56, height: 56)
+                                    Circle()
+                                        .strokeBorder(Theme.accent.opacity(0.3), lineWidth: 1)
+                                        .frame(width: 56, height: 56)
+                                    VStack(spacing: -1) {
+                                        Text("\(pct)")
+                                            .font(Theme.font(size: 20, weight: .black, design: .rounded))
+                                            .foregroundColor(Theme.accent)
+                                        Text("%")
+                                            .font(Theme.font(size: 9.5, weight: .bold))
+                                            .foregroundColor(Theme.accent.opacity(0.7))
+                                    }
+                                }
+                                
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(performanceLabel(pct))
+                                        .font(Theme.font(size: 16, weight: .black))
+                                        .foregroundColor(Theme.text0)
+                                    Text(String(format: appVM.localized("%lld of %lld tasks completed"), locale: appVM.appLanguage.locale, Int64(completedTasks.count), Int64(completedTasks.count + missedTasks.count)))
+                                        .font(Theme.font(size: 12))
+                                        .foregroundColor(Theme.text2)
+                                }
+                                Spacer()
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 16)
+                            
+                            if snapshot == nil && kDebugAllowPastEditing {
+                                if let list = list, !list.tasks.isEmpty {
+                                    taskGroup(title: appVM.localized("TASKS") + " (DEBUG)", tasks: list.tasks)
+                                } else {
+                                    EmptyDark(icon: "🛠️", title: appVM.localized("Debug Mode"), subtitle: appVM.localized("No tasks found for this list."))
+                                        .padding(.top, 12)
+                                }
+                            } else {
+                                if !completedTasks.isEmpty {
+                                    taskGroup(title: appVM.localized("COMPLETED"), tasks: completedTasks)
+                                }
+                                if !missedTasks.isEmpty {
+                                    taskGroup(title: appVM.localized("MISSED"), tasks: missedTasks)
                                 }
                             }
                             
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(performanceLabel(pct))
-                                    .font(Theme.font(size: 18, weight: .black))
-                                    .foregroundColor(Theme.text0)
-                                Text(String(format: appVM.localized("%lld of %lld tasks completed"), locale: appVM.appLanguage.locale, Int64(completedTasks.count), Int64(completedTasks.count + missedTasks.count)))
-                                    .font(Theme.font(size: 13))
-                                    .foregroundColor(Theme.text2)
-                            }
-                            Spacer()
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 28)
-                        
-                        if snapshot == nil && kDebugAllowPastEditing {
-                            if let list = list, !list.tasks.isEmpty {
-                                taskGroup(title: appVM.localized("TASKS") + " (DEBUG)", tasks: list.tasks)
-                            } else {
-                                EmptyDark(icon: "🛠️", title: appVM.localized("Debug Mode"), subtitle: appVM.localized("No tasks found for this list."))
-                                    .padding(.top, 16)
-                            }
                         } else {
-                            if !completedTasks.isEmpty {
-                                taskGroup(title: appVM.localized("COMPLETED"), tasks: completedTasks)
-                            }
-                            if !missedTasks.isEmpty {
-                                taskGroup(title: appVM.localized("MISSED"), tasks: missedTasks)
-                            }
+                            EmptyDark(
+                                icon: "📭",
+                                title: appVM.localized("No data"),
+                                subtitle: appVM.localized("No performance was recorded\nfor this day.")
+                            )
+                            .padding(.top, 12)
                         }
                         
-                    } else {
-                        EmptyDark(
-                            icon: "📭",
-                            title: appVM.localized("No data"),
-                            subtitle: appVM.localized("No performance was recorded\nfor this day.")
-                        )
-                        .padding(.top, 16)
+                        Spacer(minLength: 16)
                     }
-                    
-                    Spacer(minLength: 40)
                 }
             }
         }
+        #if os(macOS)
+        .frame(width: 420, height: 390)
+        #endif
         .animation(.spring(response: 0.35, dampingFraction: 0.72), value: showCheatAlert)
         .fullScreenCover(isPresented: $showCheatAlert) {
             CheatBlockPopup {

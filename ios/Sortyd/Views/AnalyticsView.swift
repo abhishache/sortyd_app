@@ -1431,12 +1431,30 @@ struct AnalyticsListPickerSheet: View {
                     Capsule().fill(Theme.bg3).frame(width: 36, height: 4)
                         .padding(.top, 12).padding(.bottom, 20)
 
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(vm.localized("Analytics For")).font(.system(size: 22, weight: .black)).foregroundColor(Theme.text0)
-                        Text(vm.localized("Data stays on this screen only")).font(.system(size: 13)).foregroundColor(Theme.text2)
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(vm.localized("Analytics For")).font(.system(size: 20, weight: .black)).foregroundColor(Theme.text0)
+                            Text(vm.localized("Data stays on this screen only")).font(.system(size: 12)).foregroundColor(Theme.text2)
+                        }
+                        Spacer()
+                        Button {
+                            dismiss()
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 10, weight: .bold))
+                                Text(vm.localized("Cancel"))
+                                    .font(.system(size: 12, weight: .semibold))
+                            }
+                            .foregroundColor(Theme.text1)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Capsule().fill(Theme.bg2).overlay(Capsule().strokeBorder(Theme.border, lineWidth: 0.8)))
+                        }
+                        .buttonStyle(.plain)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 20).padding(.bottom, 20)
+                    .padding(.horizontal, 20).padding(.bottom, 16)
 
                     let liveLists = vm.lists.filter { !$0.isArchived && !$0.isTodo && !$0.isWeekly }
                     let todoList  = vm.lists.first(where: { $0.isTodo })

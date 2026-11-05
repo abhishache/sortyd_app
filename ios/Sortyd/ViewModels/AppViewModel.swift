@@ -45,7 +45,9 @@ final class AppViewModel: ObservableObject {
             UserDefaults.standard.synchronize()
             sharedDefaults.synchronize()
             
+            #if os(iOS)
             WatchSessionManager.shared.pushLanguageToWatch(appLanguage.rawValue)
+            #endif
             // Re-trigger computed best streak if language impacts anything
             cachedBestStreak = computeBestStreak()
         }
@@ -129,6 +131,136 @@ final class AppViewModel: ObservableObject {
         syncPublished()
         cachedBestStreak = computeBestStreak()
         Analytics.logEvent("manual_refresh", parameters: nil)
+
+        if AuthService.shared.isAuthenticated {
+            await syncWithCloud()
+        }
+    }
+
+    // MARK: - Cloud Data Sync (Non-Destructive Union Merge for Existing & New Users)
+
+    func syncWithCloud() async {
+        guard AuthService.shared.isAuthenticated else { return }
+        do {
+            if let remote = try await AuthService.shared.pullData() {
+                self.mergeWithRemoteData(remote)
+                // Push the union-merged workspace back to Supabase so pre-existing local lists are stored in the cloud
+                if let serverMerged = await AuthService.shared.pushData(self.appData, allowDelete: false) {
+                    self.mergeWithRemoteData(serverMerged)
+                }
+            } else {
+                // First time syncing this account: upload all existing local lists to Supabase
+                if let serverMerged = await AuthService.shared.pushData(self.appData, allowDelete: false) {
+                    self.mergeWithRemoteData(serverMerged)
+                }
+            }
+        } catch {
+            print("Cloud sync error: \(error.localizedDescription)")
+        }
+    }
+
+    func mergeWithRemoteData(_ remote: AppData) {
+        var mergedLists = self.appData.lists
+
+        // Non-destructively union remote lists with local lists
+        for remoteList in remote.lists {
+            if let localIdx = mergedLists.firstIndex(where: { local in
+                local.id == remoteList.id
+                || (local.isTodo && remoteList.isTodo)
+                || (local.isWeekly && remoteList.isWeekly)
+                || (!local.isTodo && !local.isWeekly && !remoteList.isTodo && !remoteList.isWeekly
+                    && local.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                        == remoteList.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                    && local.emoji == remoteList.emoji)
+            }) {
+                var target = mergedLists[localIdx]
+                for rTask in remoteList.tasks {
+                    if let tIdx = target.tasks.firstIndex(where: { lt in
+                        lt.id == rTask.id
+                        || lt.title.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                            == rTask.title.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                    }) {
+                        target.tasks[tIdx].isCompleted = target.tasks[tIdx].isCompleted || rTask.isCompleted
+                        target.tasks[tIdx].manuallyCompleted = target.tasks[tIdx].manuallyCompleted || rTask.manuallyCompleted
+                    } else {
+                        target.tasks.append(rTask)
+                    }
+                }
+                target.recalculateWeights()
+                mergedLists[localIdx] = target
+            } else {
+                var newList = remoteList
+                newList.recalculateWeights()
+                mergedLists.append(newList)
+            }
+        }
+
+        self.appData.lists = mergedLists
+
+        if self.appData.activeListID == nil || !self.appData.lists.contains(where: { $0.id == self.appData.activeListID }) {
+            if let remoteActive = remote.activeListID, self.appData.lists.contains(where: { $0.id == remoteActive }) {
+                self.appData.activeListID = remoteActive
+            } else {
+                self.appData.activeListID = self.appData.lists.first(where: { !$0.isTodo && !$0.isWeekly })?.id ?? self.appData.lists.first?.id
+            }
+        }
+
+        // Union daily snapshots by (listID, calendar day), keeping max completionFraction
+        if !remote.snapshots.isEmpty {
+            let cal = Calendar.current
+            var snapMap: [String: DailySnapshot] = [:]
+            for snap in (self.appData.snapshots + remote.snapshots) {
+                let dayStart = cal.startOfDay(for: snap.date)
+                let key = "\(snap.listID.uuidString)_\(Int(dayStart.timeIntervalSince1970))"
+                if let existing = snapMap[key] {
+                    if snap.completionFraction >= existing.completionFraction {
+                        snapMap[key] = snap
+                    }
+                } else {
+                    snapMap[key] = snap
+                }
+            }
+            self.appData.snapshots = snapMap.values.sorted(by: { $0.date < $1.date })
+        }
+
+        // Non-destructively merge weeklyPlan
+        if let remotePlan = remote.weeklyPlan {
+            var currentPlan = self.appData.weeklyPlan ?? WeeklyPlan(weekStartDate: WeeklyPlan.currentWeekStart())
+            if currentPlan.northStar.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !remotePlan.northStar.isEmpty {
+                currentPlan.northStar = remotePlan.northStar
+            }
+            if currentPlan.weeklyTheme.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !remotePlan.weeklyTheme.isEmpty {
+                currentPlan.weeklyTheme = remotePlan.weeklyTheme
+            }
+            if currentPlan.weeklyReward.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !remotePlan.weeklyReward.isEmpty {
+                currentPlan.weeklyReward = remotePlan.weeklyReward
+            }
+            for (dayKey, focusText) in remotePlan.dailyFocus {
+                if (currentPlan.dailyFocus[dayKey] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !focusText.isEmpty {
+                    currentPlan.dailyFocus[dayKey] = focusText
+                }
+            }
+            for (dayKey, loadVal) in remotePlan.dayLoads where currentPlan.dayLoads[dayKey] == nil {
+                currentPlan.dayLoads[dayKey] = loadVal
+            }
+            for idx in 0..<min(currentPlan.mustDoTasks.count, remotePlan.mustDoTasks.count) {
+                if currentPlan.mustDoTasks[idx].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !remotePlan.mustDoTasks[idx].isEmpty {
+                    currentPlan.mustDoTasks[idx] = remotePlan.mustDoTasks[idx]
+                }
+            }
+            for idx in 0..<min(currentPlan.antiGoals.count, remotePlan.antiGoals.count) {
+                if currentPlan.antiGoals[idx].trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !remotePlan.antiGoals[idx].isEmpty {
+                    currentPlan.antiGoals[idx] = remotePlan.antiGoals[idx]
+                }
+            }
+            self.appData.weeklyPlan = currentPlan
+        }
+
+        for idx in self.appData.lists.indices {
+            self.appData.lists[idx].recalculateWeights()
+        }
+        PersistenceManager.shared.saveImmediately(self.appData, pushToCloud: false)
+        syncPublished()
     }
 
     init() {
@@ -152,8 +284,16 @@ final class AppViewModel: ObservableObject {
         snapshotTodayIfNeeded()
         checkForDailyRecap()
         cachedBestStreak = computeBestStreak()
+        #if os(iOS)
         WatchSessionManager.shared.onCompletion = { [weak self] message in
             self?.applyWatchCompletion(message)
+        }
+        #endif
+
+        if AuthService.shared.isAuthenticated {
+            Task { [weak self] in
+                await self?.syncWithCloud()
+            }
         }
     }
 
@@ -245,7 +385,9 @@ final class AppViewModel: ObservableObject {
 
     /// Watch writes are narrow, conditional operations, never whole-store replacement.
     func applyWatchCompletion(_ message: [String: Any]) {
+        #if os(iOS)
         defer { WatchSessionManager.shared.pushToWatch(appData) }
+        #endif
         guard let operationID = message["operationID"] as? String,
               UUID(uuidString: operationID) != nil else { return }
         var processed = sharedDefaults.stringArray(forKey: "watch_completion_operations") ?? []
@@ -303,8 +445,7 @@ final class AppViewModel: ObservableObject {
                         self.syncPublished()
                         PersistenceManager.shared.saveImmediately(self.appData)
 
-                        let gen = UINotificationFeedbackGenerator()
-                        gen.notificationOccurred(.success)
+                        HapticFeedback.trigger(.success)
                     }
                 }
             }
@@ -1037,6 +1178,7 @@ final class AppViewModel: ObservableObject {
         showReviewPrompt = false
         Analytics.logEvent("review_prompt_tapped", parameters: ["destination": "app_store"])
         if let url = ReviewPromptManager.reviewURL {
+            #if os(iOS)
             UIApplication.shared.open(url) { opened in
                 Task { @MainActor in
                     if opened {
@@ -1045,6 +1187,13 @@ final class AppViewModel: ObservableObject {
                     Analytics.logEvent(opened ? "review_link_opened" : "review_link_failed", parameters: nil)
                 }
             }
+            #elseif os(macOS)
+            let opened = NSWorkspace.shared.open(url)
+            if opened {
+                ReviewPromptManager.shared.recordReviewLinkOpened()
+            }
+            Analytics.logEvent(opened ? "review_link_opened" : "review_link_failed", parameters: nil)
+            #endif
         }
     }
 

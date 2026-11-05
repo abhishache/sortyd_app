@@ -436,8 +436,8 @@ struct OnboardingShowcaseView: View {
             Page2Card(teal: teal, violet: violet, cardReady: cardReady,
                       isActive: currentPage == 3, isDark: isDark, l: l).tag(3)
         }
-        .tabViewStyle(.page(indexDisplayMode: .never))
-        .frame(height: UIDevice.current.userInterfaceIdiom == .pad ? 450 : 300)
+        .sortydPageTabViewStyle()
+        .frame(height: isPad ? 450 : 300)
         // ── 3D floating tilt ──────────────────────────────────────────────
         // Gentle X-axis rock (forward/back lean)
         .rotation3DEffect(
@@ -621,8 +621,7 @@ struct OnboardingShowcaseView: View {
 
     private var ctaButton: some View {
         Button {
-            let impact = UIImpactFeedbackGenerator(style: .medium)
-            impact.impactOccurred()
+            HapticFeedback.trigger(.medium)
             withAnimation(.spring(response: 0.16, dampingFraction: 0.52)) { buttonDown = true }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.13) {
                 withAnimation(.spring(response: 0.28, dampingFraction: 0.58)) { buttonDown = false }
@@ -689,8 +688,7 @@ struct OnboardingShowcaseView: View {
                 VStack(spacing: 12) {
                     ForEach(AppLanguage.allCases, id: \.self) { lang in
                         Button {
-                            let impact = UIImpactFeedbackGenerator(style: .light)
-                            impact.impactOccurred()
+                            HapticFeedback.trigger(.light)
                             vm.setLanguage(lang)
                         } label: {
                             HStack {

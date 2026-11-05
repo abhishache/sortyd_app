@@ -54,6 +54,7 @@ struct LaunchBufferView: View {
 
     @ViewBuilder
     private var iconView: some View {
+        #if os(iOS)
         if #available(iOS 26.0, *) {
             // Native Liquid Glass — lenses and refracts the background
             Image("AppIcon")
@@ -69,33 +70,40 @@ struct LaunchBufferView: View {
                 .shadow(color: teal.opacity(glowPulse ? 0.25 : 0.08), radius: 28, y: 8)
                 .shadow(color: .black.opacity(0.2), radius: 16, y: 10)
         } else {
-            // Fallback for iOS < 26 — ultraThinMaterial approximation
-            Image("AppIcon")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 72, height: 72)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                .padding(16)
-                .background(
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 28, style: .continuous)
-                            .fill(.ultraThinMaterial)
-                        RoundedRectangle(cornerRadius: 28, style: .continuous)
-                            .fill(teal.opacity(0.06))
-                        RoundedRectangle(cornerRadius: 28, style: .continuous)
-                            .strokeBorder(
-                                LinearGradient(
-                                    colors: [.white.opacity(0.25), .white.opacity(0.05)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 0.8
-                            )
-                    }
-                )
-                .shadow(color: teal.opacity(glowPulse ? 0.15 : 0.06), radius: 24, y: 8)
-                .shadow(color: .black.opacity(0.25), radius: 20, y: 12)
+            fallbackIconView
         }
+        #else
+        fallbackIconView
+        #endif
+    }
+
+    @ViewBuilder
+    private var fallbackIconView: some View {
+        Image("AppIcon")
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 72, height: 72)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .padding(16)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .fill(teal.opacity(0.06))
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [.white.opacity(0.25), .white.opacity(0.05)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 0.8
+                        )
+                }
+            )
+            .shadow(color: teal.opacity(glowPulse ? 0.15 : 0.06), radius: 24, y: 8)
+            .shadow(color: .black.opacity(0.25), radius: 20, y: 12)
     }
 }
 

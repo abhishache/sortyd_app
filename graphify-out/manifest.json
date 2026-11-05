@@ -1,291 +1,1194 @@
 {
-  "update_strings_3.py": 1778236011.0,
-  "update_strings_2.py": 1778236011.0,
-  "website/i18n.js": 1779137607.05,
-  "cloudflare/sortyd-proxy/worker.js": 1793828514.4228103,
-  "tests/AICoachTestTelemetry.swift": 1793827486.288021,
-  "tests/CalendarDayLabelTests.swift": 1789903239.3778532,
-  "tests/CrashRegressionTests.swift": 1793825856.1306996,
-  "tests/LocalizationCatalogTests.py": 1793828356.7033834,
-  "tests/ReminderPolicyTests.swift": 1788936694.090251,
-  "tests/AICoachCacheTests.swift": 1793827747.0788996,
-  "tests/HistoryPolicyTests.swift": 1789903556.1596937,
-  "tests/AICoachLiveChecks.swift": 1793827747.0790696,
-  "tests/AIWorkerTests.mjs": 1793828288.8481817,
-  "ios/SortydWidgetExtension/WidgetMonthly.swift": 1778236009.0,
-  "ios/SortydWidgetExtension/WidgetMedium.swift": 1778236009.0,
-  "ios/SortydWidgetExtension/WidgetSmall.swift": 1778236009.0,
-  "ios/SortydWidgetExtension/WidgetColors.swift": 1778236009.0,
-  "ios/SortydWidgetExtension/WidgetLockScreen.swift": 1778236009.0,
-  "ios/SortydWidgetExtension/WidgetLarge.swift": 1778236009.0,
-  "ios/SortydWidgetExtension/WidgetMultiList.swift": 1778236009.0,
-  "ios/SortydWidgetExtension/SortydWidgetBundle.swift": 1778236009.0,
-  "ios/SortydWidgetExtension/WidgetSharedData.swift": 1779060025.19,
-  "ios/SortydWatch Watch App/WatchProgressView.swift": 1779106795.64,
-  "ios/SortydWatch Watch App/SortydWatchApp.swift": 1778236009.0,
-  "ios/SortydWatch Watch App/WatchTaskListView.swift": 1779106801.91,
-  "ios/SortydWatch Watch App/WatchContentView.swift": 1778236009.0,
-  "ios/SortydWatch Watch App/WatchStore.swift": 1788936693.958815,
-  "ios/SortydWatch Watch App/SortydWatch Watch App-Bridging-Header.h": 1778236009.0,
-  "ios/Sortyd/WatchSessionManager.swift": 1788936694.0026379,
-  "ios/Sortyd/SortydApp.swift": 1793825627.5279608,
-  "ios/Sortyd/ContentView.swift": 1793825223.2431285,
-  "ios/Sortyd/ViewModels/AppViewModel.swift": 1793825816.4753497,
-  "ios/Sortyd/Models/Models.swift": 1793824933.6246347,
-  "ios/Sortyd/Utilities/ViewExtensions.swift": 1778236009.0,
-  "ios/Sortyd/Utilities/CompletionPolicy.swift": 1793824899.9591513,
-  "ios/Sortyd/Utilities/AppTelemetry.swift": 1793825223.1582649,
-  "ios/Sortyd/Utilities/NotificationManager.swift": 1788936873.3529468,
-  "ios/Sortyd/Utilities/CalendarDayLabel.swift": 1789903239.2770998,
-  "ios/Sortyd/Utilities/ReviewPromptManager.swift": 1793824933.5635276,
-  "ios/Sortyd/Utilities/ReminderPolicy.swift": 1789903515.9861655,
-  "ios/Sortyd/Utilities/AppLocalization.swift": 1793825816.450859,
-  "ios/Sortyd/Utilities/HistoryPolicy.swift": 1789903516.1217308,
-  "ios/Sortyd/Utilities/HealthKitManager.swift": 1793825832.903213,
-  "ios/Sortyd/Utilities/Theme.swift": 1788254692.3812845,
-  "ios/Sortyd/Utilities/StarterTaskDraft.swift": 1793824971.952195,
-  "ios/Sortyd/Components/Components.swift": 1793825832.9054222,
-  "ios/Sortyd/AI/AICoach.swift": 1793828369.6157236,
-  "ios/Sortyd/Persistence/PersistenceManager.swift": 1789903516.3149571,
-  "ios/Sortyd/Views/HealthTaskViews.swift": 1779106853.59,
-  "ios/Sortyd/Views/HomeView.swift": 1793825832.9039767,
-  "ios/Sortyd/Views/ListManagementView.swift": 1793824992.952486,
-  "ios/Sortyd/Views/OnboardingShowcaseView.swift": 1779132028.6000001,
-  "ios/Sortyd/Views/AnalyticsView.swift": 1793825832.904364,
-  "ios/Sortyd/Views/ReviewPromptView.swift": 1793826345.1694229,
-  "ios/Sortyd/Views/AITaskEntryView.swift": 1793825144.1947176,
-  "ios/Sortyd/Views/AICoachView.swift": 1793827857.1175823,
-  "ios/Sortyd/Views/WeeklyPlannerView.swift": 1789903239.3275871,
-  "ios/Sortyd/Views/LaunchBufferView.swift": 1778236009.0,
-  "scratch/generate_foreground_svg.py": 1778236099.0,
-  "scratch/test_detection.swift": 1778236011.0,
-  "scratch/generate_padded_svg.py": 1778236099.0,
-  "scratch/update_translations_v2.py": 1778236011.0,
-  "scratch/generate_light_svg.py": 1778236099.0,
-  "scratch/update_translations.py": 1778236011.0,
-  "scratch/check_translations.py": 1778236011.0,
-  "scratch/generate_clean_foreground.py": 1778236099.0,
-  "android/TestHmac2.java": 1778236099.0,
-  "android/test_hmac.kt": 1778236099.0,
-  "android/TestHmac.java": 1778236099.0,
-  "android/test_ai.py": 1778236099.0,
-  "android/test_ai_ua.py": 1778236099.0,
-  "android/build.gradle.kts": 1778236099.0,
-  "android/settings.gradle.kts": 1778236099.0,
-  "android/app/build.gradle.kts": 1788253970.651464,
-  "android/app/src/test/java/com/sortyd/app/SnapshotTest.kt": 1778236099.0,
-  "android/app/src/test/java/com/sortyd/app/StreakCalculationTest.kt": 1778236099.0,
-  "android/app/src/test/java/com/sortyd/app/TaskListTest.kt": 1778236099.0,
-  "android/app/src/test/java/com/sortyd/app/ReminderPolicyTest.kt": 1788936540.1728675,
-  "android/app/src/test/java/com/sortyd/app/HealthTaskTypeTest.kt": 1778236099.0,
-  "android/app/src/main/java/com/sortyd/app/MainActivity.kt": 1788256662.7938266,
-  "android/app/src/main/java/com/sortyd/app/SortydApplication.kt": 1788256483.4072382,
-  "android/app/src/main/java/com/sortyd/app/LaunchActivity.kt": 1780875054.26,
-  "android/app/src/main/java/com/sortyd/app/viewmodel/SortydViewModel.kt": 1788936835.1712377,
-  "android/app/src/main/java/com/sortyd/app/ui/PreviewMocks.kt": 1779369494.6200001,
-  "android/app/src/main/java/com/sortyd/app/ui/sheets/DayDetailSheet.kt": 1789903516.369311,
-  "android/app/src/main/java/com/sortyd/app/ui/overlays/GhostDayOverlay.kt": 1780866611.55,
-  "android/app/src/main/java/com/sortyd/app/ui/screens/home/WeeklyPlannerSection.kt": 1779359299.73,
-  "android/app/src/main/java/com/sortyd/app/ui/screens/home/HomeScreen.kt": 1789903556.0353124,
-  "android/app/src/main/java/com/sortyd/app/ui/screens/lists/ListsScreen.kt": 1780867348.14,
-  "android/app/src/main/java/com/sortyd/app/ui/screens/lists/AIStarterListScreen.kt": 1780865893.48,
-  "android/app/src/main/java/com/sortyd/app/ui/screens/lists/ListDetailScreen.kt": 1780866575.34,
-  "android/app/src/main/java/com/sortyd/app/ui/screens/coach/CoachScreen.kt": 1788254743.6149268,
-  "android/app/src/main/java/com/sortyd/app/ui/screens/onboarding/OnboardingScreen.kt": 1778236099.0,
-  "android/app/src/main/java/com/sortyd/app/ui/screens/analytics/AnalyticsScreen.kt": 1788254743.5454338,
-  "android/app/src/main/java/com/sortyd/app/ui/components/HeatmapCalendar.kt": 1780866554.49,
-  "android/app/src/main/java/com/sortyd/app/ui/components/Components.kt": 1788254692.6326516,
-  "android/app/src/main/java/com/sortyd/app/ui/components/CheatBlockPopup.kt": 1778236099.0,
-  "android/app/src/main/java/com/sortyd/app/ui/theme/Shape.kt": 1778236099.0,
-  "android/app/src/main/java/com/sortyd/app/ui/theme/Color.kt": 1778698500.32,
-  "android/app/src/main/java/com/sortyd/app/ui/theme/Theme.kt": 1778698502.3700001,
-  "android/app/src/main/java/com/sortyd/app/ui/theme/Type.kt": 1778236099.0,
-  "android/app/src/main/java/com/sortyd/app/ui/localization/SortydStrings.kt": 1780866645.81,
-  "android/app/src/main/java/com/sortyd/app/widget/WidgetToggleHelper.kt": 1778236099.0,
-  "android/app/src/main/java/com/sortyd/app/widget/SortydWidgetReceiver.kt": 1778236099.0,
-  "android/app/src/main/java/com/sortyd/app/widget/WidgetManager.kt": 1778236099.0,
-  "android/app/src/main/java/com/sortyd/app/widget/SortydHeatmapWidget.kt": 1778236099.0,
-  "android/app/src/main/java/com/sortyd/app/widget/SortydMediumWidget.kt": 1778236099.0,
-  "android/app/src/main/java/com/sortyd/app/widget/WidgetUtils.kt": 1778236099.0,
-  "android/app/src/main/java/com/sortyd/app/widget/SortydLargeWidget.kt": 1778236099.0,
-  "android/app/src/main/java/com/sortyd/app/widget/SortydWidget.kt": 1778236099.0,
-  "android/app/src/main/java/com/sortyd/app/navigation/SortydNavigation.kt": 1788256662.7389448,
-  "android/app/src/main/java/com/sortyd/app/data/AICoach.kt": 1788258182.257166,
-  "android/app/src/main/java/com/sortyd/app/data/repository/SortydRepository.kt": 1788936835.1241055,
-  "android/app/src/main/java/com/sortyd/app/data/preferences/UserPreferences.kt": 1778775309.78,
-  "android/app/src/main/java/com/sortyd/app/data/model/TaskListEntity.kt": 1778236099.0,
-  "android/app/src/main/java/com/sortyd/app/data/model/TaskEntity.kt": 1779359463.8799999,
-  "android/app/src/main/java/com/sortyd/app/data/model/Models.kt": 1779172213.3,
-  "android/app/src/main/java/com/sortyd/app/data/model/WidgetData.kt": 1778236099.0,
-  "android/app/src/main/java/com/sortyd/app/data/model/SnapshotEntity.kt": 1788256632.6535962,
-  "android/app/src/main/java/com/sortyd/app/data/db/SortydDatabase.kt": 1788256632.8259947,
-  "android/app/src/main/java/com/sortyd/app/data/db/SortydDao.kt": 1788936352.8412905,
-  "android/app/src/main/java/com/sortyd/app/services/HealthSyncWorker.kt": 1788936694.0468502,
-  "android/app/src/main/java/com/sortyd/app/services/ReminderManager.kt": 1788936835.2176094,
-  "android/app/src/main/java/com/sortyd/app/services/DeviceUsageManager.kt": 1778715575.89,
-  "android/app/src/main/java/com/sortyd/app/services/HealthConnectManager.kt": 1778715582.19,
-  "android/app/src/main/java/com/sortyd/app/services/ReminderRescheduleReceiver.kt": 1788936318.1154506,
-  "android/app/src/main/java/com/sortyd/app/services/ReminderPolicy.kt": 1788936352.797166,
-  "android/app/src/main/java/com/sortyd/app/services/ReminderReceiver.kt": 1788936318.0716658,
-  "android/app/src/main/java/com/sortyd/app/services/ReviewPromptManager.kt": 1788258620.5640144,
-  "APP_STORE_METADATA.txt": 1780912613.41,
-  "AGENTS.md": 1781014657.26,
-  "website/index.html": 1781007782.52,
-  "website/robots.txt": 1781007381.52,
-  "website/privacy/index.html": 1779355020.77,
-  "website/features/index.html": 1781007782.51,
-  "website/features/smart-reminders/index.html": 1781007782.51,
-  "website/features/habit-tracker/index.html": 1781007782.51,
-  "website/features/behavioural-analytics/index.html": 1781007782.51,
-  "website/features/streak-tracker/index.html": 1781007782.51,
-  "website/features/to-do-list/index.html": 1781007782.51,
-  "website/features/life-pillars/index.html": 1781007782.51,
-  "website/features/weekly-planner/index.html": 1781007782.51,
-  "website/features/ai-habit-coach/index.html": 1781007782.51,
-  "website/features/apple-watch/index.html": 1781007782.51,
-  "website/blog/index.html": 1781007782.51,
-  "website/blog/best-habits-for-productivity/index.html": 1781007782.51,
-  "website/blog/why-habit-streaks-work/index.html": 1781007782.51,
-  "website/blog/how-to-track-habits-on-iphone/index.html": 1781007782.51,
-  "website/blog/smart-todo-list-daily-reset/index.html": 1779197363.96,
-  "website/blog/habit-tracker-for-adhd/index.html": 1781007782.51,
-  "website/blog/how-long-does-it-take-to-build-a-habit/index.html": 1781007782.51,
-  "website/blog/adhd-anxiety-habits/index.html": 1779198522.07,
-  "website/blog/habit-stacking-guide/index.html": 1781007782.51,
-  "website/blog/how-to-use-apple-watch-for-habits/index.html": 1781007782.51,
-  "website/blog/ai-vs-traditional-habit-trackers/index.html": 1781007782.51,
-  "website/blog/life-pillars-explained/index.html": 1781007782.51,
-  "website/blog/how-to-build-a-morning-routine/index.html": 1781007782.51,
-  "website/blog/ai-productivity-coach/index.html": 1779198513.14,
-  "website/blog/how-to-build-habits-that-stick/index.html": 1779197369.31,
-  "website/blog/ai-coaching-for-productivity/index.html": 1779197393.1499999,
-  "website/zh/index.html": 1781007782.51,
-  "website/zh/privacy/index.html": 1779355253.68,
-  "website/zh/blog/index.html": 1779197424.1499999,
-  "website/zh/blog/goal-analysis-progress/index.html": 1779197410.3500001,
-  "website/zh/blog/adhd-anxiety-habits/index.html": 1779198531.7,
-  "website/zh/blog/how-to-build-habits-that-stick/index.html": 1779197374.47,
-  "website/zh/support/index.html": 1779138506.56,
-  "website/support/index.html": 1779194776.07,
-  "website/download/index.html": 1781007782.51,
-  "website/ar/index.html": 1781007782.51,
-  "website/ar/privacy/index.html": 1779355228.52,
-  "website/ar/blog/index.html": 1779197343.0,
-  "website/ar/support/index.html": 1779194769.6299999,
-  "website/compare/sortyd-vs-habitica/index.html": 1781007782.51,
-  "website/compare/best-free-habit-tracker-apps/index.html": 1781007782.51,
-  "website/compare/sortyd-vs-habit-coach-ai/index.html": 1781007782.51,
-  "website/compare/sortyd-vs-productive/index.html": 1781007782.51,
-  "website/compare/sortyd-vs-loop-habit-tracker/index.html": 1781007782.51,
-  "website/for/morning-routine/index.html": 1781007782.51,
-  "website/for/fitness-habits/index.html": 1781007782.51,
-  "website/for/students/index.html": 1781007782.51,
-  "website/for/mental-health/index.html": 1781007782.51,
-  "website/for/productivity/index.html": 1781007782.51,
-  "website/glossary/index.html": 1781007782.51,
-  "website/es/index.html": 1781007782.51,
-  "website/es/privacy/index.html": 1779355119.36,
-  "website/es/blog/index.html": 1779198598.46,
-  "website/es/blog/mejores-apps-seguimiento-habitos/index.html": 1779198504.82,
-  "website/es/blog/smart-todo-list-daily-reset/index.html": 1779197358.91,
-  "website/es/support/index.html": 1779194681.86,
-  "docs/reminder-lifecycle-verification.md": 1788937060.0881066,
-  "docs/history-date-audit-2026-09-20.md": 1789903793.4206972,
-  "docs/sortyd-crash-fixes-2026-11-05.md": 1793859601.489446,
-  "docs/sortyd-analytics-crash-audit-2026-11-05.md": 1793826208.222736,
-  "docs/calendar-weekday-fix-2026-09-20.md": 1789903323.1399775,
-  "ios/Sortyd/RELEASE_NOTES.md": 1780912613.6000001,
-  "blog/adhd-anxiety-habits.md": 1779134035.61,
-  "blog/habit-tracking-science.md": 1779138538.93,
-  "blog/goal-analysis-progress.md": 1779138546.1299999,
-  "website/apple-touch-icon.png": 1780064523.96,
-  "website/og-image.png": 1780064563.24,
-  "website/logo.png": 1781007789.19,
-  "website/favicon-96.png": 1780064523.96,
-  "website/icon-512.png": 1780064523.96,
-  "docs/evidence/2026-11-05/app-store-1.7.7-submitted.jpg": 1793829679.3671017,
-  "docs/evidence/2026-11-05/review-zh.png": 1793826035.0335937,
-  "docs/evidence/2026-11-05/review-ar.png": 1793825925.0464883,
-  "docs/evidence/2026-11-05/review-en-dark.png": 1793826487.8614054,
-  "docs/evidence/2026-11-05/review-es.png": 1793825978.3981547,
-  "ios/Sortyd_Watch_Mockups/media__1778665591136.png": 1778670168.25,
-  "ios/Sortyd_Watch_Mockups/media__1778602701244.png": 1778670168.25,
-  "ios/Sortyd_Watch_Mockups/sortyd_watch_ui_premium_nudge_1778668455266.png": 1778670168.26,
-  "ios/Sortyd_Watch_Mockups/media__1778667832583.png": 1778670168.25,
-  "ios/Sortyd_Watch_Mockups/sortyd_watch_ui_premium_analysis_1778668267039.png": 1778670168.26,
-  "ios/Sortyd_Watch_Mockups/sortyd_watch_ui_premium_list_1778667895451.png": 1778670168.26,
-  "ios/Sortyd_Watch_Mockups/media__1778667758887.png": 1778670168.25,
-  "ios/Sortyd_Watch_Mockups/media__1778665923937.png": 1778670168.25,
-  "ios/Sortyd_Watch_Mockups/media__1778664386657.png": 1778670168.25,
-  "ios/IconSources/Dark.png": 1778236011.0,
-  "ios/IconSources/Light.png": 1778236011.0,
-  "ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_102_2x.png": 1778236011.0,
-  "ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_24_2x.png": 1778236009.0,
-  "ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_258_2x.png": 1778236011.0,
-  "ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_98_2x.png": 1778236009.0,
-  "ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_86_2x.png": 1778236009.0,
-  "ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_108_2x.png": 1778236011.0,
-  "ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_44_2x.png": 1778236009.0,
-  "ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_29_3x.png": 1778236009.0,
-  "ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_234_2x.png": 1778236011.0,
-  "ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_46_2x.png": 1778236009.0,
-  "ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_29_2x.png": 1778236009.0,
-  "ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_216_2x.png": 1778236011.0,
-  "ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_33_2x.png": 1778236009.0,
-  "ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_50_2x.png": 1778236009.0,
-  "ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_1024_1x.png": 1778236009.0,
-  "ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_40_2x.png": 1778236009.0,
-  "ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_27_5_2x.png": 1778236009.0,
-  "ios/Sortyd/AppIcon.svg": 1778236009.0,
-  "ios/Sortyd/Assets.xcassets/AppIcon.imageset/AppIcon.svg": 1778236009.0,
-  "ios/Sortyd/Assets.xcassets/AppIcon.imageset/AppIcon 1.svg": 1778236009.0,
-  "ios/Sortyd/Assets.xcassets/AppIcon.imageset/AppIcon 2.svg": 1778236009.0,
-  "ios/Sortyd/Assets.xcassets/AppIcon.appiconset/icon_light_1024_1x.png": 1778236009.0,
-  "ios/Sortyd/Assets.xcassets/AppIcon.appiconset/icon_dark_1024_1x.png": 1778666395.01,
-  "ios/Sortyd/Assets.xcassets/AppIcon.appiconset/icon_tinted_1024_1x.png": 1778666520.73,
-  "scratch/Appicon_padded.svg": 1778236099.0,
-  "scratch/ic_launcher_foreground.svg": 1778236099.0,
-  "scratch/Appicon_foreground.svg": 1778236099.0,
-  "scratch/AppIcon.svg.png": 1778236099.0,
-  "scratch/Appicon_light.svg": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-mdpi/ic_launcher_light.png": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-mdpi/ic_launcher.png": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-hdpi/ic_launcher_light.png": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-hdpi/ic_launcher.png": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_light.png": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_light.png": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-xhdpi/ic_launcher_light.png": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png": 1778236099.0,
-  "scratch/android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png": 1778236099.0,
-  "android/app/src/main/ic_launcher-playstore.png": 1778236011.0,
-  "android/app/src/main/res/mipmap-mdpi/ic_launcher.webp": 1778236011.0,
-  "android/app/src/main/res/mipmap-mdpi/ic_launcher_round.webp": 1778236011.0,
-  "android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.webp": 1778236011.0,
-  "android/app/src/main/res/mipmap-hdpi/ic_launcher.webp": 1778236011.0,
-  "android/app/src/main/res/mipmap-hdpi/ic_launcher_round.webp": 1778236011.0,
-  "android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.webp": 1778236011.0,
-  "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp": 1778236011.0,
-  "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp": 1778236011.0,
-  "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.webp": 1778236011.0,
-  "android/app/src/main/res/mipmap-xxhdpi/ic_launcher.webp": 1778236011.0,
-  "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.webp": 1778236011.0,
-  "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.webp": 1778236011.0,
-  "android/app/src/main/res/mipmap-xhdpi/ic_launcher.webp": 1778236011.0,
-  "android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.webp": 1778236011.0,
-  "android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.webp": 1778236011.0,
-  "rise.wav": 1778236009.0,
-  "ios/Sortyd/gong.wav": 1788252957.0528677,
-  "ios/Sortyd/chime.wav": 1779363321.07,
-  "android/app/src/main/res/raw/chime.wav": 1779367020.3500001
+  "/Users/abhishek/Desktop/sortyd/update_strings_3.py": {
+    "mtime": 1778236011.0,
+    "hash": "654fdd4e39844e5d2fbb6d85581bba41"
+  },
+  "/Users/abhishek/Desktop/sortyd/update_strings_2.py": {
+    "mtime": 1778236011.0,
+    "hash": "d4f7d883fab75b4ee0e4400853e3e794"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/i18n.js": {
+    "mtime": 1779137607.05,
+    "hash": "b2cd5205516821b9eecc08fc75e860e0"
+  },
+  "/Users/abhishek/Desktop/sortyd/cloudflare/sortyd-proxy/worker.js": {
+    "mtime": 1793875308.8419497,
+    "hash": "24161e29930bc8fbee866bf0a7fcf44e"
+  },
+  "/Users/abhishek/Desktop/sortyd/tests/AICoachTestTelemetry.swift": {
+    "mtime": 1793827486.288021,
+    "hash": "1f536f177606907ea27afbc7d90fa15d"
+  },
+  "/Users/abhishek/Desktop/sortyd/tests/CalendarDayLabelTests.swift": {
+    "mtime": 1789903239.3778532,
+    "hash": "38b5134ab712516757034009c49335f7"
+  },
+  "/Users/abhishek/Desktop/sortyd/tests/CrashRegressionTests.swift": {
+    "mtime": 1793825856.1306996,
+    "hash": "441148a676274382662fa449cef9e8d3"
+  },
+  "/Users/abhishek/Desktop/sortyd/tests/LocalizationCatalogTests.py": {
+    "mtime": 1793828356.7033834,
+    "hash": "cabb92be167cc0ac3cbfae081801e4a6"
+  },
+  "/Users/abhishek/Desktop/sortyd/tests/ReminderPolicyTests.swift": {
+    "mtime": 1788936694.090251,
+    "hash": "9e2833ba040ce8803776353fdba3d5de"
+  },
+  "/Users/abhishek/Desktop/sortyd/tests/AICoachCacheTests.swift": {
+    "mtime": 1793827747.0788996,
+    "hash": "49e8070df42768d2a766469bb049f647"
+  },
+  "/Users/abhishek/Desktop/sortyd/tests/HistoryPolicyTests.swift": {
+    "mtime": 1789903556.1596937,
+    "hash": "36bb4df22a789090e54a5bc60d58882b"
+  },
+  "/Users/abhishek/Desktop/sortyd/tests/AICoachLiveChecks.swift": {
+    "mtime": 1793827747.0790696,
+    "hash": "087b59124e328f76a368cc6f21259753"
+  },
+  "/Users/abhishek/Desktop/sortyd/tests/AIWorkerTests.mjs": {
+    "mtime": 1793828288.8481817,
+    "hash": "f08b265c15087bdb3948459cc0f0a888"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWidgetExtension/WidgetMonthly.swift": {
+    "mtime": 1778236009.0,
+    "hash": "3f9235e6dc390aee6f3ad7cd1bd0db09"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWidgetExtension/WidgetMedium.swift": {
+    "mtime": 1778236009.0,
+    "hash": "3659d6670a510b6d23137d0113caf776"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWidgetExtension/WidgetSmall.swift": {
+    "mtime": 1778236009.0,
+    "hash": "451d58a7f3f10d8679908f10c597c895"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWidgetExtension/WidgetColors.swift": {
+    "mtime": 1778236009.0,
+    "hash": "50de83cdbd61b4d6da9f1694ae96ddd6"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWidgetExtension/WidgetLockScreen.swift": {
+    "mtime": 1778236009.0,
+    "hash": "1b7c96e0b00c2cff6c2feb561e31dbd3"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWidgetExtension/WidgetLarge.swift": {
+    "mtime": 1778236009.0,
+    "hash": "849860569474604d2937e287898377ea"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWidgetExtension/WidgetMultiList.swift": {
+    "mtime": 1778236009.0,
+    "hash": "4589b6352c96e51b25ae34099d10f45a"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWidgetExtension/SortydWidgetBundle.swift": {
+    "mtime": 1778236009.0,
+    "hash": "7dec4ffb8e024d8209dee9cd37129900"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWidgetExtension/WidgetSharedData.swift": {
+    "mtime": 1779060025.19,
+    "hash": "a35a87f68b4663f844f406eeafedc94d"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/WatchProgressView.swift": {
+    "mtime": 1779106795.64,
+    "hash": "9ac713443b4e8f4eea93a9124daf6380"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/SortydWatchApp.swift": {
+    "mtime": 1778236009.0,
+    "hash": "4e4683c2971be3e4371812332422ae86"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/WatchTaskListView.swift": {
+    "mtime": 1793870680.039139,
+    "hash": "7bda8e987659950d8f9f11b9d5a8173a"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/WatchContentView.swift": {
+    "mtime": 1778236009.0,
+    "hash": "5acf58b158ca55586be711a2310928a0"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/WatchStore.swift": {
+    "mtime": 1793870621.4899814,
+    "hash": "265a1eff9a521da4d0eb0afed679d9b4"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/SortydWatch Watch App-Bridging-Header.h": {
+    "mtime": 1778236009.0,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/WatchSessionManager.swift": {
+    "mtime": 1793862792.0539644,
+    "hash": "e4f60718effb3e690a26dc8c2b706382"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/SortydApp.swift": {
+    "mtime": 1793870041.7261817,
+    "hash": "ba6f7804896d94cc265ca43022ee0cd6"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/ContentView.swift": {
+    "mtime": 1793870009.8990843,
+    "hash": "8c2a13fafe2f985065fa04945f54bcf7"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/ViewModels/AppViewModel.swift": {
+    "mtime": 1793870424.2925189,
+    "hash": "4d6746a2202fd5550a126178e031f365"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Models/Models.swift": {
+    "mtime": 1793871963.5699365,
+    "hash": "129c875162019d5120072dafc393e206"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Utilities/ViewExtensions.swift": {
+    "mtime": 1778236009.0,
+    "hash": "8e042ed5512d4da54728a71335ec851b"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Utilities/CompletionPolicy.swift": {
+    "mtime": 1793824899.9591513,
+    "hash": "ca168370c7aa517dba013b58e70494c5"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Utilities/AppTelemetry.swift": {
+    "mtime": 1793825223.1582649,
+    "hash": "a7c209c7a69050031f1f6aa5dc5e3e51"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Utilities/NotificationManager.swift": {
+    "mtime": 1793863990.1845846,
+    "hash": "abaf3bc55fa5173c46f03d6ab7054401"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Utilities/CalendarDayLabel.swift": {
+    "mtime": 1789903239.2770998,
+    "hash": "527f817bc392d1db6283870c6cf19571"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Utilities/ReviewPromptManager.swift": {
+    "mtime": 1793824933.5635276,
+    "hash": "eeed0e29a0d7305b383fc7f7b8bc0fc2"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Utilities/ReminderPolicy.swift": {
+    "mtime": 1789903515.9861655,
+    "hash": "f9c575690f6d5acea26b7b5c4845b379"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Utilities/AppLocalization.swift": {
+    "mtime": 1793825816.450859,
+    "hash": "b8382fd9327d8b79871f5926cdb370ab"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Utilities/PlatformHelpers.swift": {
+    "mtime": 1793865304.412592,
+    "hash": "b714b72639dbddea4e135f2c295da8ef"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Utilities/HistoryPolicy.swift": {
+    "mtime": 1789903516.1217308,
+    "hash": "33d9eec6079ebd05c12858e788c22fdd"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Utilities/HealthKitManager.swift": {
+    "mtime": 1793825832.903213,
+    "hash": "02839424ad3d679c34eac54e6988d031"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Utilities/Theme.swift": {
+    "mtime": 1793863801.023304,
+    "hash": "97e902c4d0abd5dbfb296b23328d4364"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Utilities/StarterTaskDraft.swift": {
+    "mtime": 1793824971.952195,
+    "hash": "47f7a83ec826c7433a5e8eaa36d07394"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Components/Components.swift": {
+    "mtime": 1793874083.5260804,
+    "hash": "46a2673c7c5927a8873b55fca91981b7"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/AI/AICoach.swift": {
+    "mtime": 1793875829.39994,
+    "hash": "e518a51e4f8c7250cc2288d3d569cfce"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Persistence/PersistenceManager.swift": {
+    "mtime": 1793869464.953241,
+    "hash": "ec8001bdc5873606d14f858d60191cb0"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Views/HealthTaskViews.swift": {
+    "mtime": 1793874436.8593476,
+    "hash": "2c553a681afa5103e9dbb81580b711aa"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Views/HomeView.swift": {
+    "mtime": 1793866200.209236,
+    "hash": "aeea8d9c3d4ec3e0073b9fcfebecb8ee"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Views/AccountSheet.swift": {
+    "mtime": 1793874430.5635333,
+    "hash": "47fa04c1bdc8d246e02c3f20910d3d75"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Views/ListManagementView.swift": {
+    "mtime": 1793874331.5531182,
+    "hash": "120fd2d7e47fb695a2fe4d60f000bb6c"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Views/OnboardingShowcaseView.swift": {
+    "mtime": 1793864848.1252234,
+    "hash": "f392a422e8d851131736e2a2fe43a6f8"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Views/AnalyticsView.swift": {
+    "mtime": 1793874435.257075,
+    "hash": "e6d9c1fa2c6c164fe8fbb6afea8b3afc"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Views/ReviewPromptView.swift": {
+    "mtime": 1793826345.1694229,
+    "hash": "168126bcc8c64720a28bdc63e6db377e"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Views/AITaskEntryView.swift": {
+    "mtime": 1793865289.3544483,
+    "hash": "a644f267f922f7f3295d3ea3a4ad2725"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Views/AICoachView.swift": {
+    "mtime": 1793875640.1395993,
+    "hash": "2d8db4c081426a24fe8ca59c51221f01"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Views/WeeklyPlannerView.swift": {
+    "mtime": 1793874432.5159955,
+    "hash": "9580eb437e160d580593f2db0b5e6a3e"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Views/LaunchBufferView.swift": {
+    "mtime": 1793864606.7860296,
+    "hash": "cc5d92bb25c99deed7b2c8291f5bf56d"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Views/MacDesktopWorkspaceView.swift": {
+    "mtime": 1793874861.2810163,
+    "hash": "04da2395554da01c4f6d4f77e547ac42"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Services/AuthService.swift": {
+    "mtime": 1793869503.9059021,
+    "hash": "3ae2e50c678487e93829726445185990"
+  },
+  "/Users/abhishek/Desktop/sortyd/supabase/migrations/202611050001_sortyd_foundation.sql": {
+    "mtime": 1793869094.4664268,
+    "hash": "c867cc85871bb1fb53057f582f0b2385"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/generate_foreground_svg.py": {
+    "mtime": 1778236099.0,
+    "hash": "c9f5589f6dba9642ca712f11d980ebee"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/test_detection.swift": {
+    "mtime": 1778236011.0,
+    "hash": "7d00de2545b10d97f72bad1964141df9"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/generate_padded_svg.py": {
+    "mtime": 1778236099.0,
+    "hash": "c5507403df3e71ee7d5c5c84e9c0c336"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/update_translations_v2.py": {
+    "mtime": 1778236011.0,
+    "hash": "84c282f3eb1f855e5ed850e17928bc75"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/generate_light_svg.py": {
+    "mtime": 1778236099.0,
+    "hash": "6acbc1f25bcd2016818cfaa4fe6ca6ba"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/update_translations.py": {
+    "mtime": 1778236011.0,
+    "hash": "a5da5740f0a010eb27d961cee545bb42"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/check_translations.py": {
+    "mtime": 1778236011.0,
+    "hash": "46696111c7adea9a8f0d39c268e5dea3"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/generate_clean_foreground.py": {
+    "mtime": 1778236099.0,
+    "hash": "10897e6af2141ef66a45a6576d0f5773"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/TestHmac2.java": {
+    "mtime": 1778236099.0,
+    "hash": "2460fdd839924144b964f189b5e63ff3"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/test_hmac.kt": {
+    "mtime": 1778236099.0,
+    "hash": "ed8a87d4fe97ebcd055bd219ab82b7c6"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/TestHmac.java": {
+    "mtime": 1778236099.0,
+    "hash": "3d9ef37d9bccecc62175597b56ce6095"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/test_ai.py": {
+    "mtime": 1778236099.0,
+    "hash": "0c96ed6bf157b7e96caa81993dc87bae"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/test_ai_ua.py": {
+    "mtime": 1778236099.0,
+    "hash": "6aa61e176b73300fcbb46c9bc311b18e"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/gradlew": {
+    "mtime": 1778236099.0,
+    "hash": "45bf2667b1fbec0e07e42808dc662b6b"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/build.gradle.kts": {
+    "mtime": 1778236099.0,
+    "hash": "29687e9e723f9b9ceb9cac13c8839b91"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/settings.gradle.kts": {
+    "mtime": 1778236099.0,
+    "hash": "fbbef7a6ec0561bfdf0de332d707fba2"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/build.gradle.kts": {
+    "mtime": 1788253970.651464,
+    "hash": "02748f12b937d9070dd93d96552ad770"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/test/java/com/sortyd/app/SnapshotTest.kt": {
+    "mtime": 1778236099.0,
+    "hash": "39165c978b243626acb94812a54bf9d3"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/test/java/com/sortyd/app/StreakCalculationTest.kt": {
+    "mtime": 1778236099.0,
+    "hash": "6a717b8b67352ead0bda6aefde05e0d5"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/test/java/com/sortyd/app/TaskListTest.kt": {
+    "mtime": 1778236099.0,
+    "hash": "a5900a16b8a19c66a4daeae8025b7c52"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/test/java/com/sortyd/app/ReminderPolicyTest.kt": {
+    "mtime": 1788936540.1728675,
+    "hash": "a7c63e8669b91b342d4536d4d2356d46"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/test/java/com/sortyd/app/HealthTaskTypeTest.kt": {
+    "mtime": 1778236099.0,
+    "hash": "0dccfd2e18b877b36bce1120c166b08b"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/MainActivity.kt": {
+    "mtime": 1788256662.7938266,
+    "hash": "cf8787947720a42b4ef491dadf80f499"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/SortydApplication.kt": {
+    "mtime": 1788256483.4072382,
+    "hash": "d20a2504e2753975cda8562747256e02"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/LaunchActivity.kt": {
+    "mtime": 1780875054.26,
+    "hash": "941146bd4cc9fa5fd344a027e03078d6"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/viewmodel/SortydViewModel.kt": {
+    "mtime": 1793875714.8065603,
+    "hash": "67fbf3d8576f3670931341461f0ab8ea"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/PreviewMocks.kt": {
+    "mtime": 1779369494.6200001,
+    "hash": "d739e249f63ed8741063ab8d96be2c61"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/sheets/DayDetailSheet.kt": {
+    "mtime": 1789903516.369311,
+    "hash": "fdc4f0bb10f4617e2b819817944f08b9"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/sheets/AccountSheet.kt": {
+    "mtime": 1793870268.479357,
+    "hash": "215d9cffdec6ece69945145404e43105"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/overlays/GhostDayOverlay.kt": {
+    "mtime": 1780866611.55,
+    "hash": "10b74907ba4818f81a284dfc33cac4a6"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/screens/home/WeeklyPlannerSection.kt": {
+    "mtime": 1779359299.73,
+    "hash": "212c1223ac460abda6a6026852324958"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/screens/home/HomeScreen.kt": {
+    "mtime": 1793867043.6756465,
+    "hash": "c4df21d99bfd298a5a6a71187ed51089"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/screens/lists/ListsScreen.kt": {
+    "mtime": 1780867348.14,
+    "hash": "4c901055be9a2d79b5eb821638988658"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/screens/lists/AIStarterListScreen.kt": {
+    "mtime": 1780865893.48,
+    "hash": "ee723f9b1a380a10d14fe1463eab5712"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/screens/lists/ListDetailScreen.kt": {
+    "mtime": 1780866575.34,
+    "hash": "0928173e58c65fdccef0339215f5c3da"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/screens/coach/CoachScreen.kt": {
+    "mtime": 1793875717.9750185,
+    "hash": "f8472a600dc589c7e1586d1ab3588ec9"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/screens/onboarding/OnboardingScreen.kt": {
+    "mtime": 1778236099.0,
+    "hash": "340e01d3569cd140bb8624fa79913e99"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/screens/analytics/AnalyticsScreen.kt": {
+    "mtime": 1788254743.5454338,
+    "hash": "8abf2de0ffbe27b15dcab83ebb68ba79"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/components/HeatmapCalendar.kt": {
+    "mtime": 1780866554.49,
+    "hash": "24e78ed137050b8f48f29b09ee1f0e71"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/components/Components.kt": {
+    "mtime": 1788254692.6326516,
+    "hash": "c4dc8dfc573cf0e41b99cdaed620bba1"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/components/CheatBlockPopup.kt": {
+    "mtime": 1778236099.0,
+    "hash": "8e82fe85e2c2b727554150737f4e19e3"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/theme/Shape.kt": {
+    "mtime": 1778236099.0,
+    "hash": "12f510cca23b922b3643e0ab550d28eb"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/theme/Color.kt": {
+    "mtime": 1778698500.32,
+    "hash": "6ddb33c8201b724e99a2def5693b342a"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/theme/Theme.kt": {
+    "mtime": 1778698502.3700001,
+    "hash": "c2c963f8ecec60f8394915588957f6b3"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/theme/Type.kt": {
+    "mtime": 1778236099.0,
+    "hash": "a48c0344876be28f655092bb4c38ee66"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/ui/localization/SortydStrings.kt": {
+    "mtime": 1780866645.81,
+    "hash": "77b5dcd21aaff3ce4ba0d8e82424afc0"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/widget/WidgetToggleHelper.kt": {
+    "mtime": 1778236099.0,
+    "hash": "a61d496392dc2e5b607367d11e8cb7e8"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/widget/SortydWidgetReceiver.kt": {
+    "mtime": 1778236099.0,
+    "hash": "f813dbbf4f02c2b3aaa1d201ee995b63"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/widget/WidgetManager.kt": {
+    "mtime": 1778236099.0,
+    "hash": "d9f89a60cc20002723e6d34f425a92ad"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/widget/SortydHeatmapWidget.kt": {
+    "mtime": 1778236099.0,
+    "hash": "d012e0d4816f57a2672d400aa22a5379"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/widget/SortydMediumWidget.kt": {
+    "mtime": 1778236099.0,
+    "hash": "2403023c7b750d7833c62f19ab338a63"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/widget/WidgetUtils.kt": {
+    "mtime": 1778236099.0,
+    "hash": "1d8cbafcbfc63cb7768f5b9969325c4d"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/widget/SortydLargeWidget.kt": {
+    "mtime": 1778236099.0,
+    "hash": "5fdbbb01668732a8f37e7cc840d016e3"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/widget/SortydWidget.kt": {
+    "mtime": 1778236099.0,
+    "hash": "845bd70883ed604c2079d5e5628b8657"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/navigation/SortydNavigation.kt": {
+    "mtime": 1788256662.7389448,
+    "hash": "d534018cb39ed06d499d9a284811233d"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/data/AuthService.kt": {
+    "mtime": 1793870090.3296087,
+    "hash": "228b4beb446914ac2a22aec5f49523ba"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/data/AICoach.kt": {
+    "mtime": 1793875692.3294516,
+    "hash": "a42e28acf404f48a2f288da94876731d"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/data/repository/SortydRepository.kt": {
+    "mtime": 1793871421.7479935,
+    "hash": "94f82c866d041c570527a680ee3968a5"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/data/preferences/UserPreferences.kt": {
+    "mtime": 1793866573.6879,
+    "hash": "0e25b8e3ec2fe2e8433430dc367a6f66"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/data/model/TaskListEntity.kt": {
+    "mtime": 1778236099.0,
+    "hash": "22900b57a38c4ef7480b1255ebc05ee3"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/data/model/TaskEntity.kt": {
+    "mtime": 1779359463.8799999,
+    "hash": "5e6602fb8bbcb7b8171d1490e935f2a6"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/data/model/Models.kt": {
+    "mtime": 1779172213.3,
+    "hash": "9b8ff657eadaf611cd0ca24381f37464"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/data/model/WidgetData.kt": {
+    "mtime": 1778236099.0,
+    "hash": "95160f191489a44d5bb5d3d260d7668d"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/data/model/SnapshotEntity.kt": {
+    "mtime": 1788256632.6535962,
+    "hash": "5ff42ca785baf9d2e8370e553fb2dac3"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/data/db/SortydDatabase.kt": {
+    "mtime": 1788256632.8259947,
+    "hash": "6c66130dd697da0dcfc85094c933575e"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/data/db/SortydDao.kt": {
+    "mtime": 1788936352.8412905,
+    "hash": "fe2b8c0f627346a19bae1821c4ae91db"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/services/HealthSyncWorker.kt": {
+    "mtime": 1788936694.0468502,
+    "hash": "c5fdc2e726cc40f5548b20dd27abbd26"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/services/ReminderManager.kt": {
+    "mtime": 1788936835.2176094,
+    "hash": "21d04ae37da2ae090e539fa6e96a9294"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/services/DeviceUsageManager.kt": {
+    "mtime": 1778715575.89,
+    "hash": "fc986be3423af85e7a921f007074a88a"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/services/HealthConnectManager.kt": {
+    "mtime": 1778715582.19,
+    "hash": "fa4d797aa1b8640c9b365512c707f245"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/services/ReminderRescheduleReceiver.kt": {
+    "mtime": 1788936318.1154506,
+    "hash": "09c8131def8a4efda3dc9778b7bcfedd"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/services/ReminderPolicy.kt": {
+    "mtime": 1788936352.797166,
+    "hash": "2310a728ece9fb9abf51fd3a114cb949"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/services/ReminderReceiver.kt": {
+    "mtime": 1788936318.0716658,
+    "hash": "4da352f3d535c75129f06edf26d5d175"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/java/com/sortyd/app/services/ReviewPromptManager.kt": {
+    "mtime": 1788258620.5640144,
+    "hash": "b16685bd5221d161abfd8c657715df49"
+  },
+  "/Users/abhishek/Desktop/sortyd/scripts/install-mac-build.py": {
+    "mtime": 1793865752.981361,
+    "hash": "2d74ec17dad8076350b69e30262a7e29"
+  },
+  "/Users/abhishek/Desktop/sortyd/APP_STORE_METADATA.txt": {
+    "mtime": 1780912613.41,
+    "hash": "1f9f271221bb3ad73604937658900339"
+  },
+  "/Users/abhishek/Desktop/sortyd/AGENTS.md": {
+    "mtime": 1781014657.26,
+    "hash": "b720687d022a2d161c5d6608f7625d77"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/index.html": {
+    "mtime": 1781007782.52,
+    "hash": "df0091cb76fb081534ac4abc7bfb48d6"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/robots.txt": {
+    "mtime": 1781007381.52,
+    "hash": "5f510f1d8dcaa49d5fb5bbb8283166cb"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/privacy/index.html": {
+    "mtime": 1779355020.77,
+    "hash": "b6d92ac80b56c2695e5d17d5bd1c4003"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/features/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "a410cadc151f75f1c2b0942497f0e679"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/features/smart-reminders/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "d4aacac256f25809b45fc2fed13b655b"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/features/habit-tracker/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "9ee4c2d368b3e3a9b1c3437e09bd32c5"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/features/behavioural-analytics/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "b5ed7102f4f65a2fc17628ee0ab408bc"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/features/streak-tracker/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "1505935c1e10a2f5602378d6e643f1e2"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/features/to-do-list/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "0fc4f428188ee17ca2c2a0dcbb29ad38"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/features/life-pillars/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "09ab7b985f0d757d5c8939fd8df62128"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/features/weekly-planner/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "59168e47beb8383af179ea9e7b83db83"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/features/ai-habit-coach/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "1d53b460353455b1ae93cab878dbba9b"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/features/apple-watch/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "a1729442078ceec270415fedc2375213"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/blog/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "a2eb4fd04db3f643e8f167b56c29008c"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/blog/best-habits-for-productivity/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "120e0f2a0c607fe4c8f5a96a59a486c7"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/blog/why-habit-streaks-work/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "94f52d7a0f55c9fb69d3c83076e8002a"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/blog/how-to-track-habits-on-iphone/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "750e69af67473c84a1386191a7a5c4fa"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/blog/smart-todo-list-daily-reset/index.html": {
+    "mtime": 1779197363.96,
+    "hash": "07a5df33ec99543202677563b94f552c"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/blog/habit-tracker-for-adhd/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "dcd2fd4f9bdb7c0d264562fccf4e8eca"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/blog/how-long-does-it-take-to-build-a-habit/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "eea503447200888ddfe8016c31b3009e"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/blog/adhd-anxiety-habits/index.html": {
+    "mtime": 1779198522.07,
+    "hash": "568a6a44a730946f89614e37f0563f56"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/blog/habit-stacking-guide/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "c9734d71e6df3f395c4687511f2dc80f"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/blog/how-to-use-apple-watch-for-habits/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "a2462d0e1da9774ac12d42e8f6d081b0"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/blog/ai-vs-traditional-habit-trackers/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "919e0d3e8ea88c72e788d61dffe16c0b"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/blog/life-pillars-explained/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "666610113f369b809262abb8dc17fa4a"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/blog/how-to-build-a-morning-routine/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "efcd16115aa84bbb1a330019c443897e"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/blog/ai-productivity-coach/index.html": {
+    "mtime": 1779198513.14,
+    "hash": "719533b8e685ecc9c8c2b8d0241d450e"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/blog/how-to-build-habits-that-stick/index.html": {
+    "mtime": 1779197369.31,
+    "hash": "de75e1075ab250aefa19099ce72d136a"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/blog/ai-coaching-for-productivity/index.html": {
+    "mtime": 1779197393.1499999,
+    "hash": "0a658db39a60c2181c3857b572e5e3c5"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/zh/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "e27b89d9406ece67967bec9c92a2f83a"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/zh/privacy/index.html": {
+    "mtime": 1779355253.68,
+    "hash": "4a9e2a697357b5743ca9d2e4bb6502bf"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/zh/blog/index.html": {
+    "mtime": 1779197424.1499999,
+    "hash": "21a29eb833005cff287cf252b7fe8e22"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/zh/blog/goal-analysis-progress/index.html": {
+    "mtime": 1779197410.3500001,
+    "hash": "7513f61fbac1e34f132604fa6c2b9a95"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/zh/blog/adhd-anxiety-habits/index.html": {
+    "mtime": 1779198531.7,
+    "hash": "04430453cb8a502f1fefea8b5651ec12"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/zh/blog/how-to-build-habits-that-stick/index.html": {
+    "mtime": 1779197374.47,
+    "hash": "22aae619b0e3a371e9e57906df8f7377"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/zh/support/index.html": {
+    "mtime": 1779138506.56,
+    "hash": "50481e7292597f115140f33b115051b0"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/support/index.html": {
+    "mtime": 1779194776.07,
+    "hash": "dfb8bf3f7d6068ad9631421990e87875"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/download/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "f99303b812f500daec95e4e601e112c1"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/ar/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "164e8589333192e95537a1008a7c70a7"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/ar/privacy/index.html": {
+    "mtime": 1779355228.52,
+    "hash": "f2b993a743037f3f3db90ec03608518b"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/ar/blog/index.html": {
+    "mtime": 1779197343.0,
+    "hash": "ba5bc401d3fac8914b51ccf683ed594d"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/ar/support/index.html": {
+    "mtime": 1779194769.6299999,
+    "hash": "07632934ec3119fbc945fdf53ba0fc10"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/compare/sortyd-vs-habitica/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "62ab48a038fd9769f900a146aea8afb9"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/compare/best-free-habit-tracker-apps/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "6ea40b375e5e2362ca5df1b40a10ac7e"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/compare/sortyd-vs-habit-coach-ai/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "89624b4951bc8036c9814494f2db9506"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/compare/sortyd-vs-productive/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "512e3dfa63fde7e1760df770e54df697"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/compare/sortyd-vs-loop-habit-tracker/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "5a83471b663b54108fdb94fdad27948c"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/for/morning-routine/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "b7a14225de642eba9b29b8cb0f534117"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/for/fitness-habits/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "35949aee5ff3a0af8a392d5def71f8cf"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/for/students/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "5407bb9773d18655a19e40a42c9eee7c"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/for/mental-health/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "4ac82b534ddfa3b5e011716bd0a65050"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/for/productivity/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "d0f979a88870c9f1c6071e0c9b2dc13f"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/glossary/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "85516dbdc1fc88d6568315ac38151cbd"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/es/index.html": {
+    "mtime": 1781007782.51,
+    "hash": "bf1a379f7770f396204e2c55ed6c1304"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/es/privacy/index.html": {
+    "mtime": 1779355119.36,
+    "hash": "31f5cfc2fd0073625c63b7e1c054eb5f"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/es/blog/index.html": {
+    "mtime": 1779198598.46,
+    "hash": "0c6b42cb79ac580ae5f1b3b4ae343a96"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/es/blog/mejores-apps-seguimiento-habitos/index.html": {
+    "mtime": 1779198504.82,
+    "hash": "77c44d1ead48b6c5fda6c541e9096197"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/es/blog/smart-todo-list-daily-reset/index.html": {
+    "mtime": 1779197358.91,
+    "hash": "01dcf03a9e5adbac15d241c3688a693d"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/es/support/index.html": {
+    "mtime": 1779194681.86,
+    "hash": "0db77217f9fda201772abf404e6d6a8b"
+  },
+  "/Users/abhishek/Desktop/sortyd/docs/reminder-lifecycle-verification.md": {
+    "mtime": 1788937060.0881066,
+    "hash": "7be4f2dfd358a832a71d2bc9fccd0a4a"
+  },
+  "/Users/abhishek/Desktop/sortyd/docs/history-date-audit-2026-09-20.md": {
+    "mtime": 1789903793.4206972,
+    "hash": "1ff6c718e51178983aae59a61ec7e4f8"
+  },
+  "/Users/abhishek/Desktop/sortyd/docs/sortyd-crash-fixes-2026-11-05.md": {
+    "mtime": 1793859601.489446,
+    "hash": "8fd4966769b7f5909d064c9a26a3c548"
+  },
+  "/Users/abhishek/Desktop/sortyd/docs/sortyd-analytics-crash-audit-2026-11-05.md": {
+    "mtime": 1793826208.222736,
+    "hash": "ea8b0c2928210764f69be6b230b613f2"
+  },
+  "/Users/abhishek/Desktop/sortyd/docs/calendar-weekday-fix-2026-09-20.md": {
+    "mtime": 1789903323.1399775,
+    "hash": "90c040c92d64cec2983fdc8406ec1e64"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/RELEASE_NOTES.md": {
+    "mtime": 1780912613.6000001,
+    "hash": "eccd852eeabccd87a1303decd92b8d28"
+  },
+  "/Users/abhishek/Desktop/sortyd/blog/adhd-anxiety-habits.md": {
+    "mtime": 1779134035.61,
+    "hash": "9e556f45f5e87db76ca1bcdd8b517344"
+  },
+  "/Users/abhishek/Desktop/sortyd/blog/habit-tracking-science.md": {
+    "mtime": 1779138538.93,
+    "hash": "ab0eb6945be00d9b9d83161ad67aaa20"
+  },
+  "/Users/abhishek/Desktop/sortyd/blog/goal-analysis-progress.md": {
+    "mtime": 1779138546.1299999,
+    "hash": "c2e6bec309e9a62bf5da556289497cff"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/apple-touch-icon.png": {
+    "mtime": 1780064523.96,
+    "hash": "09a27d59723b6ebc57257041e81676d8"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/og-image.png": {
+    "mtime": 1780064563.24,
+    "hash": "ad8c75f227149fd8488f99b1f8d7344a"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/logo.png": {
+    "mtime": 1781007789.19,
+    "hash": "09a27d59723b6ebc57257041e81676d8"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/favicon-96.png": {
+    "mtime": 1780064523.96,
+    "hash": "5fc87e090218db9a1452ca1e9ee6ae1f"
+  },
+  "/Users/abhishek/Desktop/sortyd/website/icon-512.png": {
+    "mtime": 1780064523.96,
+    "hash": "ad8c75f227149fd8488f99b1f8d7344a"
+  },
+  "/Users/abhishek/Desktop/sortyd/docs/evidence/2026-11-05/app-store-1.7.7-submitted.jpg": {
+    "mtime": 1793829679.3671017,
+    "hash": "9516d961fd350f13ca5c204efb6ca992"
+  },
+  "/Users/abhishek/Desktop/sortyd/docs/evidence/2026-11-05/review-zh.png": {
+    "mtime": 1793826035.0335937,
+    "hash": "66d2a08dd4519c2cf41789291b032eca"
+  },
+  "/Users/abhishek/Desktop/sortyd/docs/evidence/2026-11-05/review-ar.png": {
+    "mtime": 1793825925.0464883,
+    "hash": "efb3e56a4f3360160937e9e98e28468c"
+  },
+  "/Users/abhishek/Desktop/sortyd/docs/evidence/2026-11-05/review-en-dark.png": {
+    "mtime": 1793826487.8614054,
+    "hash": "c9abce77421d4e8d09446f80ab6709ad"
+  },
+  "/Users/abhishek/Desktop/sortyd/docs/evidence/2026-11-05/review-es.png": {
+    "mtime": 1793825978.3981547,
+    "hash": "0d89851608f97cf5023ce4e0fc05b1c5"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd_Watch_Mockups/media__1778665591136.png": {
+    "mtime": 1778670168.25,
+    "hash": "a3c80f0c2dd86307ebc4857119d7a7ad"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd_Watch_Mockups/media__1778602701244.png": {
+    "mtime": 1778670168.25,
+    "hash": "267fc2da0ef81f8640668469e27e10ea"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd_Watch_Mockups/sortyd_watch_ui_premium_nudge_1778668455266.png": {
+    "mtime": 1778670168.26,
+    "hash": "b12f43738048a0c195642862a4cf53dd"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd_Watch_Mockups/media__1778667832583.png": {
+    "mtime": 1778670168.25,
+    "hash": "d5ddc005af88431ac1cdd348bc056603"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd_Watch_Mockups/sortyd_watch_ui_premium_analysis_1778668267039.png": {
+    "mtime": 1778670168.26,
+    "hash": "084f06777770030eaddfcf5c4ed7b2e1"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd_Watch_Mockups/sortyd_watch_ui_premium_list_1778667895451.png": {
+    "mtime": 1778670168.26,
+    "hash": "484fa3b76568a1fd21d77de639ffa17a"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd_Watch_Mockups/media__1778667758887.png": {
+    "mtime": 1778670168.25,
+    "hash": "5ddb29fbdf70aaf7fc4d486bfe0434d3"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd_Watch_Mockups/media__1778665923937.png": {
+    "mtime": 1778670168.25,
+    "hash": "4aa6dda7985e96ee69b6f596c3d68e3e"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd_Watch_Mockups/media__1778664386657.png": {
+    "mtime": 1778670168.25,
+    "hash": "98048f10add6f5dbd1d41aadfeed4ec3"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/IconSources/Dark.png": {
+    "mtime": 1778236011.0,
+    "hash": "30aa9c6abf22420e5836b5950c2e733a"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/IconSources/Light.png": {
+    "mtime": 1778236011.0,
+    "hash": "6700011b5e5cd2c9692efcc5e10f7952"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_102_2x.png": {
+    "mtime": 1778236011.0,
+    "hash": "e1c802ed4774cbb8bc428aaceb522948"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_24_2x.png": {
+    "mtime": 1778236009.0,
+    "hash": "32f70bd473d0add8883120fe7aa0baa8"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_258_2x.png": {
+    "mtime": 1778236011.0,
+    "hash": "215d4cb462ca2537c1064732dd3496aa"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_98_2x.png": {
+    "mtime": 1778236009.0,
+    "hash": "2148496ba7218ef7e1fd4d82b49ba873"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_86_2x.png": {
+    "mtime": 1778236009.0,
+    "hash": "c8651a5f50db7a43498cbb31526b56ff"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_108_2x.png": {
+    "mtime": 1778236011.0,
+    "hash": "583a39b78f7c75e929974659395cd34c"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_44_2x.png": {
+    "mtime": 1778236009.0,
+    "hash": "37779371fc01a55edc5eaf9f49d5b05a"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_29_3x.png": {
+    "mtime": 1778236009.0,
+    "hash": "9361248adb8cd7deec0468499c139576"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_234_2x.png": {
+    "mtime": 1778236011.0,
+    "hash": "94bba091ffbfe08fbecc76d0f5f3dbf3"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_46_2x.png": {
+    "mtime": 1778236009.0,
+    "hash": "49973ec74f7403d3fccab920489bfac8"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_29_2x.png": {
+    "mtime": 1778236009.0,
+    "hash": "7163d4ec7d74dc050aa0f11da80ffcdf"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_216_2x.png": {
+    "mtime": 1778236011.0,
+    "hash": "b8381acd88acde791fd640e2e4637a7f"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_33_2x.png": {
+    "mtime": 1778236009.0,
+    "hash": "c953a975a33843fdd4f57ee8c6ecc047"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_50_2x.png": {
+    "mtime": 1778236009.0,
+    "hash": "775a8a15e7085d650169ca2a513d3977"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_1024_1x.png": {
+    "mtime": 1778236009.0,
+    "hash": "6700011b5e5cd2c9692efcc5e10f7952"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_40_2x.png": {
+    "mtime": 1778236009.0,
+    "hash": "012dd4357b5c4fae4619f07df14b9328"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/SortydWatch Watch App/Assets.xcassets/AppIcon.appiconset/watch_27_5_2x.png": {
+    "mtime": 1778236009.0,
+    "hash": "31150338b35823601244ff4ba2025ded"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/AppIcon.svg": {
+    "mtime": 1778236009.0,
+    "hash": "23465a83e35dadec602508934923a7fc"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Assets.xcassets/AppIcon.imageset/AppIcon.svg": {
+    "mtime": 1778236009.0,
+    "hash": "23465a83e35dadec602508934923a7fc"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Assets.xcassets/AppIcon.imageset/AppIcon 1.svg": {
+    "mtime": 1778236009.0,
+    "hash": "23465a83e35dadec602508934923a7fc"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Assets.xcassets/AppIcon.imageset/AppIcon 2.svg": {
+    "mtime": 1778236009.0,
+    "hash": "23465a83e35dadec602508934923a7fc"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Assets.xcassets/AppIcon.appiconset/icon_light_1024_1x.png": {
+    "mtime": 1778236009.0,
+    "hash": "6700011b5e5cd2c9692efcc5e10f7952"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Assets.xcassets/AppIcon.appiconset/icon_dark_1024_1x.png": {
+    "mtime": 1778666395.01,
+    "hash": "30aa9c6abf22420e5836b5950c2e733a"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/Assets.xcassets/AppIcon.appiconset/icon_tinted_1024_1x.png": {
+    "mtime": 1778666520.73,
+    "hash": "898686d1719bf3c63b1ea785b14e90c0"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/Appicon_padded.svg": {
+    "mtime": 1778236099.0,
+    "hash": "5738f9265eeadc45c51cede106074d42"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/ic_launcher_foreground.svg": {
+    "mtime": 1778236099.0,
+    "hash": "69dc48e5f94246742822b217146a69cb"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/Appicon_foreground.svg": {
+    "mtime": 1778236099.0,
+    "hash": "a9b1be7e775ab49a08173cf64c78766d"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/AppIcon.svg.png": {
+    "mtime": 1778236099.0,
+    "hash": "2882a5ae94d34bd73ef55c942a0f63b6"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/Appicon_light.svg": {
+    "mtime": 1778236099.0,
+    "hash": "d5eb1c0d088454561c9c53844145139f"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png": {
+    "mtime": 1778236099.0,
+    "hash": "aa2a25632cf67b4316ce87e98fe0e19a"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-mdpi/ic_launcher_light.png": {
+    "mtime": 1778236099.0,
+    "hash": "907c202818a1b57d2b03cca671bd49da"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-mdpi/ic_launcher.png": {
+    "mtime": 1778236099.0,
+    "hash": "ac44365324efc17013056e51105ff784"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png": {
+    "mtime": 1778236099.0,
+    "hash": "ac44365324efc17013056e51105ff784"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png": {
+    "mtime": 1778236099.0,
+    "hash": "f489a1d247d0fad14d73720eae1e739a"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-hdpi/ic_launcher_light.png": {
+    "mtime": 1778236099.0,
+    "hash": "115e4805f90b5e464d9546b43048a6f0"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-hdpi/ic_launcher.png": {
+    "mtime": 1778236099.0,
+    "hash": "7e469dcc903f2546a92c121d2da44269"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png": {
+    "mtime": 1778236099.0,
+    "hash": "7e469dcc903f2546a92c121d2da44269"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png": {
+    "mtime": 1778236099.0,
+    "hash": "430082b2e4fa3eb47dfaac17d9a5c04e"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_light.png": {
+    "mtime": 1778236099.0,
+    "hash": "4f1f8db3d79bb173dd71254c9f94b785"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png": {
+    "mtime": 1778236099.0,
+    "hash": "8bdfaeec444cc368c85385f6660fd699"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png": {
+    "mtime": 1778236099.0,
+    "hash": "8bdfaeec444cc368c85385f6660fd699"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png": {
+    "mtime": 1778236099.0,
+    "hash": "d2481248f37361b4e5c370d25f9c7702"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_light.png": {
+    "mtime": 1778236099.0,
+    "hash": "767b090fd0d8ae0775c911a02d3615b9"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png": {
+    "mtime": 1778236099.0,
+    "hash": "9056b39bdef53bbb30342b50ac75f860"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png": {
+    "mtime": 1778236099.0,
+    "hash": "9056b39bdef53bbb30342b50ac75f860"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png": {
+    "mtime": 1778236099.0,
+    "hash": "7828e7b16837748c314c3d07b6377361"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-xhdpi/ic_launcher_light.png": {
+    "mtime": 1778236099.0,
+    "hash": "88256e79e72b05142aca3bdf2c7c7d0a"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png": {
+    "mtime": 1778236099.0,
+    "hash": "c21151e5df5340b37ac8dfcfbe942032"
+  },
+  "/Users/abhishek/Desktop/sortyd/scratch/android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png": {
+    "mtime": 1778236099.0,
+    "hash": "c21151e5df5340b37ac8dfcfbe942032"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/ic_launcher-playstore.png": {
+    "mtime": 1778236011.0,
+    "hash": "43f83733cbbc2a9a0701389097cdfc5d"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-mdpi/ic_launcher.webp": {
+    "mtime": 1778236011.0,
+    "hash": "5a8aace3aaa40b9557cc719f65e720f6"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-mdpi/ic_launcher_round.webp": {
+    "mtime": 1778236011.0,
+    "hash": "ba4ca3198311a25aa6fca9f139cb190e"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.webp": {
+    "mtime": 1778236011.0,
+    "hash": "3a11092d164cd7908972e67068154738"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-hdpi/ic_launcher.webp": {
+    "mtime": 1778236011.0,
+    "hash": "7c2e1589cf9b7b6028e2f38905d0a54a"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-hdpi/ic_launcher_round.webp": {
+    "mtime": 1778236011.0,
+    "hash": "0ca3426004e918ba810ee069ab56ebc6"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.webp": {
+    "mtime": 1778236011.0,
+    "hash": "87b6a7b173785582c3532015589b21bd"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp": {
+    "mtime": 1778236011.0,
+    "hash": "b4396a7791fb7cf5c4437f1fe0ae21b3"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp": {
+    "mtime": 1778236011.0,
+    "hash": "f3faaebb4a6e3d67cdbff026486fd055"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.webp": {
+    "mtime": 1778236011.0,
+    "hash": "f53a5f6858d1aa9283b018fe24e23638"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.webp": {
+    "mtime": 1778236011.0,
+    "hash": "0e8157ebeff616eca49e2282e5b4141d"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.webp": {
+    "mtime": 1778236011.0,
+    "hash": "14a0a28cd4f86d4045e667d8971db84f"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.webp": {
+    "mtime": 1778236011.0,
+    "hash": "1f894483359db1951e635d1c360497c1"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-xhdpi/ic_launcher.webp": {
+    "mtime": 1778236011.0,
+    "hash": "f818d568f6cf0ed17bc22a98dea4836e"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.webp": {
+    "mtime": 1778236011.0,
+    "hash": "112e215312cbbd08b7457e8c7e5433e0"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.webp": {
+    "mtime": 1778236011.0,
+    "hash": "ae356827be37e8418b9dd01c217aab7b"
+  },
+  "/Users/abhishek/Desktop/sortyd/rise.wav": {
+    "mtime": 1778236009.0,
+    "hash": "535a377e8ff119e7f26845c08718d64a"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/gong.wav": {
+    "mtime": 1788252957.0528677,
+    "hash": "a60cf6386db83b64dcd818a8e540624a"
+  },
+  "/Users/abhishek/Desktop/sortyd/ios/Sortyd/chime.wav": {
+    "mtime": 1779363321.07,
+    "hash": "165d83fbc93fb37d2e0deb6da29bc3d4"
+  },
+  "/Users/abhishek/Desktop/sortyd/android/app/src/main/res/raw/chime.wav": {
+    "mtime": 1779367020.3500001,
+    "hash": "165d83fbc93fb37d2e0deb6da29bc3d4"
+  }
 }

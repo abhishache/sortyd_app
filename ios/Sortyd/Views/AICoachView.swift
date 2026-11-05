@@ -85,6 +85,13 @@ struct AICoachView: View {
             }
         }
         .onDisappear { isSpinning = false }
+        .onChange(of: vm.activeListID) { _, newID in
+            let liveLists = vm.lists.filter { !$0.isArchived && !$0.isTodo && !$0.isWeekly }
+            if let newID, let list = liveLists.first(where: { $0.id == newID }), selectedList?.id != list.id {
+                selectedList = list
+                Task { await runAnalysis(for: list) }
+            }
+        }
         .task(id: vm.appLanguage) {
             lastAnalysedListID = nil
             let liveLists = vm.lists.filter { !$0.isArchived && !$0.isTodo && !$0.isWeekly }
@@ -125,7 +132,7 @@ struct AICoachView: View {
                 // FIX: refresh button — stable rotation, no bounce/jump
                 Button(action: {
                     guard let list = selectedList, !isSpinning else { return }
-                    Task { await runAnalysis(for: list) }
+                    Task { await runAnalysis(for: list, force: true) }
                 }) {
                     stableRefreshButton()
                 }
@@ -402,7 +409,7 @@ struct AICoachView: View {
 
     private func retrySelectedList() {
         guard let list = selectedList else { return }
-        Task { await runAnalysis(for: list) }
+        Task { await runAnalysis(for: list, force: true) }
     }
 
     private func triggerTimeoutRetryGame() {
@@ -526,34 +533,36 @@ struct AICoachView: View {
     
     // MARK: Actions
     
-    private func runAnalysis(for list: TaskList) async {
+    private func runAnalysis(for list: TaskList, force: Bool = false) async {
         let startedAt = Date()
         let requestID = UUID()
         analysisRequestID = requestID
         isSpinning = false
         lastAnalysedListID = list.id
 
-        // Try load best available cache (valid or stale)
-        let cacheResult = AICoach.shared.loadBestAvailableCache(for: list.id)
-        if cacheResult.found {
-            AppTelemetry.aiResult(feature: "coach", outcome: cacheResult.isStale ? "stale_cache" : "cache", startedAt: startedAt)
-            await MainActor.run {
-                analysisState = .done
-            }
-            
-            // Check if it's stale; if it is stale, run a batch fetch silently in the background
-            if cacheResult.isStale {
-                Task {
-                    let liveLists = vm.lists.filter { !$0.isArchived && !$0.isTodo && !$0.isWeekly }
-                    await AICoach.shared.fetchAllListsBatch(lists: liveLists, snapshots: vm.snapshots, force: false)
-                    guard analysisRequestID == requestID, !Task.isCancelled else { return }
-                    _ = AICoach.shared.loadBestAvailableCache(for: list.id)
+        // Try load best available cache (valid or stale) unless user explicitly forced refresh
+        if !force {
+            let cacheResult = AICoach.shared.loadBestAvailableCache(for: list.id)
+            if cacheResult.found {
+                AppTelemetry.aiResult(feature: "coach", outcome: cacheResult.isStale ? "stale_cache" : "cache", startedAt: startedAt)
+                await MainActor.run {
+                    analysisState = .done
                 }
+                
+                // Check if it's stale; if it is stale, run a batch fetch silently in the background
+                if cacheResult.isStale {
+                    Task {
+                        let liveLists = vm.lists.filter { !$0.isArchived && !$0.isTodo && !$0.isWeekly }
+                        await AICoach.shared.fetchAllListsBatch(lists: liveLists, snapshots: vm.snapshots, force: false)
+                        guard analysisRequestID == requestID, !Task.isCancelled else { return }
+                        _ = AICoach.shared.loadBestAvailableCache(for: list.id)
+                    }
+                }
+                return
             }
-            return
         }
 
-        // Cache miss — show spinner and fetch
+        // Cache miss or forced refresh — show spinner and fetch
         await MainActor.run {
             analysisState = .loading
             isSpinning = true
@@ -573,9 +582,8 @@ struct AICoachView: View {
             }
         }
 
-        // Fetch batch for all lists in one session
-        let liveLists = vm.lists.filter { !$0.isArchived && !$0.isTodo && !$0.isWeekly }
-        await AICoach.shared.fetchAllListsBatch(lists: liveLists, snapshots: vm.snapshots, force: false)
+        // Fetch the selected list first for fast response, then prefetch remaining lists in background
+        await AICoach.shared.fetchAllListsBatch(lists: [list], snapshots: vm.snapshots, force: force)
 
         guard analysisRequestID == requestID, !Task.isCancelled else { return }
         let reloaded = AICoach.shared.loadBestAvailableCache(for: list.id)
@@ -584,6 +592,14 @@ struct AICoachView: View {
         await MainActor.run {
             isSpinning = false
             analysisState = reloaded.found ? .done : .failed
+        }
+
+        // Prefetch other lists silently in background
+        let otherLists = vm.lists.filter { !$0.isArchived && !$0.isTodo && !$0.isWeekly && $0.id != list.id }
+        if !otherLists.isEmpty {
+            Task {
+                await AICoach.shared.fetchAllListsBatch(lists: otherLists, snapshots: vm.snapshots, force: false)
+            }
         }
     }
 
@@ -1453,6 +1469,30 @@ private struct AboutPrivacySheet: View {
                 Theme.bg0.ignoresSafeArea()
                 ScrollView {
                     VStack(alignment: .leading, spacing: 10) {
+                        #if os(macOS)
+                        HStack {
+                            Text(localizedText("About & Privacy"))
+                                .font(.system(size: 16, weight: .bold, design: .rounded))
+                                .foregroundColor(Theme.text0)
+                            Spacer()
+                            Button(action: { dismiss() }) {
+                                HStack(spacing: 5) {
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 10, weight: .bold))
+                                    Text(localizedText("Done"))
+                                        .font(.system(size: 12, weight: .bold))
+                                }
+                                .foregroundColor(Theme.text1)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Capsule().fill(Theme.bg2))
+                                .overlay(Capsule().strokeBorder(Theme.border, lineWidth: 0.75))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .padding(.bottom, 4)
+                        #endif
+
                         languageToggles
 
                         infoSection(icon: "brain.head.profile", title: localizedText("AI Coaching"),
@@ -1464,7 +1504,7 @@ private struct AboutPrivacySheet: View {
                         infoSection(icon: "bell.fill", title: localizedText("Notifications"),
                                     text: localizedText("Notifications_Desc"))
 
-                        Button(action: { UIApplication.shared.open(privacyURL) }) {
+                        Button(action: { PlatformURLOpener.open(privacyURL) }) {
                             HStack(spacing: 8) {
                                 Image(systemName: "doc.text").font(.system(size: 13, weight: .semibold))
                                 Text(localizedText("Privacy Policy")).font(.system(size: 13, weight: .bold))
@@ -1507,6 +1547,9 @@ private struct AboutPrivacySheet: View {
             }
         }
         .environment(\.layoutDirection, currentLanguage == .arabic ? .rightToLeft : .leftToRight)
+        #if os(macOS)
+        .frame(width: 480, height: 500)
+        #endif
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(32)

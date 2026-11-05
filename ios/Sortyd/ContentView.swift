@@ -15,30 +15,38 @@ struct ContentView: View {
     }
 
     var body: some View {
-        TabView(selection: $vm.selectedTab) {
-            HomeView()
+        Group {
+            #if os(macOS)
+            MacDesktopWorkspaceView()
                 .environmentObject(vm)
                 .environmentObject(ThemeManager.shared)
-                .tabItem { Label(vm.localized("Today"), systemImage: vm.selectedTab == 0 ? "checkmark.circle.fill" : "checkmark.circle") }
-                .tag(0)
+            #else
+            TabView(selection: $vm.selectedTab) {
+                HomeView()
+                    .environmentObject(vm)
+                    .environmentObject(ThemeManager.shared)
+                    .tabItem { Label(vm.localized("Today"), systemImage: vm.selectedTab == 0 ? "checkmark.circle.fill" : "checkmark.circle") }
+                    .tag(0)
 
-            ListManagementView()
-                .environmentObject(vm)
-                .environmentObject(ThemeManager.shared)
-                .tabItem { Label(vm.localized("Lists"), systemImage: vm.selectedTab == 1 ? "list.bullet.circle.fill" : "list.bullet.circle") }
-                .tag(1)
+                ListManagementView()
+                    .environmentObject(vm)
+                    .environmentObject(ThemeManager.shared)
+                    .tabItem { Label(vm.localized("Lists"), systemImage: vm.selectedTab == 1 ? "list.bullet.circle.fill" : "list.bullet.circle") }
+                    .tag(1)
 
-            AnalyticsView()
-                .environmentObject(vm)
-                .environmentObject(ThemeManager.shared)
-                .tabItem { Label(vm.localized("Analytics"), systemImage: vm.selectedTab == 2 ? "chart.line.uptrend.xyaxis.circle.fill" : "chart.line.uptrend.xyaxis.circle") }
-                .tag(2)
+                AnalyticsView()
+                    .environmentObject(vm)
+                    .environmentObject(ThemeManager.shared)
+                    .tabItem { Label(vm.localized("Analytics"), systemImage: vm.selectedTab == 2 ? "chart.line.uptrend.xyaxis.circle.fill" : "chart.line.uptrend.xyaxis.circle") }
+                    .tag(2)
 
-            AICoachView()
-                .environmentObject(vm)
-                .environmentObject(ThemeManager.shared)
-                .tabItem { Label(vm.localized("Coach"), systemImage: vm.selectedTab == 3 ? "brain.head.profile" : "brain.head.profile") }
-                .tag(3)
+                AICoachView()
+                    .environmentObject(vm)
+                    .environmentObject(ThemeManager.shared)
+                    .tabItem { Label(vm.localized("Coach"), systemImage: vm.selectedTab == 3 ? "brain.head.profile" : "brain.head.profile") }
+                    .tag(3)
+            }
+            #endif
         }
         .tint(Theme.accent)
         .onReceive(ThemeManager.shared.$isDark) { _ in
@@ -64,6 +72,7 @@ struct ContentView: View {
 }
 
 private func updateAppearance() {
+    #if os(iOS)
     let isDark = ThemeManager.shared.isDark
 
     let tab = UITabBarAppearance()
@@ -97,6 +106,7 @@ private func updateAppearance() {
     UINavigationBar.appearance().scrollEdgeAppearance = nav
 
     let _ = isDark
+    #endif
 }
 
 #Preview {

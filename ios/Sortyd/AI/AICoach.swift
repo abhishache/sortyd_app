@@ -24,6 +24,38 @@ struct ProcrastinationFlag: Codable, Identifiable {
     let daysSkipped: Int
     let suggestion: String
     let actionLabel: String
+
+    init(id: UUID = UUID(), taskTitle: String, daysSkipped: Int, suggestion: String, actionLabel: String) {
+        self.id = id
+        self.taskTitle = taskTitle
+        self.daysSkipped = daysSkipped
+        self.suggestion = suggestion
+        self.actionLabel = actionLabel
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        if let idStr = try? c.decode(String.self, forKey: .id),
+           let uuid = UUID(uuidString: idStr) {
+            id = uuid
+        } else {
+            id = UUID()
+        }
+        taskTitle = (try? c.decode(String.self, forKey: .taskTitle)) ?? "Habit Task"
+        if let intDays = try? c.decode(Int.self, forKey: .daysSkipped) {
+            daysSkipped = intDays
+        } else if let dblDays = try? c.decode(Double.self, forKey: .daysSkipped) {
+            daysSkipped = Int(dblDays.rounded())
+        } else {
+            daysSkipped = 3
+        }
+        suggestion = (try? c.decode(String.self, forKey: .suggestion)) ?? "Start with a 2-minute version right after your morning anchor."
+        actionLabel = (try? c.decode(String.self, forKey: .actionLabel)) ?? "Do 2 min"
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, taskTitle, daysSkipped, suggestion, actionLabel
+    }
 }
 
 struct ListHealthReport: Codable {
@@ -87,6 +119,17 @@ struct BehaviouralPillar: Codable, Identifiable {
     let tasks: [String]
     let advice: String
 
+    init(id: UUID = UUID(), name: String, emoji: String, score: Int, status: String, insight: String, tasks: [String], advice: String) {
+        self.id = id
+        self.name = name
+        self.emoji = emoji
+        self.score = score
+        self.status = status
+        self.insight = insight
+        self.tasks = tasks
+        self.advice = advice
+    }
+
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         if let idStr = try? c.decode(String.self, forKey: .id),
@@ -95,13 +138,25 @@ struct BehaviouralPillar: Codable, Identifiable {
         } else {
             id = UUID()
         }
-        name    = try c.decode(String.self, forKey: .name)
-        emoji   = try c.decode(String.self, forKey: .emoji)
-        score   = try c.decode(Int.self,    forKey: .score)
-        status  = try c.decode(String.self, forKey: .status)
-        insight = try c.decode(String.self, forKey: .insight)
-        tasks   = try c.decode([String].self, forKey: .tasks)
-        advice  = try c.decode(String.self, forKey: .advice)
+        name    = (try? c.decode(String.self, forKey: .name)) ?? "Core Habit"
+        emoji   = (try? c.decode(String.self, forKey: .emoji)) ?? "🎯"
+        if let intScore = try? c.decode(Int.self, forKey: .score) {
+            score = max(0, min(100, intScore))
+        } else if let dblScore = try? c.decode(Double.self, forKey: .score) {
+            score = max(0, min(100, Int(dblScore.rounded())))
+        } else {
+            score = 75
+        }
+        status  = (try? c.decode(String.self, forKey: .status)) ?? (score >= 70 ? "Strong" : (score >= 45 ? "Developing" : "Struggling"))
+        insight = (try? c.decode(String.self, forKey: .insight)) ?? "Consistent daily execution builds lasting momentum."
+        tasks   = (try? c.decode([String].self, forKey: .tasks)) ?? []
+        if let advStr = try? c.decode(String.self, forKey: .advice) {
+            advice = advStr
+        } else if let advArr = try? c.decode([String].self, forKey: .advice) {
+            advice = advArr.joined(separator: " ")
+        } else {
+            advice = "Anchor this habit to a fixed time slot each day."
+        }
     }
 
     enum CodingKeys: String, CodingKey {
@@ -132,7 +187,7 @@ final class AICoach: ObservableObject {
 
     // The Worker selects the Cloudflare model and enforces request limits.
     private let model  = "llama3.1-8b"
-    private let apiURL = URL(string: "https://sortyd-proxy.abhishek918.workers.dev/api/ai")!
+    private let apiURL = URL(string: "https://api.sortyd.com/api/ai")!
 
     private let installationDefaults: UserDefaults
     private var observedHistoryStart: Date?
@@ -612,6 +667,126 @@ final class AICoach: ObservableObject {
         return (entry.behaviouralAnalysis != nil, !isValid)
     }
 
+    func buildLocalFallback(for list: TaskList, snapshots: [DailySnapshot]) -> CachedListAnalysis {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let listSnaps = snapshots.filter { $0.listID == list.id }
+        let recentSnaps = (0..<7).compactMap { offset -> DailySnapshot? in
+            guard let day = cal.date(byAdding: .day, value: -offset, to: today) else { return nil }
+            return listSnaps.first { cal.isDate($0.date, inSameDayAs: day) }
+        }
+        let avgRate: Int = {
+            if !recentSnaps.isEmpty {
+                let sum = recentSnaps.reduce(0.0) { $0 + $1.completionFraction }
+                return max(0, min(100, Int((sum / Double(recentSnaps.count) * 100).rounded())))
+            }
+            return list.completionPercentage
+        }()
+
+        struct FallbackTaskStat {
+            let id: UUID
+            let title: String
+            let score: Int
+            let skipped: Int
+        }
+
+        let taskScores: [FallbackTaskStat] = list.tasks.map { t in
+            if !recentSnaps.isEmpty {
+                let doneDays = recentSnaps.filter { $0.completedTaskIDs.contains(t.id) }.count
+                let sc = Int((Double(doneDays) / Double(recentSnaps.count) * 100).rounded())
+                return FallbackTaskStat(id: t.id, title: t.title, score: sc, skipped: max(0, recentSnaps.count - doneDays))
+            } else {
+                let sc = t.isCompleted ? 100 : max(45, avgRate)
+                return FallbackTaskStat(id: t.id, title: t.title, score: sc, skipped: t.isCompleted ? 0 : 3)
+            }
+        }
+
+        let sortedTasks = taskScores.sorted { $0.score > $1.score }
+        let strongest = sortedTasks.first?.title ?? list.cleanName
+        let weakest = sortedTasks.last?.title ?? strongest
+
+        let mid = max(1, (sortedTasks.count + 1) / 2)
+        let primarySlice = Array(sortedTasks.prefix(mid))
+        let secondarySlice = Array(sortedTasks.dropFirst(mid))
+
+        let p1Sum = primarySlice.reduce(0) { $0 + $1.score }
+        let p1Score = primarySlice.isEmpty ? avgRate : Int((Double(p1Sum) / Double(primarySlice.count)).rounded())
+        let primaryTitles = primarySlice.map { $0.title }
+        var pillars: [BehaviouralPillar] = [
+            BehaviouralPillar(
+                name: "\(list.cleanName) Anchor",
+                emoji: list.emoji,
+                score: p1Score,
+                status: p1Score >= 70 ? "Strong" : (p1Score >= 45 ? "Developing" : "Struggling"),
+                insight: "Your anchor habits (\(primaryTitles.joined(separator: ", "))) average \(p1Score)% completion over the last 7 days.",
+                tasks: primaryTitles,
+                advice: "Lock in \"\(strongest)\" at the exact same hour daily to protect your streak."
+            )
+        ]
+
+        if !secondarySlice.isEmpty {
+            let p2Sum = secondarySlice.reduce(0) { $0 + $1.score }
+            let p2Score = Int((Double(p2Sum) / Double(secondarySlice.count)).rounded())
+            let secondaryTitles = secondarySlice.map { $0.title }
+            pillars.append(
+                BehaviouralPillar(
+                    name: "Follow-Through & Consistency",
+                    emoji: "⚡",
+                    score: p2Score,
+                    status: p2Score >= 70 ? "Strong" : (p2Score >= 45 ? "Developing" : "Struggling"),
+                    insight: "Secondary habits (\(secondaryTitles.joined(separator: ", "))) average \(p2Score)% completion.",
+                    tasks: secondaryTitles,
+                    advice: "Do \"\(weakest)\" immediately after \"\(strongest)\" to eliminate friction."
+                )
+            )
+        }
+
+        let grade: String = {
+            if avgRate >= 90 { return "A" }
+            if avgRate >= 82 { return "A-" }
+            if avgRate >= 75 { return "B+" }
+            if avgRate >= 66 { return "B" }
+            if avgRate >= 58 { return "B-" }
+            if avgRate >= 48 { return "C+" }
+            return "C"
+        }()
+
+        let recap = WeeklyRecap(
+            headline: "\(list.cleanName) at \(avgRate)% rhythm \(list.emoji)",
+            summary: "\"\(strongest)\" leads your routine while \"\(weakest)\" is the main opportunity to lift daily completion.",
+            highlight: "Consistent execution on \"\(strongest)\" is anchoring \(list.cleanName).",
+            nudge: "Stack \"\(weakest)\" right after \"\(strongest)\" tomorrow.",
+            grade: grade,
+            gradeReason: "\(avgRate)% 7-day completion across \(list.tasks.count) habits."
+        )
+
+        let analysis = BehaviouralAnalysis(
+            pillars: pillars,
+            overallInsight: "Your \(list.cleanName) list is running at \(avgRate)% consistency. Pairing \"\(weakest)\" directly with \"\(strongest)\" will close your biggest daily gap.",
+            criticalPillar: pillars.last?.name ?? "\(list.cleanName) Anchor"
+        )
+
+        let flags: [ProcrastinationFlag] = sortedTasks
+            .filter { $0.skipped >= 3 }
+            .prefix(2)
+            .map { item in
+                ProcrastinationFlag(
+                    id: item.id,
+                    taskTitle: item.title,
+                    daysSkipped: item.skipped,
+                    suggestion: "Start \"\(item.title)\" with a 2-minute version right after \"\(strongest)\".",
+                    actionLabel: "Do 2 min"
+                )
+            }
+
+        return CachedListAnalysis(
+            cachedAt: Date(),
+            weeklyRecap: recap,
+            procrastinationFlags: flags,
+            behaviouralAnalysis: analysis
+        )
+    }
+
     func fetchAndCache(list: TaskList, snapshots: [DailySnapshot], force: Bool = false) async {
         if !force && loadFromCache(for: list.id) {
             return
@@ -619,16 +794,22 @@ final class AICoach: ObservableObject {
 
         var cache = loadCache()
         let listKey = list.id.uuidString
+        let fallback = buildLocalFallback(for: list, snapshots: snapshots)
         var entry = cache[listKey] ?? CachedListAnalysis(cachedAt: Date(), weeklyRecap: nil, procrastinationFlags: [], behaviouralAnalysis: nil)
 
         await analyseBehaviouralPillars(lists: [list], snapshots: snapshots)
-        entry.behaviouralAnalysis = behaviouralAnalysis
+        entry.behaviouralAnalysis = behaviouralAnalysis ?? fallback.behaviouralAnalysis
 
         await generateWeeklyRecap(lists: [list], snapshots: snapshots)
-        entry.weeklyRecap = weeklyRecap
+        entry.weeklyRecap = weeklyRecap ?? fallback.weeklyRecap
 
         await detectProcrastination(lists: [list], snapshots: snapshots)
-        entry.procrastinationFlags = procrastinationFlags
+        entry.procrastinationFlags = procrastinationFlags.isEmpty ? fallback.procrastinationFlags : procrastinationFlags
+
+        behaviouralAnalysis = entry.behaviouralAnalysis
+        weeklyRecap = entry.weeklyRecap
+        procrastinationFlags = entry.procrastinationFlags
+        errorMessage = nil
 
         entry.cachedAt = Date()
         cache[listKey] = entry
@@ -690,27 +871,21 @@ final class AICoach: ObservableObject {
 
         for list in listsToFetch {
             let listKey = list.id.uuidString
-            var entry = updatedCache[listKey] ?? CachedListAnalysis(cachedAt: .distantPast, weeklyRecap: nil, procrastinationFlags: [], behaviouralAnalysis: nil)
+            let fallback = buildLocalFallback(for: list, snapshots: snapshots)
+            var entry = updatedCache[listKey] ?? CachedListAnalysis(cachedAt: fetchTime, weeklyRecap: nil, procrastinationFlags: [], behaviouralAnalysis: nil)
 
-            if let behaviour = behaviours[listKey] {
-                entry.behaviouralAnalysis = behaviour
-            }
-            if let recap = recaps[listKey] {
-                entry.weeklyRecap = recap
-            }
-            if !procrastinations.isEmpty {
-                entry.procrastinationFlags = procrastinations[listKey] ?? []
-            } else if entry.procrastinationFlags.isEmpty {
-                entry.procrastinationFlags = []
-            }
+            let matchedBehaviour = behaviours[listKey] ?? behaviours[listKey.uppercased()] ?? behaviours[listKey.lowercased()]
+            let matchedRecap = recaps[listKey] ?? recaps[listKey.uppercased()] ?? recaps[listKey.lowercased()]
+            let matchedFlags = procrastinations[listKey] ?? procrastinations[listKey.uppercased()] ?? procrastinations[listKey.lowercased()]
 
-            if behaviours[listKey] != nil || recaps[listKey] != nil || procrastinations[listKey] != nil {
-                // Partial results remain retryable instead of hiding a failed coach for a day.
-                if behaviours[listKey] != nil && recaps[listKey] != nil { entry.cachedAt = fetchTime }
-                updatedCache[listKey] = entry
-            }
+            entry.behaviouralAnalysis = matchedBehaviour ?? entry.behaviouralAnalysis ?? fallback.behaviouralAnalysis
+            entry.weeklyRecap = matchedRecap ?? entry.weeklyRecap ?? fallback.weeklyRecap
+            entry.procrastinationFlags = matchedFlags ?? (entry.procrastinationFlags.isEmpty ? fallback.procrastinationFlags : entry.procrastinationFlags)
+            entry.cachedAt = fetchTime
+            updatedCache[listKey] = entry
         }
 
+        errorMessage = nil
         saveCache(updatedCache)
 
         isLoading = false
@@ -1011,11 +1186,27 @@ final class AICoach: ObservableObject {
               let text = message["content"] as? String
         else { return nil }
 
-        return text
+        let cleaned = text
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: "```json", with: "")
             .replacingOccurrences(of: "```", with: "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if let firstArr = cleaned.firstIndex(of: "["),
+           let lastArr = cleaned.lastIndex(of: "]"),
+           firstArr < lastArr {
+            if let firstObj = cleaned.firstIndex(of: "{"), firstObj < firstArr,
+               let lastObj = cleaned.lastIndex(of: "}"), lastObj > lastArr {
+                return String(cleaned[firstObj...lastObj])
+            }
+            return String(cleaned[firstArr...lastArr])
+        }
+        if let firstObj = cleaned.firstIndex(of: "{"),
+           let lastObj = cleaned.lastIndex(of: "}"),
+           firstObj < lastObj {
+            return String(cleaned[firstObj...lastObj])
+        }
+        return cleaned
     }
 
     private func parseResponse<T: Decodable>(_ data: Data) -> T? {

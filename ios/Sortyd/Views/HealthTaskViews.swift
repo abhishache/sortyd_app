@@ -279,7 +279,9 @@ struct HealthTargetBanner: View {
             // Target input
             HStack(spacing: 8) {
                 TextField(taskType.placeholder, text: $targetText)
+                    #if os(iOS)
                     .keyboardType(.numberPad)
+                    #endif
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(Theme.text0)
                 Spacer()
@@ -343,11 +345,34 @@ struct HealthPermissionSheet: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
-                Capsule()
-                    .fill(Theme.bg3)
-                    .frame(width: 36, height: 4)
-                    .padding(.top, 12)
-                    .padding(.bottom, 24)
+                HStack {
+                    Spacer()
+                    Capsule()
+                        .fill(Theme.bg3)
+                        .frame(width: 36, height: 4)
+                    Spacer()
+                }
+                .overlay(alignment: .trailing) {
+                    Button {
+                        onSkip()
+                        dismiss()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 10, weight: .bold))
+                            Text(vm.localized("Cancel"))
+                                .font(.system(size: 12, weight: .semibold))
+                        }
+                        .foregroundColor(Theme.text1)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(Capsule().fill(Theme.bg2).overlay(Capsule().strokeBorder(Theme.border, lineWidth: 0.8)))
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.trailing, 18)
+                }
+                .padding(.top, 12)
+                .padding(.bottom, 20)
 
                 ZStack {
                     Circle()

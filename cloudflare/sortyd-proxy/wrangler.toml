@@ -1,15 +1,23 @@
 name = "sortyd-proxy"
 main = "worker.js"
-compatibility_date = "2026-09-01"
-account_id = "d91c9f15fa67f57de9b00b1a64efe83e"
+compatibility_date = "2024-09-23"
+workers_dev = true
+
+routes = [
+  { pattern = "auth.sortyd.com", custom_domain = true },
+  { pattern = "api.sortyd.com", custom_domain = true }
+]
+
+[[kv_namespaces]]
+binding = "SORTYD_DATA"
+id = "b80664de789743909d33c84e13023932"
 
 [ai]
 binding = "AI"
 
-[[ratelimits]]
-name = "AI_RATE_LIMITER"
-namespace_id = "1001"
-
-  [ratelimits.simple]
-  limit = 30
-  period = 60
+[vars]
+SUPABASE_URL = "https://hdokavfcqxmbshmgwcam.supabase.co"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhkb2thdmZjcXhtYnNobWd3Y2FtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM4NjM4MDMsImV4cCI6MjEwOTQzOTgwM30.yqttoI5brSqfaTXriQZLIIzxSnRQhnGwn_0f_Tsf_0s"
+SUPABASE_PUBLISHABLE_KEY = "sb_publishable_MoNjNwnd9DET_KMUItH2uA_rEunFr7x"
+PUBLIC_AUTH_HOST = "https://auth.sortyd.com"
+PUBLIC_API_HOST = "https://api.sortyd.com"
