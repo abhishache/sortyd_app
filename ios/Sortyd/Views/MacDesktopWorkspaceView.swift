@@ -159,6 +159,23 @@ extension View {
     func sortydMacGlass(cornerRadius: CGFloat = 20, tint: Color? = nil) -> some View {
         modifier(SortydMacGlassCardModifier(cornerRadius: cornerRadius, tint: tint))
     }
+
+    /// Clips a ScrollView and feathers its top 6pt so scrolled cards glide smoothly underneath a pinned top header without overlapping.
+    func sortydScrollUnderneath() -> some View {
+        self
+            .clipped()
+            .mask(
+                VStack(spacing: 0) {
+                    LinearGradient(
+                        colors: [.clear, .black],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 6)
+                    Color.black
+                }
+            )
+    }
 }
 
 // MARK: - Desktop Navigation Section
@@ -281,29 +298,35 @@ struct MacDesktopWorkspaceView: View {
     }
 
     var body: some View {
-        ZStack {
-            SortydGlassBackdrop()
+        GeometryReader { rootGeo in
+            let sidebarWidth: CGFloat = rootGeo.size.width >= 1080 ? 248 : (rootGeo.size.width >= 820 ? 216 : 194)
+            let isCompactHeight = rootGeo.size.height < 670
 
-            HStack(spacing: 12) {
-                // ── Left Frosted Glass Sidebar ──
-                sidebarColumn
-                    .frame(width: 248)
+            ZStack {
+                SortydGlassBackdrop()
 
-                // ── Main Desktop Workspace Canvas ──
-                mainWorkspaceColumn
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            .padding(.horizontal, 12)
-            .padding(.top, 8)
-            .padding(.bottom, 12)
+                HStack(spacing: 12) {
+                    // ── Left Frosted Glass Sidebar ──
+                    sidebarColumn(isCompactHeight: isCompactHeight, sidebarWidth: sidebarWidth)
+                        .frame(width: sidebarWidth)
 
-            if let recap = vm.dailyRecap {
-                DailyRecapBanner(data: recap) {
-                    vm.dailyRecap = nil
+                    // ── Main Desktop Workspace Canvas ──
+                    mainWorkspaceColumn
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .clipped()
                 }
-                .frame(maxWidth: 520, maxHeight: .infinity, alignment: .top)
-                .padding(.top, 16)
-                .zIndex(100)
+                .padding(.horizontal, 12)
+                .padding(.top, 8)
+                .padding(.bottom, 12)
+
+                if let recap = vm.dailyRecap {
+                    DailyRecapBanner(data: recap) {
+                        vm.dailyRecap = nil
+                    }
+                    .frame(maxWidth: 520, maxHeight: .infinity, alignment: .top)
+                    .padding(.top, 16)
+                    .zIndex(100)
+                }
             }
         }
         .onChange(of: vm.selectedTab) { _, newTab in
@@ -337,12 +360,12 @@ struct MacDesktopWorkspaceView: View {
 
     // MARK: - Left Sidebar Column
 
-    private var sidebarColumn: some View {
-        VStack(alignment: .leading, spacing: 14) {
+    private func sidebarColumn(isCompactHeight: Bool, sidebarWidth: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: isCompactHeight ? 8 : 11) {
             // Brand Header
-            HStack(spacing: 11) {
+            HStack(spacing: 10) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    RoundedRectangle(cornerRadius: 11, style: .continuous)
                         .fill(
                             LinearGradient(
                                 colors: [Theme.accent, Theme.indigo],
@@ -350,86 +373,90 @@ struct MacDesktopWorkspaceView: View {
                                 endPoint: .bottomTrailing
                             )
                         )
-                        .frame(width: 38, height: 38)
+                        .frame(width: 34, height: 34)
 
                     Image(systemName: "checkmark.seal.fill")
-                        .font(.system(size: 18, weight: .bold))
+                        .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.black)
                 }
 
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
+                VStack(alignment: .leading, spacing: 1.5) {
+                    HStack(spacing: 5) {
                         Text("Sortyd")
-                            .font(.system(size: 19, weight: .black, design: .rounded))
+                            .font(.system(size: 17.5, weight: .black, design: .rounded))
                             .foregroundColor(Theme.text0)
 
                         Text("MAC")
-                            .font(.system(size: 9, weight: .heavy, design: .rounded))
+                            .font(.system(size: 8.5, weight: .heavy, design: .rounded))
                             .tracking(0.8)
-                            .padding(.horizontal, 6)
+                            .padding(.horizontal, 5.5)
                             .padding(.vertical, 2)
                             .background(Capsule().fill(Theme.accent.opacity(0.18)))
                             .foregroundColor(Theme.accent)
                     }
 
                     Text(auth.isAuthenticated ? "sortyd.com • Cloud Synced" : "Local Workspace • Offline Ready")
-                        .font(.system(size: 10.5, weight: .medium))
+                        .font(.system(size: 10, weight: .medium))
                         .foregroundColor(Theme.text2)
+                        .lineLimit(1)
                 }
 
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, 14)
-            .padding(.top, 14)
+            .padding(.horizontal, 12)
+            .padding(.top, 12)
+            .fixedSize(horizontal: false, vertical: true)
 
             // Primary Navigation Sections
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(vm.localized("WORKSPACE"))
-                    .font(.system(size: 10, weight: .bold))
+                    .font(.system(size: 9.5, weight: .bold))
                     .tracking(1.4)
                     .foregroundColor(Theme.text2)
-                    .padding(.horizontal, 14)
-                    .padding(.bottom, 2)
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 1)
 
                 ForEach(MacWorkspaceSection.allCases) { section in
-                    sidebarNavButton(section)
+                    sidebarNavButton(section, showSubtitle: !isCompactHeight && sidebarWidth >= 210)
                 }
             }
             .padding(.horizontal, 8)
+            .fixedSize(horizontal: false, vertical: true)
 
             Rectangle()
                 .fill(Color.white.opacity(themeManager.isDark ? 0.07 : 0.18))
                 .frame(height: 1)
-                .padding(.horizontal, 14)
+                .padding(.horizontal, 12)
 
-            // Habit Lists Switcher in Sidebar
-            VStack(alignment: .leading, spacing: 8) {
+            // Habit Lists Switcher in Sidebar (Strictly Clipped so it NEVER overlaps WORKSPACE or Account Footer)
+            VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text(vm.localized("YOUR HABIT LISTS"))
-                        .font(.system(size: 10, weight: .bold))
+                        .font(.system(size: 9.5, weight: .bold))
                         .tracking(1.4)
                         .foregroundColor(Theme.text2)
+                        .lineLimit(1)
 
                     Spacer()
 
                     Button(action: { showNewListSheet = true }) {
                         HStack(spacing: 3) {
                             Image(systemName: "plus")
-                                .font(.system(size: 10, weight: .bold))
+                                .font(.system(size: 9.5, weight: .bold))
                             Text(vm.localized("New"))
-                                .font(.system(size: 10.5, weight: .bold))
+                                .font(.system(size: 10, weight: .bold))
                         }
                         .padding(.horizontal, 8)
-                        .padding(.vertical, 3.5)
+                        .padding(.vertical, 3)
                         .background(Capsule().fill(Theme.accent.opacity(0.16)))
                         .foregroundColor(Theme.accent)
                     }
                     .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 14)
+                .padding(.horizontal, 12)
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 5) {
+                    VStack(spacing: 4) {
                         ForEach(regularLists) { list in
                             sidebarListRow(list)
                         }
@@ -439,26 +466,29 @@ struct MacDesktopWorkspaceView: View {
                         }
                     }
                     .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
+                    .padding(.vertical, 4)
                 }
-                .scrollClipDisabled()
+                .sortydScrollUnderneath()
             }
             .frame(maxHeight: .infinity)
 
             Rectangle()
-                .fill(Color.white.opacity(themeManager.isDark ? 0.07 : 0.18))
+                .fill(Color.white.opacity(themeManager.isDark ? 0.08 : 0.18))
                 .frame(height: 1)
-                .padding(.horizontal, 14)
+                .padding(.horizontal, 12)
 
-            // Bottom Account & Theme Footer
+            // Pinned Non-Overlapping Account & Cloud Sync Dock Card ("Sortyd Team / Synced via sortyd.com")
             sidebarAccountFooter
-                .padding(.horizontal, 10)
-                .padding(.bottom, 12)
+                .padding(.horizontal, 8)
+                .padding(.bottom, 10)
+                .fixedSize(horizontal: false, vertical: true)
+                .layoutPriority(2)
+                .zIndex(10)
         }
         .sortydMacGlass(cornerRadius: 24)
     }
 
-    private func sidebarNavButton(_ section: MacWorkspaceSection) -> some View {
+    private func sidebarNavButton(_ section: MacWorkspaceSection, showSubtitle: Bool = true) -> some View {
         let isSelected = activeSection == section
         return Button(action: {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.82)) {
@@ -468,37 +498,40 @@ struct MacDesktopWorkspaceView: View {
                 }
             }
         }) {
-            HStack(spacing: 11) {
+            HStack(spacing: 10) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
                         .fill(isSelected ? Theme.accent.opacity(0.22) : Color.white.opacity(0.04))
-                        .frame(width: 30, height: 30)
+                        .frame(width: 28, height: 28)
 
                     Image(systemName: section.icon)
-                        .font(.system(size: 13.5, weight: .semibold))
+                        .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(isSelected ? Theme.accent : Theme.text1)
                 }
 
                 VStack(alignment: .leading, spacing: 1) {
                     Text(vm.localized(section.title))
-                        .font(.system(size: 13, weight: isSelected ? .bold : .semibold))
+                        .font(.system(size: 12.5, weight: isSelected ? .bold : .semibold))
                         .foregroundColor(isSelected ? Theme.text0 : Theme.text1)
-
-                    Text(vm.localized(section.subtitle))
-                        .font(.system(size: 10, weight: .regular))
-                        .foregroundColor(Theme.text2)
                         .lineLimit(1)
+
+                    if showSubtitle {
+                        Text(vm.localized(section.subtitle))
+                            .font(.system(size: 9.5, weight: .regular))
+                            .foregroundColor(Theme.text2)
+                            .lineLimit(1)
+                    }
                 }
 
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
+            .padding(.horizontal, 9)
+            .padding(.vertical, showSubtitle ? 6 : 5)
             .background(
-                RoundedRectangle(cornerRadius: 13, style: .continuous)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(isSelected ? Theme.accent.opacity(0.14) : Color.clear)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 13, style: .continuous)
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .strokeBorder(isSelected ? Theme.accent.opacity(0.35) : Color.clear, lineWidth: 1)
                     )
             )
@@ -592,94 +625,127 @@ struct MacDesktopWorkspaceView: View {
     }
 
     private var sidebarAccountFooter: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 7) {
             Button(action: { showAccountSheet = true }) {
-                HStack(spacing: 10) {
-                    ZStack {
+                HStack(spacing: 9) {
+                    ZStack(alignment: .bottomTrailing) {
                         Circle()
                             .fill(
                                 LinearGradient(
-                                    colors: [Theme.accent.opacity(0.35), Theme.indigo.opacity(0.3)],
+                                    colors: [Theme.accent.opacity(0.38), Theme.indigo.opacity(0.32)],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
                             )
                             .frame(width: 34, height: 34)
-                            .overlay(Circle().strokeBorder(Theme.accent.opacity(0.45), lineWidth: 1))
+                            .overlay(Circle().strokeBorder(Theme.accent.opacity(0.55), lineWidth: 1))
 
                         if auth.isSyncing {
                             ProgressView()
-                                .scaleEffect(0.6)
+                                .scaleEffect(0.55)
+                                .frame(width: 34, height: 34)
                         } else {
                             Image(systemName: auth.isAuthenticated ? "icloud.fill" : "person.crop.circle.badge.plus")
-                                .font(.system(size: 14, weight: .semibold))
+                                .font(.system(size: 13.5, weight: .semibold))
                                 .foregroundColor(auth.isAuthenticated ? Theme.accent : Theme.text1)
+                                .frame(width: 34, height: 34)
+                        }
+
+                        if auth.isAuthenticated {
+                            Circle()
+                                .fill(Theme.success)
+                                .frame(width: 8, height: 8)
+                                .overlay(Circle().strokeBorder(Color.black.opacity(0.6), lineWidth: 1.5))
                         }
                     }
 
-                    VStack(alignment: .leading, spacing: 1.5) {
+                    VStack(alignment: .leading, spacing: 2) {
                         if let user = auth.currentUser, auth.isAuthenticated {
                             Text(user.name.isEmpty ? user.email : user.name)
-                                .font(.system(size: 12, weight: .bold))
+                                .font(.system(size: 12, weight: .bold, design: .rounded))
                                 .foregroundColor(Theme.text0)
                                 .lineLimit(1)
+                                .minimumScaleFactor(0.85)
                             Text("Synced via sortyd.com")
-                                .font(.system(size: 10, weight: .medium))
+                                .font(.system(size: 10, weight: .semibold))
                                 .foregroundColor(Theme.accent)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.85)
                         } else {
                             Text(vm.localized("Sign In to Cloud Sync"))
-                                .font(.system(size: 12, weight: .bold))
+                                .font(.system(size: 12, weight: .bold, design: .rounded))
                                 .foregroundColor(Theme.text0)
-                            Text(vm.localized("Merge & back up your lists"))
-                                .font(.system(size: 10))
-                                .foregroundColor(Theme.text2)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.85)
+                            Text("Sync via sortyd.com")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(Theme.accent)
+                                .lineLimit(1)
                         }
                     }
-
-                    Spacer()
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(Theme.text2)
+                        .font(.system(size: 10.5, weight: .bold))
+                        .foregroundColor(Theme.accent)
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 9)
                 .background(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color.white.opacity(0.05))
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Theme.accent.opacity(themeManager.isDark ? 0.14 : 0.10),
+                                    Theme.indigo.opacity(themeManager.isDark ? 0.08 : 0.05)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
                         .overlay(
                             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .strokeBorder(auth.isAuthenticated ? Theme.accent.opacity(0.28) : Color.white.opacity(0.1), lineWidth: 1)
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [Theme.accent.opacity(0.45), Theme.indigo.opacity(0.25)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1
+                                )
                         )
                 )
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
 
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 ThemeToggleButton()
                     .environmentObject(themeManager)
 
-                Spacer()
+                Spacer(minLength: 4)
 
                 if auth.isAuthenticated {
                     Button(action: {
                         Task { await vm.syncWithCloud() }
                     }) {
-                        HStack(spacing: 5) {
+                        HStack(spacing: 4) {
                             Image(systemName: "arrow.triangle.2.circlepath")
-                                .font(.system(size: 11, weight: .semibold))
+                                .font(.system(size: 10.5, weight: .semibold))
                             Text(vm.localized("Sync Now"))
-                                .font(.system(size: 11, weight: .semibold))
+                                .font(.system(size: 10.5, weight: .bold))
+                                .lineLimit(1)
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(Capsule().fill(Theme.accent.opacity(0.14)))
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 4.5)
+                        .background(Capsule().fill(Theme.accent.opacity(0.15)))
+                        .overlay(Capsule().strokeBorder(Theme.accent.opacity(0.30), lineWidth: 0.75))
                         .foregroundColor(Theme.accent)
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 4)
+            .padding(.horizontal, 2)
         }
     }
 
@@ -691,22 +757,26 @@ struct MacDesktopWorkspaceView: View {
         case .today:
             todayCommandCenterView
         case .weeklyPlanner:
-            VStack(spacing: 12) {
+            VStack(spacing: 10) {
                 sectionTopBanner(
                     title: vm.localized("Weekly Planner"),
                     subtitle: vm.localized("Design your week's focus theme, must-do priorities, and daily blocks"),
                     icon: "calendar.day.timeline.left"
                 )
+                .zIndex(20)
+
                 WeeklyPlannerSection()
                     .environmentObject(vm)
                     .environmentObject(themeManager)
                     .sortydMacGlass(cornerRadius: 24)
+                    .clipped()
             }
         case .lists:
             ListManagementView()
                 .environmentObject(vm)
                 .environmentObject(themeManager)
                 .sortydMacGlass(cornerRadius: 24)
+                .clipped()
         case .analytics:
             MacDesktopAnalyticsStudioView(
                 onEditTask: { task, listID in
@@ -721,6 +791,7 @@ struct MacDesktopWorkspaceView: View {
                 .environmentObject(vm)
                 .environmentObject(themeManager)
                 .sortydMacGlass(cornerRadius: 24)
+                .clipped()
         }
     }
 
@@ -751,59 +822,87 @@ struct MacDesktopWorkspaceView: View {
         .sortydMacGlass(cornerRadius: 18)
     }
 
-    // MARK: - Today Command Center (Single-Screen 2-Column Desktop Layout)
+    // MARK: - Today Command Center (Adaptive Multi-Screen & Aspect-Ratio Layout with Underneath Scrolling)
 
     private var todayCommandCenterView: some View {
         VStack(spacing: 10) {
-            // Top Glass Command Bar
+            // Pinned Top Glass Command Bar (ScrollViews glide cleanly underneath)
             topDesktopCommandBar
+                .zIndex(20)
 
-            // 2-Column Single-Screen Split Canvas
             GeometryReader { geo in
-                let leftWidth = max(390, (geo.size.width - 12) * 0.50)
-                HStack(alignment: .top, spacing: 12) {
-                    // Left Column: Compact Hero Progress + Zero-Shift Interactive Task Checklist + Where You Lack Quick Diagnostic
+                let isTwoColumn = geo.size.width >= 700
+                let leftWidth = max(320, min(geo.size.width * 0.49, geo.size.width - 330))
+                let rightWidth = max(310, geo.size.width - leftWidth - 12)
+
+                if isTwoColumn {
+                    HStack(alignment: .top, spacing: 12) {
+                        // Middle/Left Column: Scrolls cleanly UNDERNEATH topDesktopCommandBar
+                        ScrollView(showsIndicators: false) {
+                            VStack(spacing: 10) {
+                                desktopHeroCard
+                                desktopTaskChecklistCard
+                                desktopWhereYouLackSummaryCard
+                            }
+                            .padding(.horizontal, 3)
+                            .padding(.top, 4)
+                            .padding(.bottom, 12)
+                        }
+                        .sortydScrollUnderneath()
+                        .frame(width: leftWidth)
+
+                        // Right Column: Scrolls cleanly UNDERNEATH topDesktopCommandBar
+                        ScrollView(showsIndicators: false) {
+                            VStack(spacing: 10) {
+                                desktopHeatmapCard
+                                desktopDailyCompletionLineGraphCard
+                                if rightWidth >= 360 {
+                                    HStack(alignment: .top, spacing: 10) {
+                                        desktopAllListsMatrixCard
+                                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                                        desktopWeeklyFocusPreviewCard
+                                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                                    }
+                                } else {
+                                    desktopAllListsMatrixCard
+                                    desktopWeeklyFocusPreviewCard
+                                }
+                            }
+                            .padding(.horizontal, 3)
+                            .padding(.top, 4)
+                            .padding(.bottom, 12)
+                        }
+                        .sortydScrollUnderneath()
+                        .frame(maxWidth: .infinity)
+                    }
+                } else {
+                    // Compact / Split-Screen / Narrow Aspect-Ratio Single-Column Scroll (Underneath Top Bar)
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 10) {
                             desktopHeroCard
                             desktopTaskChecklistCard
-                            desktopWhereYouLackSummaryCard
-                        }
-                        .padding(.horizontal, 2)
-                        .padding(.top, 1)
-                        .padding(.bottom, 8)
-                    }
-                    .scrollClipDisabled()
-                    .frame(width: leftWidth)
-
-                    // Right Column:
-                    // 1. TOP: Consistency Heatmap Calendar
-                    // 2. SECOND: Smaller Daily Completion Line Graph (with Calendar Dates)
-                    // 3. THIRD: Side-by-Side All-Lists Pulse + Weekly Compass so everything fits in 1 screen!
-                    ScrollView(showsIndicators: false) {
-                        VStack(spacing: 10) {
                             desktopHeatmapCard
                             desktopDailyCompletionLineGraphCard
                             HStack(alignment: .top, spacing: 10) {
                                 desktopAllListsMatrixCard
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                                    .frame(maxWidth: .infinity, alignment: .top)
                                 desktopWeeklyFocusPreviewCard
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                                    .frame(maxWidth: .infinity, alignment: .top)
                             }
+                            desktopWhereYouLackSummaryCard
                         }
-                        .padding(.horizontal, 2)
-                        .padding(.top, 1)
-                        .padding(.bottom, 8)
+                        .padding(.horizontal, 3)
+                        .padding(.top, 4)
+                        .padding(.bottom, 14)
                     }
-                    .scrollClipDisabled()
-                    .frame(maxWidth: .infinity)
+                    .sortydScrollUnderneath()
                 }
             }
         }
     }
 
     private var topDesktopCommandBar: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             // Active List Badge
             if let list = activeList {
                 HStack(spacing: 9) {
@@ -819,24 +918,27 @@ struct MacDesktopWorkspaceView: View {
                         Text(list.isTodo ? vm.localized("TO DO Inbox") : list.cleanName)
                             .font(.system(size: 16, weight: .black, design: .rounded))
                             .foregroundColor(Theme.text0)
+                            .lineLimit(1)
 
                         Text(vm.dateFormatter(format: "EEEE, MMMM d").string(from: Date()))
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(Theme.text2)
+                            .lineLimit(1)
                     }
                 }
+                .layoutPriority(1)
             }
 
-            Spacer(minLength: 10)
+            Spacer(minLength: 6)
 
-            // Inline Desktop Quick-Add Bar
+            // Inline Desktop Quick-Add Bar (Flexible width for all screen sizes)
             HStack(spacing: 8) {
                 Image(systemName: "plus.circle.fill")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(Theme.accent)
 
                 TextField(
-                    activeList.map { "Quick add habit to \($0.cleanName)... (Press Return)" } ?? "Quick add habit...",
+                    activeList.map { "Quick add habit to \($0.cleanName)..." } ?? "Quick add habit...",
                     text: $quickTaskTitle
                 )
                 .textFieldStyle(.plain)
@@ -860,7 +962,7 @@ struct MacDesktopWorkspaceView: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 7)
-            .frame(maxWidth: 360)
+            .frame(minWidth: 160, maxWidth: 340)
             .background(
                 RoundedRectangle(cornerRadius: 11, style: .continuous)
                     .fill(Color.white.opacity(0.06))
@@ -877,6 +979,7 @@ struct MacDesktopWorkspaceView: View {
                         .font(.system(size: 11.5, weight: .semibold))
                     Text(vm.localized("With Reminder / Health"))
                         .font(.system(size: 11.5, weight: .semibold))
+                        .lineLimit(1)
                 }
                 .padding(.horizontal, 11)
                 .padding(.vertical, 7)
@@ -891,6 +994,7 @@ struct MacDesktopWorkspaceView: View {
                 .foregroundColor(Theme.accent)
             }
             .buttonStyle(.plain)
+            .fixedSize(horizontal: true, vertical: false)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
@@ -2421,35 +2525,49 @@ struct MacDesktopAnalyticsStudioView: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            // Top Studio Filter & Horizon Bar
+            // Top Studio Filter & Horizon Bar (Pinned on top of scroll content)
             studioHeaderBar
+                .zIndex(20)
 
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 10) {
-                    // 1. Compact Executive Scorecard Row
-                    executiveScorecardRow
+            GeometryReader { studioGeo in
+                let isWideStudio = studioGeo.size.width >= 780
 
-                    // 2. Compact Daily Completion Line Graph Card (with Calendar Dates)
-                    studioLineGraphCard
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 10) {
+                        // 1. Compact Executive Scorecard Row
+                        executiveScorecardRow
 
-                    // 3. Single-Screen 2-Column Deep Diagnostic Section
-                    HStack(alignment: .top, spacing: 12) {
-                        whereYouLackDetailedTableCard
-                            .frame(maxWidth: .infinity)
+                        // 2. Compact Daily Completion Line Graph Card (with Calendar Dates)
+                        studioLineGraphCard
 
-                        VStack(spacing: 10) {
-                            weekdayVulnerabilityCard
-                            crossListBottleneckCard
-                            recoveryPrescriptionCard
+                        // 3. Adaptive 2-Column / 1-Column Deep Diagnostic Section
+                        if isWideStudio {
+                            HStack(alignment: .top, spacing: 12) {
+                                whereYouLackDetailedTableCard
+                                    .frame(maxWidth: .infinity)
+
+                                VStack(spacing: 10) {
+                                    weekdayVulnerabilityCard
+                                    crossListBottleneckCard
+                                    recoveryPrescriptionCard
+                                }
+                                .frame(width: min(370, max(290, studioGeo.size.width * 0.36)))
+                            }
+                        } else {
+                            VStack(spacing: 10) {
+                                whereYouLackDetailedTableCard
+                                weekdayVulnerabilityCard
+                                crossListBottleneckCard
+                                recoveryPrescriptionCard
+                            }
                         }
-                        .frame(width: 370)
                     }
+                    .padding(.horizontal, 2)
+                    .padding(.top, 4)
+                    .padding(.bottom, 12)
                 }
-                .padding(.horizontal, 2)
-                .padding(.top, 1)
-                .padding(.bottom, 10)
+                .sortydScrollUnderneath()
             }
-            .scrollClipDisabled()
         }
     }
 
@@ -2559,7 +2677,10 @@ struct MacDesktopAnalyticsStudioView: View {
         let grade = overallGrade
         let weakDay = weakestWeekday
 
-        return HStack(spacing: 10) {
+        return LazyVGrid(
+            columns: [GridItem(.adaptive(minimum: 175), spacing: 10)],
+            spacing: 10
+        ) {
             // Grade Tile
             HStack(spacing: 10) {
                 Text(grade.letter)
@@ -2574,14 +2695,16 @@ struct MacDesktopAnalyticsStudioView: View {
                     Text(grade.subtitle)
                         .font(.system(size: 13, weight: .bold, design: .rounded))
                         .foregroundColor(Theme.text0)
+                        .lineLimit(1)
                     Text("\(horizon.label) average")
                         .font(.system(size: 10))
                         .foregroundColor(Theme.text2)
+                        .lineLimit(1)
                 }
                 Spacer(minLength: 0)
             }
             .padding(11)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, minHeight: 68)
             .sortydMacGlass(cornerRadius: 14, tint: grade.color)
 
             // Average Completion Tile

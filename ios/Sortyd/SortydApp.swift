@@ -30,9 +30,7 @@ struct SortydApp: App {
             ContentView()
                 .sortydClarityMask()
                 #if os(macOS)
-                .frame(minWidth: 1020, minHeight: 680)
-                #else
-                .frame(minWidth: 420, minHeight: 640)
+                .frame(minWidth: 680, minHeight: 500)
                 #endif
                 .onAppear {
                     #if DEBUG

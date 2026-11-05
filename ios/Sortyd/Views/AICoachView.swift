@@ -37,7 +37,7 @@ struct AICoachView: View {
         ZStack {
             Theme.bg0.ignoresSafeArea()
             
-            ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: 0) {
                 VStack(spacing: 0) {
                     header
                         .padding(.horizontal, 20)
@@ -47,32 +47,42 @@ struct AICoachView: View {
                         .offset(y: headerAppeared ? 0 : -6)
                     
                     listPicker
-                        .padding(.bottom, 18)
-                    
-                    Group {
-                        switch analysisState {
-                        case .idle:
-                            idlePrompt.padding(.horizontal, 20)
-                        case .loading:
-                            loadingView.padding(.horizontal, 20)
-                        case .done:
-                            if let analysis = coach.behaviouralAnalysis {
-                                doneContent(analysis: analysis)
-                            } else {
-                                failedView.padding(.horizontal, 20)
-                            }
-                        case .failed:
-                            failedView.padding(.horizontal, 20)
-                        }
-                    }
-                    
-                    Spacer(minLength: 110)
+                        .padding(.bottom, 12)
                 }
                 .frame(maxWidth: 800)
                 .frame(maxWidth: .infinity)
-            }
-            .refreshable {
-                if let list = selectedList { await runAnalysis(for: list) }
+                .background(Theme.bg0)
+                .zIndex(20)
+                
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 0) {
+                        Group {
+                            switch analysisState {
+                            case .idle:
+                                idlePrompt.padding(.horizontal, 20)
+                            case .loading:
+                                loadingView.padding(.horizontal, 20)
+                            case .done:
+                                if let analysis = coach.behaviouralAnalysis {
+                                    doneContent(analysis: analysis)
+                                } else {
+                                    failedView.padding(.horizontal, 20)
+                                }
+                            case .failed:
+                                failedView.padding(.horizontal, 20)
+                            }
+                        }
+                        .padding(.top, 6)
+                        
+                        Spacer(minLength: 110)
+                    }
+                    .frame(maxWidth: 800)
+                    .frame(maxWidth: .infinity)
+                }
+                .clipped()
+                .refreshable {
+                    if let list = selectedList { await runAnalysis(for: list) }
+                }
             }
         }
         .onAppear {

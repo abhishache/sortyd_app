@@ -301,52 +301,60 @@ struct AnalyticsView: View {
         NavigationStack {
             ZStack {
                 Theme.bg0.ignoresSafeArea()
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 0) {
-                        headerRow
-                            .padding(.horizontal, Theme.s16)
-                            .padding(.top, 12)
-                            .padding(.bottom, 14)
+                VStack(spacing: 0) {
+                    headerRow
+                        .padding(.horizontal, Theme.s16)
+                        .padding(.top, 12)
+                        .padding(.bottom, 10)
+                        .frame(maxWidth: 800)
+                        .frame(maxWidth: .infinity)
+                        .background(Theme.bg0)
+                        .zIndex(20)
 
-                        NewUserBanner()
-                            .environmentObject(vm)
-                            .padding(.horizontal, Theme.s16)
-                            .padding(.bottom, 8)
+                    ScrollView(showsIndicators: false) {
+                        VStack(spacing: 0) {
+                            NewUserBanner()
+                                .environmentObject(vm)
+                                .padding(.horizontal, Theme.s16)
+                                .padding(.top, 4)
+                                .padding(.bottom, 8)
 
-                        heroBlock
-                            .padding(.horizontal, Theme.s16)
-                            .padding(.bottom, 10)
-
-                        if !overdueRecencyItems.isEmpty {
-                            taskRecencyCard
+                            heroBlock
                                 .padding(.horizontal, Theme.s16)
                                 .padding(.bottom, 10)
-                        }
 
-                        trendChartCard
-                            .padding(.horizontal, Theme.s16)
-                            .padding(.bottom, 10)
+                            if !overdueRecencyItems.isEmpty {
+                                taskRecencyCard
+                                    .padding(.horizontal, Theme.s16)
+                                    .padding(.bottom, 10)
+                            }
 
-                        weekdayHeatmapCard
-                            .padding(.horizontal, Theme.s16)
-                            .padding(.bottom, 10)
-
-                        taskDNACard
-                            .padding(.horizontal, Theme.s16)
-                            .padding(.bottom, 10)
-
-                        if !weakTasks.isEmpty {
-                            weakAreasCompact
+                            trendChartCard
                                 .padding(.horizontal, Theme.s16)
                                 .padding(.bottom, 10)
-                        }
 
-                        Spacer(minLength: 140)
+                            weekdayHeatmapCard
+                                .padding(.horizontal, Theme.s16)
+                                .padding(.bottom, 10)
+
+                            taskDNACard
+                                .padding(.horizontal, Theme.s16)
+                                .padding(.bottom, 10)
+
+                            if !weakTasks.isEmpty {
+                                weakAreasCompact
+                                    .padding(.horizontal, Theme.s16)
+                                    .padding(.bottom, 10)
+                            }
+
+                            Spacer(minLength: 140)
+                        }
+                        .frame(maxWidth: 800)
+                        .frame(maxWidth: .infinity)
                     }
-                    .frame(maxWidth: 800)
-                    .frame(maxWidth: .infinity)
+                    .clipped()
+                    .refreshable { await vm.refresh() }
                 }
-                .refreshable { await vm.refresh() }
             }
             .navigationBarHidden(true)
         }

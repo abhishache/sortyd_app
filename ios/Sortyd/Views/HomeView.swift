@@ -44,31 +44,69 @@ struct HomeView: View {
                         .padding(.horizontal, Theme.s16)
                         .padding(.top, 0)
                         .padding(.bottom, 8)
+                        .background(Theme.bg0)
+                        .zIndex(20)
 
                     if !showWeeklyPlanner {
-                        ScrollView(showsIndicators: false) {
-                            VStack(spacing: 0) {
-                                if !isTodoActive {
-                                    heroSection
-                                        .padding(.horizontal, Theme.s16)
-                                        .padding(.bottom, 10)
+                        GeometryReader { geo in
+                            let isWideFoldable = geo.size.width >= 620 && !isTodoActive
 
-                                    heatmapSection
-                                        .padding(.horizontal, Theme.s16)
-                                        .padding(.bottom, 10)
-                                } else {
-                                    todoHeaderSection
-                                        .padding(.horizontal, Theme.s16)
-                                        .padding(.top, 12)
-                                        .padding(.bottom, 10)
+                            if isWideFoldable {
+                                HStack(alignment: .top, spacing: 16) {
+                                    ScrollView(showsIndicators: false) {
+                                        VStack(spacing: 0) {
+                                            heroSection
+                                                .padding(.bottom, 10)
+
+                                            heatmapSection
+                                                .padding(.bottom, 80)
+                                        }
+                                        .padding(.top, 4)
+                                    }
+                                    .clipped()
+                                    .frame(width: min(400, max(280, geo.size.width * 0.44)))
+
+                                    ScrollView(showsIndicators: false) {
+                                        VStack(spacing: 0) {
+                                            taskSection
+                                                .padding(.bottom, 100)
+                                        }
+                                        .padding(.top, 4)
+                                    }
+                                    .clipped()
+                                    .frame(maxWidth: .infinity)
                                 }
+                                .padding(.horizontal, Theme.s16)
+                                .clipped()
+                                .refreshable { await vm.refresh() }
+                            } else {
+                                ScrollView(showsIndicators: false) {
+                                    VStack(spacing: 0) {
+                                        if !isTodoActive {
+                                            heroSection
+                                                .padding(.horizontal, Theme.s16)
+                                                .padding(.bottom, 10)
 
-                                taskSection
-                                    .padding(.horizontal, Theme.s16)
-                                    .padding(.bottom, 100)
+                                            heatmapSection
+                                                .padding(.horizontal, Theme.s16)
+                                                .padding(.bottom, 10)
+                                        } else {
+                                            todoHeaderSection
+                                                .padding(.horizontal, Theme.s16)
+                                                .padding(.top, 12)
+                                                .padding(.bottom, 10)
+                                        }
+
+                                        taskSection
+                                            .padding(.horizontal, Theme.s16)
+                                            .padding(.bottom, 100)
+                                    }
+                                    .padding(.top, 4)
+                                }
+                                .clipped()
+                                .refreshable { await vm.refresh() }
                             }
                         }
-                        .refreshable { await vm.refresh() }
                     } else {
                         WeeklyPlannerSection()
                             .padding(.horizontal, 8)

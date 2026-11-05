@@ -51,6 +51,81 @@ struct ListManagementView: View {
     private var isEmpty: Bool { activeLists.isEmpty && archivedLists.isEmpty }
 
     var body: some View {
+        #if os(macOS)
+        ZStack {
+            Theme.bg0.ignoresSafeArea()
+
+            if ThemeManager.shared.isDark {
+                ZStack {
+                    RadialGradient(
+                        colors: [Color(hex: "#3ECFFF").opacity(0.055), Color.clear],
+                        center: .init(x: 0.35, y: 0.0),
+                        startRadius: 0, endRadius: 300
+                    )
+                    RadialGradient(
+                        colors: [Color(hex: "#7C6FFF").opacity(0.035), Color.clear],
+                        center: .init(x: 0.8, y: 0.0),
+                        startRadius: 0, endRadius: 220
+                    )
+                }
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
+            }
+
+            if let detailID = navigationPath.last {
+                ListDetailView(listID: detailID, onBack: {
+                    if !navigationPath.isEmpty { navigationPath.removeLast() }
+                }).environmentObject(vm)
+            } else {
+                VStack(spacing: 0) {
+                    if isEmpty {
+                        emptyState
+                    } else {
+                        scrollContent
+                    }
+                }
+                .frame(maxWidth: 800)
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .sheet(isPresented: $showAdd) {
+            AddListSheet(onSwitchToAI: { showStarterList = true }).environmentObject(vm)
+        }
+        .sheet(isPresented: $showStarterList) {
+            StarterListSheet().environmentObject(vm)
+        }
+        .alert(
+            vm.localized("Delete List?"),
+            isPresented: Binding(get: { confirmDeleteList != nil }, set: { if !$0 { confirmDeleteList = nil } })
+        ) {
+            Button(vm.localized("Delete"), role: .destructive) {
+                if let list = confirmDeleteList,
+                   let idx = vm.lists.firstIndex(where: { $0.id == list.id }) {
+                    vm.deleteList(at: IndexSet(integer: idx))
+                }
+                confirmDeleteList = nil
+            }
+            Button(vm.localized("Cancel"), role: .cancel) { confirmDeleteList = nil }
+        } message: {
+            Text(String(format: vm.localized("Permanently delete \"%@\" and all its tasks?"), confirmDeleteList?.cleanName ?? ""))
+        }
+        .onAppear {
+            Analytics.logEvent(AnalyticsEventScreenView, parameters: [
+                AnalyticsParameterScreenName: "list_management",
+                AnalyticsParameterScreenClass: "ListManagementView"
+            ])
+            withAnimation(.spring(response: 0.55, dampingFraction: 0.8).delay(0.05)) { headerAppeared = true }
+            if activeLists.count >= 1 { triggerFirstListHintIfNeeded() }
+        }
+        .overlay {
+            if showFirstListHint {
+                firstListHintOverlay.transition(.opacity)
+            }
+        }
+        .onChange(of: activeLists.count) { _, newCount in
+            if newCount == 1 { triggerFirstListHintIfNeeded() }
+        }
+        #else
         NavigationStack(path: $navigationPath) {
             ZStack {
                 Theme.bg0.ignoresSafeArea()
@@ -76,12 +151,8 @@ struct ListManagementView: View {
                     if isEmpty {
                         emptyState
                     } else {
-                        #if os(iOS)
                         scrollContent
                             .environment(\.editMode, $editMode)
-                        #else
-                        scrollContent
-                        #endif
                     }
                 }
                 .frame(maxWidth: 800)
@@ -91,11 +162,7 @@ struct ListManagementView: View {
             // FIX: keep nav bar fully invisible — no system material on scroll
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
-            #if os(iOS)
             .toolbar { navigationBar }
-            #else
-            .toolbar(.hidden, for: .windowToolbar)
-            #endif
             .navigationDestination(for: UUID.self) { id in
                 ListDetailView(listID: id, onBack: {
                     if !navigationPath.isEmpty { navigationPath.removeLast() }
@@ -139,10 +206,12 @@ struct ListManagementView: View {
         .onChange(of: activeLists.count) { _, newCount in
             if newCount == 1 { triggerFirstListHintIfNeeded() }
         }
+        #endif
     }
 
     // MARK: - Navigation Bar
 
+    #if os(iOS)
     @ToolbarContentBuilder
     private var navigationBar: some ToolbarContent {
 
@@ -269,10 +338,54 @@ struct ListManagementView: View {
             .background(Color.clear)
         }
     }
+    #endif
 
     // MARK: - Scroll Content
 
     private var scrollContent: some View {
+        #if os(macOS)
+        VStack(spacing: 0) {
+            sectionHeader
+                .background(Theme.bg0)
+                .zIndex(20)
+
+            List {
+                ForEach(activeLists) { list in
+                    ObsidianListCard(
+                        list: list,
+                        isActive: vm.activeListID == list.id,
+                        onTap: { navigationPath.append(list.id) },
+                        onArchive: {
+                            withAnimation(.spring(response: 0.32, dampingFraction: 0.78)) { vm.archiveList(list) }
+                        },
+                        onDelete: { confirmDeleteList = list }
+                    )
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: 5, leading: 18, bottom: 5, trailing: 18))
+                }
+                .onMove { source, destination in
+                    moveActiveLists(from: source, to: destination)
+                }
+                .onDelete { offsets in
+                    for idx in offsets.sorted().reversed() {
+                        confirmDeleteList = activeLists[idx]
+                    }
+                }
+
+                if !archivedLists.isEmpty { archivedSection }
+
+                Color.clear.frame(height: 40)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+            }
+            .listRowSpacing(0)
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .clipped()
+            .refreshable { await vm.refresh() }
+        }
+        #else
         List {
             sectionHeader
                 .listRowBackground(Color.clear)
@@ -313,6 +426,7 @@ struct ListManagementView: View {
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .refreshable { await vm.refresh() }
+        #endif
     }
 
     // MARK: - Section Header
@@ -1481,6 +1595,7 @@ struct AddListSheet: View {
                 }
             }
             .background(Theme.bg0)
+            #if os(iOS)
             .navigationTitle(vm.localized("New List")).navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Theme.bg0, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
@@ -1506,6 +1621,9 @@ struct AddListSheet: View {
                     }
                 }
             }
+            #else
+            .toolbar(.hidden, for: .windowToolbar)
+            #endif
             .safeAreaInset(edge: .bottom) {
                 HStack(spacing: 10) {
                     Button {
@@ -1668,6 +1786,7 @@ struct RenameListSheet: View {
                 }
             }
             .background(Theme.bg0)
+            #if os(iOS)
             .navigationTitle(vm.localized("Rename List")).navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Theme.bg0, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
@@ -1676,6 +1795,9 @@ struct RenameListSheet: View {
                     Button(vm.localized("Cancel")) { dismiss() }.foregroundColor(Theme.text1)
                 }
             }
+            #else
+            .toolbar(.hidden, for: .windowToolbar)
+            #endif
             .safeAreaInset(edge: .bottom) {
                 HStack(spacing: 10) {
                     Button {
@@ -1894,6 +2016,7 @@ struct AddTaskSheet: View {
                     .padding(.top, 4)
                 }
             }
+            #if os(iOS)
             .navigationTitle(vm.localized("New Task")).navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Theme.bg0, for: .navigationBar).toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
@@ -1909,6 +2032,9 @@ struct AddTaskSheet: View {
                     .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || isSaving)
                 }
             }
+            #else
+            .toolbar(.hidden, for: .windowToolbar)
+            #endif
         }
         #if os(macOS)
         .frame(width: 450, height: detectedHealthType != .none || reminderTime != nil ? 400 : 330)
@@ -2205,6 +2331,7 @@ struct EditTaskSheet: View {
                     .animation(.spring(response: 0.3, dampingFraction: 0.75), value: showReminderConflictToast)
                 }
             }
+            #if os(iOS)
             .navigationTitle(vm.localized("Edit Task")).navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Theme.bg0, for: .navigationBar).toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
@@ -2218,6 +2345,9 @@ struct EditTaskSheet: View {
                     }.disabled(isSaving)
                 }
             }
+            #else
+            .toolbar(.hidden, for: .windowToolbar)
+            #endif
         }
         #if os(macOS)
         .frame(width: 440, height: task.isHealthTask ? 340 : 280)
@@ -2410,6 +2540,7 @@ struct ReminderPickerSheet: View {
                     .padding(.bottom, 16)
                 }
             }
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Theme.bg0, for: .navigationBar)
             .toolbarColorScheme(ThemeManager.shared.colorScheme, for: .navigationBar)
@@ -2418,6 +2549,9 @@ struct ReminderPickerSheet: View {
                     Button(vm.localized("Cancel")) { dismiss() }.foregroundColor(Theme.text1)
                 }
             }
+            #else
+            .toolbar(.hidden, for: .windowToolbar)
+            #endif
         }
         #if os(macOS)
         .frame(width: 400, height: mode == .daily ? 320 : 420)

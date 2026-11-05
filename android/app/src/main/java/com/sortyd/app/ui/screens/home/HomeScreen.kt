@@ -24,7 +24,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -252,20 +254,22 @@ fun HomeScreenContent(
         )
     }
 
+    val rightScrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(colors.bg0)
-            .verticalScroll(scrollState)
-            .padding(bottom = 80.dp),
+            .background(colors.bg0),
     ) {
-        // ── Header: Theme toggle & Account + List pills ──
+        // ── Pinned Top Header: Theme toggle & Account + List pills (Content scrolls underneath) ──
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
+                .background(colors.bg0)
+                .zIndex(10f)
                 .padding(start = 16.dp, end = 0.dp)
-                .padding(top = 2.dp, bottom = 0.dp),
+                .padding(top = 2.dp, bottom = 2.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -336,8 +340,8 @@ fun HomeScreenContent(
                     }
                 }
                 
-                Box(modifier = Modifier.align(Alignment.CenterStart).fillMaxHeight().width(12.dp).background(Brush.horizontalGradient(listOf(colors.bg0, Color.Transparent))))
-                Box(modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight().width(12.dp).background(Brush.horizontalGradient(listOf(Color.Transparent, colors.bg0))))
+                Box(modifier = Modifier.align(Alignment.CenterStart).height(44.dp).width(12.dp).background(Brush.horizontalGradient(listOf(colors.bg0, Color.Transparent))))
+                Box(modifier = Modifier.align(Alignment.CenterEnd).height(44.dp).width(12.dp).background(Brush.horizontalGradient(listOf(Color.Transparent, colors.bg0))))
             }
 
             val todoList = allLists.firstOrNull { it.isTodo }
@@ -374,109 +378,222 @@ fun HomeScreenContent(
             }
         }
 
-        if (showWeeklyPlanner) {
-            val plannerListId = allLists.firstOrNull { it.isTodo }?.id ?: list?.id
-            if (plannerListId != null && viewModel != null) {
-                WeeklyPlannerSection(
-                    viewModel = viewModel,
-                    language = language,
-                    targetListId = plannerListId,
-                    tasks = allLists.flatMap { it.tasks },
-                    modifier = Modifier.padding(bottom = 24.dp)
-                )
-            }
-        } else {
-        if (isTodoActive) {
-            TodoModeSection(
-                tasks = tasks,
-                onToggleTask = { taskId -> onToggleTask(taskId, list?.id ?: "") },
-                onEditTask = { task -> editingTodoTask = task },
-                onDeleteTask = { taskId -> onDeleteTask(taskId, list?.id ?: "") },
-                onAddTask = { showAddTask = true },
-                healthProgress = healthProgress,
-                language = language,
-                modifier = Modifier.padding(horizontal = 16.dp).padding(top = 12.dp)
-            )
-        } else {
-        // ── Hero Section ──
-        val heroTitle = if (!hasRealLists) "" else (list?.cleanName ?: "GET TRACKING")
-        Column(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 4.dp)) {
-            Text(
-                heroTitle.uppercase(),
-                color = colors.accent,
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp, fontSize = 10.sp).glow(colors.accent, 4f),
-                modifier = Modifier.padding(bottom = 4.dp)
-            )
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        "$percentage%",
-                        style = HeroPercentageStyle.copy(fontSize = 92.sp, fontFamily = MaterialTheme.typography.displaySmall.fontFamily, letterSpacing = (-2).sp).glow(colors.accent, 12f),
-                        color = colors.accent,
+        // ── Adaptive Scrollable Body Underneath Pinned Top Header (Supports Foldables / Duo / Split-Screen) ──
+        BoxWithConstraints(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .clipToBounds()
+        ) {
+            val isWideFoldable = maxWidth >= 600.dp && !showWeeklyPlanner && !isTodoActive
+
+            if (showWeeklyPlanner) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                        .padding(bottom = 80.dp)
+                ) {
+                    val plannerListId = allLists.firstOrNull { it.isTodo }?.id ?: list?.id
+                    if (plannerListId != null && viewModel != null) {
+                        WeeklyPlannerSection(
+                            viewModel = viewModel,
+                            language = language,
+                            targetListId = plannerListId,
+                            tasks = allLists.flatMap { it.tasks },
+                            modifier = Modifier.padding(bottom = 24.dp)
+                        )
+                    }
+                }
+            } else if (isTodoActive) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                        .padding(bottom = 80.dp)
+                ) {
+                    TodoModeSection(
+                        tasks = tasks,
+                        onToggleTask = { taskId -> onToggleTask(taskId, list?.id ?: "") },
+                        onEditTask = { task -> editingTodoTask = task },
+                        onDeleteTask = { taskId -> onDeleteTask(taskId, list?.id ?: "") },
+                        onAddTask = { showAddTask = true },
+                        healthProgress = healthProgress,
+                        language = language,
+                        modifier = Modifier.padding(horizontal = 16.dp).padding(top = 12.dp)
                     )
-            Text(SortydStrings.t(language, "Done Today"), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium, fontSize = 12.sp), color = colors.text2, modifier = Modifier.offset(y = (-10).dp))
                 }
-                Column(horizontalAlignment = Alignment.End) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("🔥", fontSize = 18.sp)
-                        Spacer(Modifier.width(2.dp))
-                        Text("$streak", style = MaterialTheme.typography.displayLarge.copy(fontSize = 56.sp, fontWeight = FontWeight.Black, letterSpacing = (-1).sp), color = colors.text0)
-                    }
-                    Text(SortydStrings.t(language, "DAY STREAK"), style = MaterialTheme.typography.labelSmall.copy(fontSize = 7.sp, letterSpacing = 1.0.sp, fontWeight = FontWeight.Bold), color = colors.text2, modifier = Modifier.offset(y = (-6).dp))
-                }
-            }
-        }
-
-        HeatmapCalendar(
-            snapshots = snapshotMap,
-            installDate = installDate,
-            currentMonth = currentMonth,
-            onDayTap = { selectedDay = it },
-            onMonthPickerTap = { showMonthPicker = true },
-            onGoToToday = { currentMonth = YearMonth.now() },
-            modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp),
-            language = language
-        )
-
-        SectionLabel(
-            SortydStrings.t(language, "Tasks"),
-            badge = if (totalTasks > 0) "$doneTasks ${SortydStrings.t(language, "done")} · ${totalTasks - doneTasks} ${SortydStrings.t(language, "left")}" else null,
-            actionContent = {
-                if (isTodoActive && hasRealLists) {
-                    Button(
-                        onClick = { showAddTask = true },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF4CAF50).copy(alpha = 0.12f),
-                            contentColor = Color(0xFF4CAF50)
-                        ),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 5.dp),
-                        modifier = Modifier.height(28.dp),
-                        shape = CircleShape
+            } else if (isWideFoldable) {
+                // 2-Column Foldable / Dual-Screen / Landscape Layout (Left & Right scroll independently underneath header)
+                val heroTitle = if (!hasRealLists) "" else (list?.cleanName ?: "GET TRACKING")
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .weight(0.46f)
+                            .fillMaxHeight()
+                            .clipToBounds()
+                            .verticalScroll(scrollState)
+                            .padding(top = 4.dp, bottom = 80.dp)
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(12.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text(SortydStrings.t(language, "Add Task"), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, fontSize = 11.sp))
+                        Column(modifier = Modifier.padding(horizontal = 4.dp).padding(bottom = 4.dp)) {
+                            Text(
+                                heroTitle.uppercase(),
+                                color = colors.accent,
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp, fontSize = 10.sp).glow(colors.accent, 4f),
+                                modifier = Modifier.padding(bottom = 4.dp)
+                            )
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(
+                                        "$percentage%",
+                                        style = HeroPercentageStyle.copy(fontSize = 76.sp, fontFamily = MaterialTheme.typography.displaySmall.fontFamily, letterSpacing = (-2).sp).glow(colors.accent, 12f),
+                                        color = colors.accent,
+                                    )
+                                    Text(SortydStrings.t(language, "Done Today"), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium, fontSize = 12.sp), color = colors.text2, modifier = Modifier.offset(y = (-8).dp))
+                                }
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("🔥", fontSize = 16.sp)
+                                        Spacer(Modifier.width(2.dp))
+                                        Text("$streak", style = MaterialTheme.typography.displayLarge.copy(fontSize = 48.sp, fontWeight = FontWeight.Black, letterSpacing = (-1).sp), color = colors.text0)
+                                    }
+                                    Text(SortydStrings.t(language, "DAY STREAK"), style = MaterialTheme.typography.labelSmall.copy(fontSize = 7.sp, letterSpacing = 1.0.sp, fontWeight = FontWeight.Bold), color = colors.text2, modifier = Modifier.offset(y = (-4).dp))
+                                }
+                            }
+                        }
+
+                        HeatmapCalendar(
+                            snapshots = snapshotMap,
+                            installDate = installDate,
+                            currentMonth = currentMonth,
+                            onDayTap = { selectedDay = it },
+                            onMonthPickerTap = { showMonthPicker = true },
+                            onGoToToday = { currentMonth = YearMonth.now() },
+                            modifier = Modifier.padding(horizontal = 4.dp).padding(bottom = 8.dp),
+                            language = language
+                        )
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .weight(0.54f)
+                            .fillMaxHeight()
+                            .clipToBounds()
+                            .verticalScroll(rightScrollState)
+                            .padding(top = 4.dp, bottom = 80.dp)
+                    ) {
+                        SectionLabel(
+                            SortydStrings.t(language, "Tasks"),
+                            badge = if (totalTasks > 0) "$doneTasks ${SortydStrings.t(language, "done")} · ${totalTasks - doneTasks} ${SortydStrings.t(language, "left")}" else null,
+                            actionContent = {}
+                        )
+
+                        if (!hasRealLists) {
+                            HomeEmptyState(language = language, onCreateList = { onNavigateToLists() })
+                        } else if (tasks.isEmpty()) {
+                            EmptyState(icon = "📋", title = SortydStrings.t(language, "Nothing here yet"), subtitle = SortydStrings.t(language, "Add today's tasks for a fresh start."))
+                        } else {
+                            Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+                                tasks.forEach { task ->
+                                    TaskRow(task, healthProgress[task.id] ?: 0.0, { onToggleTask(task.id, list?.id ?: "") }, modifier = Modifier.padding(vertical = 5.dp), language = language)
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Standard Single-Column Scroll Underneath Pinned Top Header
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clipToBounds()
+                        .verticalScroll(scrollState)
+                        .padding(bottom = 80.dp)
+                ) {
+                    val heroTitle = if (!hasRealLists) "" else (list?.cleanName ?: "GET TRACKING")
+                    Column(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 4.dp)) {
+                        Text(
+                            heroTitle.uppercase(),
+                            color = colors.accent,
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp, fontSize = 10.sp).glow(colors.accent, 4f),
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        )
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    "$percentage%",
+                                    style = HeroPercentageStyle.copy(fontSize = 92.sp, fontFamily = MaterialTheme.typography.displaySmall.fontFamily, letterSpacing = (-2).sp).glow(colors.accent, 12f),
+                                    color = colors.accent,
+                                )
+                                Text(SortydStrings.t(language, "Done Today"), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium, fontSize = 12.sp), color = colors.text2, modifier = Modifier.offset(y = (-10).dp))
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("🔥", fontSize = 18.sp)
+                                    Spacer(Modifier.width(2.dp))
+                                    Text("$streak", style = MaterialTheme.typography.displayLarge.copy(fontSize = 56.sp, fontWeight = FontWeight.Black, letterSpacing = (-1).sp), color = colors.text0)
+                                }
+                                Text(SortydStrings.t(language, "DAY STREAK"), style = MaterialTheme.typography.labelSmall.copy(fontSize = 7.sp, letterSpacing = 1.0.sp, fontWeight = FontWeight.Bold), color = colors.text2, modifier = Modifier.offset(y = (-6).dp))
+                            }
+                        }
+                    }
+
+                    HeatmapCalendar(
+                        snapshots = snapshotMap,
+                        installDate = installDate,
+                        currentMonth = currentMonth,
+                        onDayTap = { selectedDay = it },
+                        onMonthPickerTap = { showMonthPicker = true },
+                        onGoToToday = { currentMonth = YearMonth.now() },
+                        modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp),
+                        language = language
+                    )
+
+                    SectionLabel(
+                        SortydStrings.t(language, "Tasks"),
+                        badge = if (totalTasks > 0) "$doneTasks ${SortydStrings.t(language, "done")} · ${totalTasks - doneTasks} ${SortydStrings.t(language, "left")}" else null,
+                        actionContent = {
+                            if (isTodoActive && hasRealLists) {
+                                Button(
+                                    onClick = { showAddTask = true },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF4CAF50).copy(alpha = 0.12f),
+                                        contentColor = Color(0xFF4CAF50)
+                                    ),
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 5.dp),
+                                    modifier = Modifier.height(28.dp),
+                                    shape = CircleShape
+                                ) {
+                                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(12.dp))
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(SortydStrings.t(language, "Add Task"), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold, fontSize = 11.sp))
+                                }
+                            }
+                        }
+                    )
+
+                    if (!hasRealLists) {
+                        HomeEmptyState(language = language, onCreateList = { onNavigateToLists() })
+                    } else if (tasks.isEmpty()) {
+                        if (isTodoActive) {
+                            TodoEmptyState(language = language, onAddTask = { showAddTask = true })
+                        } else {
+                            EmptyState(icon = "📋", title = SortydStrings.t(language, "Nothing here yet"), subtitle = SortydStrings.t(language, "Add today's tasks for a fresh start."))
+                        }
+                    } else {
+                        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            tasks.forEach { task ->
+                                TaskRow(task, healthProgress[task.id] ?: 0.0, { onToggleTask(task.id, list?.id ?: "") }, modifier = Modifier.padding(vertical = 5.dp), language = language)
+                            }
+                        }
                     }
                 }
             }
-        )
-
-        if (!hasRealLists) {
-            HomeEmptyState(language = language, onCreateList = { onNavigateToLists() })
-        } else if (tasks.isEmpty()) {
-            if (isTodoActive) {
-                TodoEmptyState(language = language, onAddTask = { showAddTask = true })
-            } else {
-                EmptyState(icon = "📋", title = SortydStrings.t(language, "Nothing here yet"), subtitle = SortydStrings.t(language, "Add today's tasks for a fresh start."))
-            }
-        } else {
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                tasks.forEach { task ->
-                    TaskRow(task, healthProgress[task.id] ?: 0.0, { onToggleTask(task.id, list?.id ?: "") }, modifier = Modifier.padding(vertical = 5.dp), language = language)
-                }
-            }
-        }
-        }
         }
     }
 }
